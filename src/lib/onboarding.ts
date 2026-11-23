@@ -8,7 +8,8 @@ import type { Profil } from "./etat";
 
 const CLE = "lootclip:onboarding";
 
-export type Reponses = Partial<Profil>;
+/** `heures` (jeu par semaine) ne sert qu'à calculer `frequence`. */
+export type Reponses = Partial<Profil> & { heures?: number };
 
 export function lireReponses(): Reponses {
   try {
@@ -31,6 +32,9 @@ export const effacerReponses = () => {
 };
 
 export const objectifBooste = (objectif: number) => Math.round(objectif * ONBOARDING.bonusObjectif);
+
+/** Nombre de vidéos par semaine que ses heures de jeu permettent. */
+export const videosPourHeures = (heures: number) => Math.min(ONBOARDING.videosParSemaineMax, Math.max(1, Math.round(heures * ONBOARDING.videosParHeure)));
 
 /** Nombre de vidéos par mois pour un rythme hebdomadaire. */
 export const videosParMois = (parSemaine: number) => Math.round((parSemaine * 52) / 12);

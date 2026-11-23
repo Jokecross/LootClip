@@ -9,7 +9,7 @@ import { arreter, lienGestion, reprendre, resilier } from "@/lib/abonnement";
 import { GRATUIT, MENTION_OBJECTIF, OFFRES_PAYANTES, PURGE_CLIPS_JOURS } from "@/lib/config";
 import { modifier, useEtat } from "@/lib/etat";
 import { deconnecter, supprimerCompte } from "@/lib/serveur";
-import { date, euros, nombre } from "@/lib/format";
+import { date, euros, nombre, videos } from "@/lib/format";
 import { quota } from "@/lib/montage";
 import { objectifBooste } from "@/lib/onboarding";
 import { eur, montant, unite } from "@/lib/prix";
@@ -88,7 +88,7 @@ export default function Compte() {
             Ton objectif XPclip
           </p>
           <p className="titre mt-1 text-[26px]">{nombre(objectifBooste(compte.profil.objectif))}&nbsp;€ par mois</p>
-          <p className="mt-1 text-[14px] text-encre2">Ton plan : {compte.profil.frequence} vidéos par semaine.</p>
+          <p className="mt-1 text-[14px] text-encre2">Ton plan : {videos(compte.profil.frequence)} par semaine.</p>
           <p className="mt-2 text-[11px] text-encre2">{MENTION_OBJECTIF}</p>
         </section>
       )}

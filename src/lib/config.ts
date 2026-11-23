@@ -91,12 +91,19 @@ export const TAUX = { bas: 0.4, haut: 1.0 };
 
 
 
+const suite = (de: number, a: number, pas: number) => Array.from({ length: Math.round((a - de) / pas) + 1 }, (_, i) => de + i * pas);
+
 /** Onboarding : l'objectif affiché est relevé de 6 % pour viser au-dessus. */
 export const ONBOARDING = {
-  objectifs: [100, 500, 1000, 5000],
-  objectifMin: 10,
-  objectifMax: 100_000,
-  frequences: [3, 7, 14],
+  // Les cases de la roue « objectif » : 50 → 500 → 2 000 → 5 000 → 10 000.
+  objectifs: [...suite(50, 500, 50), ...suite(600, 2000, 100), ...suite(2250, 5000, 250), ...suite(5500, 10_000, 500)],
+  // Les cases de la roue « heures de jeu par semaine ».
+  heures: suite(1, 40, 1),
+  heuresParDefaut: 8,
+  // Notre repère, à ajuster avec les vrais joueurs : une heure de jeu donne de quoi monter une vidéo.
+  videosParHeure: 1,
+  // Plafond : 3 vidéos par jour.
+  videosParSemaineMax: 21,
   bonusObjectif: 1.06,
   // Valeurs prises si quelqu'un se connecte sans être passé par l'onboarding.
   objectifParDefaut: 500,

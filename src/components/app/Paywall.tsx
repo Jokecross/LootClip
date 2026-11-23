@@ -12,7 +12,7 @@ import { Lancement } from "@/components/tarifs/Lancement";
 import { commander } from "@/lib/abonnement";
 import { MENTION_OBJECTIF, ONBOARDING, OFFRES_PAYANTES, PASTILLE_PRO, type OffrePayante, type Periodicite } from "@/lib/config";
 import { useEtat } from "@/lib/etat";
-import { nombre } from "@/lib/format";
+import { nombre, videos } from "@/lib/format";
 import { objectifBooste, offreConseillee } from "@/lib/onboarding";
 import { eur, lancementActif, libelleBouton, libelleFacturation, libelleJour, montant, parJour } from "@/lib/prix";
 import { deconnecter } from "@/lib/serveur";
@@ -85,7 +85,7 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
             <h1 id="t-paywall" className="titre mt-1 text-[34px] lg:text-[64px]">
               {nombre(objectifBooste(objectif))}&nbsp;€ par mois
             </h1>
-            <p className="mt-1.5 text-[14px] text-encre2 lg:mt-3 lg:text-[18px]">Ton plan : {frequence} vidéos par semaine.</p>
+            <p className="mt-1.5 text-[14px] text-encre2 lg:mt-3 lg:text-[18px]">Ton plan : {videos(frequence)} par semaine.</p>
           </div>
           {fermer && (
             <button type="button" onClick={fermer} className="bouton bouton-carre shrink-0" aria-label="Fermer">

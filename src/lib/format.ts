@@ -4,6 +4,9 @@ const nf = new Intl.NumberFormat("fr-FR");
 
 export const nombre = (n: number) => nf.format(Math.round(n));
 
+/** 1 → « 1 vidéo » ; 8 → « 8 vidéos » */
+export const videos = (n: number) => `${nombre(n)} vidéo${n >= 2 ? "s" : ""}`;
+
 /** 1 200 000 → « 1,2 M » ; 350 000 → « 350 000 » */
 export function nombreCourt(n: number) {
   if (n >= 1_000_000) return `${new Intl.NumberFormat("fr-FR", { maximumFractionDigits: 1 }).format(n / 1_000_000)} M`;

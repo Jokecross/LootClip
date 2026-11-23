@@ -143,8 +143,10 @@ async function charger(user: User | null) {
       .eq("id", user.id)
       .select()
       .maybeSingle();
-    if (data) profil = data as LigneProfil;
-    effacerReponses();
+    if (data) {
+      profil = data as LigneProfil;
+      effacerReponses();
+    }
   }
 
   const [{ data: montages }, { data: factures }] = await Promise.all([
