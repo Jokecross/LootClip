@@ -2,8 +2,9 @@
 /*
  * Le paiement Whop, affiché par-dessus la page : le joueur ne quitte pas XPclip et ne perd pas ses clips.
  * Le prix vient de la commande préparée par le serveur.
+ * Deux vues : Apple Pay et Google Pay d'abord, la carte seulement si on la demande (ou sans portefeuille sur l'appareil).
  */
-import { Checkout, CheckoutElement, WhopElements } from "@whop/elements-react";
+import { Checkout, CheckoutElement, ExpressCheckoutElement, WhopElements } from "@whop/elements-react";
 import { loadWhop } from "@whop/elements";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -11,6 +12,32 @@ import { confirmer } from "@/lib/abonnement";
 import { OFFRES_PAYANTES, SITE, type OffrePayante, type Periodicite } from "@/lib/config";
 import { useEtat } from "@/lib/etat";
 import { eur, unite } from "@/lib/prix";
+
+/** On ne garde que le minimum du formulaire de Whop : le prix est déjà en haut, l'e-mail vient du compte. */
+const CACHE = { display: "none" };
+const APPARENCE = {
+  theme: { appearance: "light" as const, accentColor: "pink" as const },
+  classes: {
+    "whop-CheckoutDetails": CACHE,
+    "whop-CheckoutExpress": CACHE,
+    "whop-CheckoutExpressDivider": CACHE,
+    "whop-CheckoutRequirements": CACHE,
+    "whop-CheckoutCompanyPurchase": CACHE,
+    "whop-PaymentMethodRow": CACHE,
+    "whop-CardLabel": CACHE,
+    // Plus de cadres imbriqués : un seul carré.
+    "whop-Checkout": { padding: "0" },
+    "whop-CheckoutCollection": { padding: "14px" },
+    "whop-PaymentMethods": { border: "none", boxShadow: "none" },
+    "whop-PaymentMethod": { border: "none", boxShadow: "none" },
+    "whop-PaymentMethodDetail": { padding: "0" },
+    "whop-PaymentDetailRegion": { padding: "0" },
+    "whop-CheckoutPayButton": { backgroundColor: "#f05fa5", color: "#1a0b2e", border: "2px solid #1a0b2e", borderRadius: "14px", fontWeight: "700", height: "52px" },
+  },
+};
+// Sans e-mail connu, le champ doit rester visible, sinon le paiement serait bloqué.
+const APPARENCE_AVEC_EMAIL = { ...APPARENCE, classes: { ...APPARENCE.classes, "whop-CheckoutRequirements": {} } };
+const APPARENCE_EXPRESS = { theme: APPARENCE.theme };
 
 export type Achat = { commande: string; offre: OffrePayante; periodicite: Periodicite; montant: number };
 
@@ -20,6 +47,21 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
   const [activation, setActivation] = useState(false);
   const [lent, setLent] = useState("");
   const fini = useRef(false);
+  const [vue, setVue] = useState<"express" | "carte">("express");
+  const [pretExpress, setPretExpress] = useState(false);
+  const boutons = useRef<HTMLDivElement>(null);
+
+  // Aucun portefeuille sur cet appareil : l'élément Whop finit vide, on passe à la carte sans faire attendre.
+  useEffect(() => {
+    if (vue !== "express") return;
+    let vide = 0;
+    const t0 = Date.now();
+    const id = setInterval(() => {
+      vide = (boutons.current?.offsetHeight ?? 0) < 36 ? vide + 1 : 0;
+      if (vide >= 5 && (pretExpress || Date.now() - t0 > 6000)) setVue("carte");
+    }, 250);
+    return () => clearInterval(id);
+  }, [vue, pretExpress]);
   // Chargé au premier paiement seulement : rien de Whop sur les autres pages.
   const [elements] = useState(() => loadWhop());
 
@@ -92,21 +134,48 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
         )}
 
         {!activation && !erreur && (
-          <div className="carte mt-5 w-full overflow-hidden">
+          <>
             {/* skipPixel : pas de traceur publicitaire Whop sur XPclip */}
-            <WhopElements elements={elements} locale="fr" skipPixel onLoadError={() => setErreur(true)} appearance={{ theme: { appearance: "light", accentColor: "pink" } }}>
+            <WhopElements elements={elements} locale="fr" skipPixel onLoadError={() => setErreur(true)} appearance={APPARENCE}>
               <Checkout
+                key={vue}
                 analytics={false}
                 checkoutConfiguration={achat.commande}
                 returnUrl={`${SITE}/app/merci`}
+                appearance={vue === "express" ? APPARENCE_EXPRESS : etat.compte?.email ? APPARENCE : APPARENCE_AVEC_EMAIL}
                 onComplete={(c) => {
                   if (c.result === "payment") terminer(c.paymentId);
                 }}
               >
-                <CheckoutElement buyerEmail={etat.compte?.email} onError={() => setErreur(true)} />
+                {vue === "express" ? (
+                  <div className="mt-6">
+                    <div ref={boutons}>
+                      <ExpressCheckoutElement wallets={{ payPal: "never" }} layout="vertical" onReady={() => setPretExpress(true)} onError={() => setVue("carte")} />
+                    </div>
+                    <button type="button" onClick={() => setVue("carte")} className="bouton bouton-blanc mt-3 w-full">
+                      Payer par carte
+                    </button>
+                    <p className="mt-4 text-center text-[12px] leading-snug text-encre2">
+                      En payant, tu acceptes les{" "}
+                      <a href="/legal/cgv" target="_blank" rel="noopener" className="underline">
+                        conditions de vente
+                      </a>
+                      . Renouvellement automatique.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="carte mt-5 w-full overflow-hidden">
+                    <CheckoutElement
+                      buyerEmail={etat.compte?.email}
+                      lockBuyerEmail={!!etat.compte?.email}
+                      defaultValues={{ billingDetails: { address: { country: "FR" } } }}
+                      onError={() => setErreur(true)}
+                    />
+                  </div>
+                )}
               </Checkout>
             </WhopElements>
-          </div>
+          </>
         )}
         <p className="mt-auto pt-6 text-center text-[12px] text-encre2">Paiement traité par Whop. XPclip ne voit jamais ta carte.</p>
       </div>
