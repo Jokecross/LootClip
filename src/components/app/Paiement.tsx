@@ -7,7 +7,6 @@ import { Checkout, CheckoutElement, WhopElements } from "@whop/elements-react";
 import { loadWhop } from "@whop/elements";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { afficherToast } from "@/components/ui/Toast";
 import { confirmer } from "@/lib/abonnement";
 import { OFFRES_PAYANTES, SITE, type OffrePayante, type Periodicite } from "@/lib/config";
 import { useEtat } from "@/lib/etat";
@@ -19,6 +18,7 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
   const etat = useEtat();
   const [erreur, setErreur] = useState(false);
   const [activation, setActivation] = useState(false);
+  const [lent, setLent] = useState("");
   const fini = useRef(false);
   // Chargé au premier paiement seulement : rien de Whop sur les autres pages.
   const [elements] = useState(() => loadWhop());
@@ -35,10 +35,14 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
     if (fini.current) return;
     fini.current = true;
     setActivation(true);
-    const ok = await confirmer(paiement);
-    if (ok) return reussi();
-    afficherToast("Paiement reçu. Ton offre s'ouvre dans quelques minutes.");
-    fermer();
+    verifier(paiement);
+  }
+
+  /** On ne revient jamais à l'écran des offres après un paiement : le joueur paierait deux fois. */
+  async function verifier(paiement: string) {
+    setLent("");
+    if (await confirmer(paiement)) return reussi();
+    setLent(paiement);
   }
 
   return createPortal(
@@ -51,7 +55,7 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
               {eur(achat.montant)} {unite(achat.periodicite)}
             </h1>
             <p className="mt-1.5 text-[14px] text-encre2">
-              {activation ? "Paiement reçu. On ouvre ton offre." : achat.periodicite === "mensuel" ? "Tous les 30 jours. Résilie quand tu veux." : "Une fois par an. Résilie quand tu veux."}
+              {activation ? "Paiement envoyé. On ouvre ton offre." : achat.periodicite === "mensuel" ? "Tous les 30 jours. Résilie quand tu veux." : "Une fois par an. Résilie quand tu veux."}
             </p>
           </div>
           {!activation && (
@@ -63,7 +67,15 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
           )}
         </div>
 
-        {activation ? (
+        {lent ? (
+          <div className="carte mt-5 p-4 text-[15px]" role="status">
+            <p className="font-bold">Ta banque confirme encore le paiement.</p>
+            <p className="mt-1 text-[14px] text-encre2">Ton offre s&apos;ouvre dès que c&apos;est bon. Ne paie pas deux fois.</p>
+            <button type="button" onClick={() => verifier(lent)} className="bouton bouton-rose mt-4 w-full">
+              Vérifier maintenant
+            </button>
+          </div>
+        ) : activation ? (
           <div className="carte mt-5 flex min-h-40 items-center justify-center gap-3 p-4 text-[15px] font-bold" role="status">
             <span className="h-6 w-6 rounded-full border-[3px] border-encre border-t-transparent" style={{ animation: "tourne .8s linear infinite" }} aria-hidden="true" />
             Un instant…

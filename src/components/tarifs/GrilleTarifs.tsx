@@ -121,7 +121,7 @@ export function GrilleTarifs({ compacte = false }: { compacte?: boolean }) {
         <p className="mt-2 text-center text-[13px] font-bold">Tu changes d&apos;offre ? Le reste payé devient des jours offerts.</p>
       )}
       <p className="mt-2 text-center text-[13px] leading-relaxed text-encre2 lg:mt-6 lg:text-[15px]">
-        Sans engagement. Résiliation en deux clics. Première vidéo gratuite avec filigrane.
+        Sans engagement. Résiliation en deux clics.
         {compacte && (
           <>
             {" "}

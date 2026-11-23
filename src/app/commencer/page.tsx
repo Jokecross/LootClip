@@ -1,17 +1,18 @@
 "use client";
 /*
- * Onboarding en 8 écrans, moins de 2 minutes avant le dépôt.
+ * Onboarding en 8 écrans. L'écran des offres s'affiche après la création du compte, avant le dépôt des clips.
  * Une action par écran, bouton principal en bas, barre de progression en haut, retour possible.
  * L'étape est dans l'adresse (?e=3) : le bouton retour du téléphone marche aussi.
  */
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { FormulaireCompte } from "@/components/compte/FormulaireCompte";
+import { Paywall } from "@/components/app/Paywall";
 import { CadreBureau } from "@/components/marque/CadreBureau";
 import { Logo } from "@/components/marque/Logo";
 import { Entete, Options } from "@/components/ui/Parcours";
 import { MENTION_OBJECTIF, NON_AFFILIATION, ONBOARDING } from "@/lib/config";
-import { modifier, useEtat, type Profil } from "@/lib/etat";
+import { aAcces, modifier, useEtat, type Profil } from "@/lib/etat";
 import { rafraichir } from "@/lib/serveur";
 import { nombre, vuesLisibles } from "@/lib/format";
 import { ecrireReponses, lireReponses, mettreEnAttente, plan, type Reponses } from "@/lib/onboarding";
@@ -93,6 +94,9 @@ function Onboarding() {
 
   if (!pret) return <div className="min-h-dvh bg-fond" />;
 
+  // Onboarding terminé : l'écran des offres, puis les clips une fois l'abonnement pris.
+  if (n === 8 && etat.compte && !aAcces(etat)) return <Paywall ouvert moment="entree" apresPaiement={() => {}} />;
+
   const objectif = r.objectif ?? 0;
   const p = r.objectif && r.frequence ? plan(r.objectif, r.frequence) : null;
   const libreNombre = Number(libre);
@@ -126,7 +130,7 @@ function Onboarding() {
       action = { libelle: "Commencer", faire: suivant, actif: true };
       pied = (
         <>
-          <p className="mt-3 text-center text-[13px] font-bold">Première vidéo gratuite. Sans carte bancaire.</p>
+          <p className="mt-3 text-center text-[13px] font-bold">Sans engagement. Résiliation en deux clics.</p>
           <p className="mt-2 text-center text-[11px] text-encre2">{NON_AFFILIATION}</p>
         </>
       );

@@ -12,8 +12,11 @@ export const STYLES = {
 export type Style = keyof typeof STYLES;
 const TOUS_LES_STYLES = Object.keys(STYLES) as Style[];
 
-/** La version gratuite : 1 vidéo avec filigrane, tous les styles pour bien essayer. */
-export const GRATUIT = { nom: "Gratuit", videos: 1, filigrane: true, styles: TOUS_LES_STYLES };
+/**
+ * Compte sans abonnement : pas d'accès à l'appli, l'écran des offres s'affiche juste après l'onboarding (choix du 23/11/2026).
+ * Remettre un essai = changer `videos` ici, la limite dans creer_montage (base) et les textes de la landing.
+ */
+export const GRATUIT = { nom: "Aucune offre", videos: 0, filigrane: true, styles: TOUS_LES_STYLES };
 
 /** Offres payantes. Prix mensuels TTC en euros. */
 export const OFFRES_PAYANTES = {

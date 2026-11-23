@@ -20,5 +20,5 @@ SaaS mobile-first en français : les captures GTA 6 d'un joueur console devienne
 - Aucun logo, typo, personnage ou visuel de GTA ou de Rockstar. « GTA 6 » seulement dans les textes.
 - XPclip fait des clips, point : aucune mention des règles de monétisation TikTok (seuils, programme de récompenses). Pas de voix off ni de sous-titres en v1, seulement l'accroche écrite.
 - Le montant de l'onboarding et de l'écran des offres est toujours un « objectif » : jamais « estimation », « tu vas gagner », « gains prévus » ni « revenu estimé » à côté.
-- L'écran des offres (`Paywall`) n'apparaît qu'à 2 moments : téléchargement sans filigrane, lancement de la 2e vidéo.
+- Pas d'essai gratuit (décision du 23/11/2026) : l'écran des offres (`Paywall`) s'affiche après l'onboarding, et bloque l'appli sans abonnement.
 - Zones tactiles de 48 px minimum, colonne de 480 px max dans l'appli.

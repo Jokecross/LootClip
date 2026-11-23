@@ -187,7 +187,7 @@ function Resultat({ video }: { video: Video }) {
     <div className="entree lg:grid lg:grid-cols-[280px_1fr] lg:items-start lg:gap-x-8 xl:grid-cols-[380px_1fr] xl:gap-x-12 [&>*]:lg:col-start-2">
       <div className="flex items-start justify-between gap-3">
         <h1 className="titre text-[30px] lg:text-[38px] xl:text-[48px]">Ta vidéo est prête.</h1>
-        <span className="pastille mt-1 shrink-0 rotate-2 bg-turquoise lg:mt-3">{gratuit ? "1 sur 1 gratuite" : `${q.restant} restantes`}</span>
+        {!gratuit && <span className="pastille mt-1 shrink-0 rotate-2 bg-turquoise lg:mt-3">{q.restant} restantes</span>}
       </div>
 
       {/* Ordinateur : « contents » libère le lecteur et les infos dans la grille de la page */}

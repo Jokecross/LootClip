@@ -19,7 +19,7 @@ const PAGES: Record<string, { titre: string; blocs: { h: string; p: string[] }[]
       {
         h: "Offres",
         p: [
-          "Gratuit : 1 vidéo, avec filigrane XPclip, sans carte bancaire.",
+          "XPclip est accessible avec un abonnement payant.",
           "Starter : 9,99 € TTC par mois, 20 vidéos par mois, sans filigrane.",
           "Pro : 19,99 € TTC par mois, 60 vidéos par mois, tous les styles, montage prioritaire.",
           "Max : 49,99 € TTC par mois, 200 vidéos par mois, plusieurs pages TikTok.",

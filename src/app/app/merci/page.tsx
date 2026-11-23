@@ -35,8 +35,8 @@ export default function Merci() {
       <h1 className="titre text-[32px] lg:text-[48px]">{titre}</h1>
       <p className="mt-2 text-[15px] text-encre2">{texte}</p>
       {vue !== "attente" && (
-        <Link href={vue === "echec" ? "/tarifs" : "/app/creer"} className="bouton bouton-rose mt-6 w-full lg:max-w-[320px]">
-          {vue === "echec" ? "Revoir les offres" : "Créer une vidéo"}
+        <Link href={vue === "echec" ? "/app/creer" : etat.videos.length ? "/app/creer" : "/commencer?e=8"} className="bouton bouton-rose mt-6 w-full lg:max-w-[320px]">
+          {vue === "echec" ? "Revoir les offres" : etat.videos.length ? "Créer une vidéo" : "Déposer mes clips"}
         </Link>
       )}
     </div>

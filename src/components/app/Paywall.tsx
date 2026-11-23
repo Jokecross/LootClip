@@ -1,9 +1,10 @@
 "use client";
 /*
- * L'écran des offres. Il n'apparaît qu'à deux moments :
- * au téléchargement sans filigrane, et au lancement de la deuxième vidéo.
+ * L'écran des offres. Sans abonnement, on n'entre pas dans l'appli : il s'affiche à la fin de
+ * l'onboarding (/commencer) et à l'entrée de l'appli (app/layout), sans bouton pour le fermer.
  * Le montant en haut est toujours un « objectif », jamais une estimation de gains.
  */
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Bascule } from "@/components/tarifs/Bascule";
@@ -14,12 +15,13 @@ import { useEtat } from "@/lib/etat";
 import { nombre } from "@/lib/format";
 import { objectifBooste, offreConseillee } from "@/lib/onboarding";
 import { eur, lancementActif, libelleBouton, libelleFacturation, libelleJour, montant, parJour } from "@/lib/prix";
+import { deconnecter } from "@/lib/serveur";
 import { suivre } from "@/lib/suivi";
 import { Paiement, type Achat } from "./Paiement";
 
-export type MomentPaywall = "telechargement" | "deuxieme_video";
+export type MomentPaywall = "entree" | "telechargement" | "deuxieme_video";
 
-export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boolean; moment: MomentPaywall; fermer: () => void; apresPaiement: () => void }) {
+export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boolean; moment: MomentPaywall; fermer?: () => void; apresPaiement: () => void }) {
   const etat = useEtat();
   const profil = etat.compte?.profil;
   const objectif = profil?.objectif ?? ONBOARDING.objectifParDefaut;
@@ -85,11 +87,13 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
             </h1>
             <p className="mt-1.5 text-[14px] text-encre2">Ton plan : {frequence} vidéos par semaine.</p>
           </div>
-          <button type="button" onClick={fermer} className="bouton bouton-carre shrink-0" aria-label="Fermer et continuer en gratuit">
-            <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
-              <path d="M6 6l12 12M18 6L6 18" />
-            </svg>
-          </button>
+          {fermer && (
+            <button type="button" onClick={fermer} className="bouton bouton-carre shrink-0" aria-label="Fermer">
+              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
+                <path d="M6 6l12 12M18 6L6 18" />
+              </svg>
+            </button>
+          )}
         </div>
 
         <div className="mt-5">
@@ -145,9 +149,20 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
             </p>
           )}
           <p className="mt-3 text-center text-[13px] text-encre2">Sans engagement. Résiliation en deux clics.</p>
-          <button type="button" onClick={fermer} className="lien mx-auto mt-1 flex min-h-11 items-center px-4 text-[14px]">
-            Continuer en gratuit
-          </button>
+          {fermer ? (
+            <button type="button" onClick={fermer} className="lien mx-auto mt-1 flex min-h-11 items-center px-4 text-[14px]">
+              Plus tard
+            </button>
+          ) : (
+            <p className="mt-1 flex justify-center gap-6 text-[13px]">
+              <Link href="/app/compte" className="lien flex min-h-11 items-center">
+                Mon compte
+              </Link>
+              <button type="button" onClick={() => deconnecter().then(() => window.location.assign("/"))} className="lien flex min-h-11 items-center">
+                Me déconnecter
+              </button>
+            </p>
+          )}
           <p className="mt-1 text-center text-[11px] text-encre2">{MENTION_OBJECTIF}</p>
         </div>
       </div>

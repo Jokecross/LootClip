@@ -6,7 +6,7 @@
  * Les pages lisent l'état avec useEtat().
  */
 import { useSyncExternalStore } from "react";
-import type { Offre, Periodicite, Style } from "./config";
+import { GRATUIT, type Offre, type Periodicite, type Style } from "./config";
 
 export type Plateforme = "ps5" | "xbox";
 
@@ -95,6 +95,9 @@ export function modifier(f: (e: Etat) => Etat) {
   synchro?.(avant, etat);
   prevenir();
 }
+
+/** L'appli est réservée aux abonnés. */
+export const aAcces = (e: Etat) => !!e.compte && (e.compte.offre !== "gratuit" || GRATUIT.videos > 0);
 
 export function lireEtat() {
   return etat;

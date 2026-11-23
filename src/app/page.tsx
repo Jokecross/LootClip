@@ -78,7 +78,7 @@ export default function Accueil() {
                 <Link href="/commencer" className="bouton bouton-rose w-full lg:h-[60px] lg:text-[19px]">
                   Créer ma première vidéo
                 </Link>
-                <p className="mt-3 text-center text-[13px] text-encre2 lg:text-left lg:text-[14px]">Gratuit pour la première. Sans carte bancaire.</p>
+                <p className="mt-3 text-center text-[13px] text-encre2 lg:text-left lg:text-[14px]">Sans engagement. Résiliation en deux clics.</p>
               </div>
             </div>
             {/* Visuel du hero : image fournie par Martin (public/visuels/hero-*.jpg) */}
@@ -175,7 +175,7 @@ export default function Accueil() {
             <Link href="/commencer" className="bouton bouton-rose w-full lg:h-[64px] lg:text-[20px]">
               Créer ma première vidéo
             </Link>
-            <p className="mt-3 hidden text-center text-[14px] font-bold lg:block">Gratuit pour la première. Sans carte bancaire.</p>
+            <p className="mt-3 hidden text-center text-[14px] font-bold lg:block">Sans engagement. Résiliation en deux clics.</p>
           </div>
           </div>
         </Section>

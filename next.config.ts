@@ -18,6 +18,8 @@ const nextConfig: NextConfig = {
         { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       ],
     },
+    // Fichier demandé par Apple pour afficher Apple Pay sur le site.
+    { source: "/.well-known/apple-developer-merchantid-domain-association", headers: [{ key: "Content-Type", value: "text/plain" }] },
     // Le service worker doit toujours être relu, sinon une vieille version reste collée.
     { source: "/sw.js", headers: [{ key: "Cache-Control", value: "no-cache" }] },
   ],

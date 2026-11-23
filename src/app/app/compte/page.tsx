@@ -62,13 +62,13 @@ export default function Compte() {
           </div>
           <span className="pastille bg-blanc tabular-nums">{estPro ? `${eur(prix)} ${unite(periode)}` : "0 €"}</span>
         </div>
-        <p className="mt-3 text-[13px] font-bold">
+        {estPro && <p className="mt-3 text-[13px] font-bold">
           {q.utilise} vidéo{q.utilise > 1 ? "s" : ""} sur {q.total} {q.periode}
           {estPro && compte.abonneDepuis ? ` · depuis le ${date(compte.abonneDepuis)}` : ""}
-        </p>
-        <div className="barre mt-2" role="progressbar" aria-valuenow={q.utilise} aria-valuemax={q.total} aria-label="Vidéos utilisées">
+        </p>}
+        {estPro && <div className="barre mt-2" role="progressbar" aria-valuenow={q.utilise} aria-valuemax={q.total} aria-label="Vidéos utilisées">
           <span style={{ width: `${Math.max(3, (q.utilise / q.total) * 100)}%` }} />
-        </div>
+        </div>}
         {estPro && compte.abonnementFin && <p className="mt-2 text-[13px] font-bold">Résilié. Ton accès reste ouvert jusqu&apos;au {date(compte.abonnementFin)}.</p>}
         {estPro ? (
           <button type="button" onClick={() => setGerer(true)} className="bouton bouton-blanc bouton-petit mt-4 w-full">

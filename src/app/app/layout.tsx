@@ -5,7 +5,8 @@ import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Logo } from "@/components/marque/Logo";
 import { afficherToast, Toasts } from "@/components/ui/Toast";
-import { modifier, useEtat } from "@/lib/etat";
+import { Paywall } from "@/components/app/Paywall";
+import { aAcces, modifier, useEtat } from "@/lib/etat";
 import { quota, statutDe, surveillerMontages, useMaintenant } from "@/lib/montage";
 
 const ONGLETS = [
@@ -68,6 +69,11 @@ export default function CoquilleAppli({ children }: { children: React.ReactNode 
 
   if (!etat.charge || !etat.compte) return <div className="min-h-dvh bg-fond" />;
 
+  // Réservé aux abonnés. Restent ouverts : le compte, le retour de paiement, et les vidéos d'un ancien abonné.
+  const libre = chemin.startsWith("/app/compte") || chemin.startsWith("/app/merci") || (etat.videos.length > 0 && chemin.startsWith("/app/video"));
+  const acces = aAcces(etat);
+  if (!acces && !libre) return <Paywall ouvert moment="entree" apresPaiement={() => {}} />;
+
   const q = quota(etat);
   const estActif = (href: string) => chemin.startsWith(href) || (href === "/app/videos" && chemin.startsWith("/app/video/"));
   const libelleQuota = `${q.restant} vidéo${q.restant > 1 ? "s" : ""} restante${q.restant > 1 ? "s" : ""}`;
@@ -101,9 +107,9 @@ export default function CoquilleAppli({ children }: { children: React.ReactNode 
               })}
             </ul>
           </nav>
-          <div className="mt-auto">
+          <div className={acces ? "mt-auto" : "hidden"}>
             <Link href="/app/compte" className="carte block bg-fond p-4 hover:bg-beige/60">
-              <span className="block text-[13px] font-bold text-encre2">{etat.compte.offre === "gratuit" ? "Ta vidéo gratuite" : "Ce mois-ci"}</span>
+              <span className="block text-[13px] font-bold text-encre2">Ce mois-ci</span>
               <span className="titre mt-1 block text-[22px] tabular-nums">{libelleQuota}</span>
               <span className="barre mt-3 block h-3" aria-hidden="true">
                 <span style={{ width: `${q.total ? Math.max(4, (q.restant / q.total) * 100) : 0}%` }} />
@@ -119,7 +125,7 @@ export default function CoquilleAppli({ children }: { children: React.ReactNode 
           <Link href="/app/creer" className="flex min-h-11 items-center" aria-label="XPclip, créer une vidéo">
             <Logo taille={30} />
           </Link>
-          <Link href="/app/compte" className="pastille bg-blanc text-[12px] tabular-nums" aria-label={`${libelleQuota} sur ${q.total}`}>
+          <Link href="/app/compte" className={acces ? "pastille bg-blanc text-[12px] tabular-nums" : "hidden"} aria-label={`${libelleQuota} sur ${q.total}`}>
             {libelleQuota}
           </Link>
         </header>

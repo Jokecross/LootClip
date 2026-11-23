@@ -20,6 +20,7 @@ async function appeler(chemin: string, corps?: unknown) {
 
 const MESSAGES: Record<string, string> = {
   ferme: "Les offres ouvrent très bientôt.",
+  deja_abonne: "Tu as déjà cette offre.",
   non_connecte: "Ta session a expiré. Reconnecte-toi.",
 };
 

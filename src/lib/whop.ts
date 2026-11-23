@@ -70,8 +70,12 @@ export function paiementOuvert(email: string | undefined) {
 
 /* ---------- Commande ---------- */
 
+export class DejaAbonne extends Error {}
+
 /** Prépare un paiement. Le prix est choisi ici, jamais par le téléphone. */
 export async function creerCommande(user: { id: string }, offre: OffrePayante, periodicite: Periodicite) {
+  const { data: p } = await admin().from("profils").select("offre, periodicite, abonnement_fin").eq("id", user.id).maybeSingle();
+  if (p && p.offre === offre && p.periodicite === periodicite && !p.abonnement_fin) throw new DejaAbonne();
   const lancement = lancementActif();
   const variante = Object.entries(TARIFS).find(([, t]) => t.offre === offre && t.periodicite === periodicite && t.lancement === lancement)?.[0];
   if (!variante) throw new Error("tarif introuvable");
@@ -81,7 +85,7 @@ export async function creerCommande(user: { id: string }, offre: OffrePayante, p
     metadata: { user_id: user.id },
     redirect_url: `${SITE}/app/merci`,
     // Moyens de paiement qui se renouvellent tout seuls et répondent tout de suite.
-    payment_method_configuration: { enabled: ["card", "apple_pay", "google_pay", "paypal"], disabled: [], include_platform_defaults: false },
+    payment_method_configuration: { enabled: ["card", "apple_pay", "google_pay"], disabled: [], include_platform_defaults: false },
   });
   return { commande: c.id, montant: montant(offre, periodicite, lancement) };
 }
