@@ -1,0 +1,14 @@
+{
+  "name": "xpclip-moteur",
+  "private": true,
+  "type": "module",
+  "description": "Moteur de montage XPclip : clips 16:9 → vidéo verticale 1080 × 1920 avec FFmpeg",
+  "scripts": {
+    "monter": "node cli.mjs",
+    "service": "node worker.mjs"
+  },
+  "dependencies": {
+    "@napi-rs/canvas": "^0.1.80",
+    "@supabase/supabase-js": "^2.119.2"
+  }
+}

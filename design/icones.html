@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Icônes LootClip</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=DM+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root { --fond:#FDF5EA; --encre:#1A0B2E; --encre2:#5A4B6E; --rose:#F05FA5; --jaune:#F9D477; --turquoise:#6FE3D6; --orange:#F2934F; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--fond); color:var(--encre); font-family:"DM Sans", system-ui, sans-serif; }
+  main { max-width:1180px; margin:0 auto; padding:40px 20px 80px; }
+  h1 { font-family:"Bricolage Grotesque"; font-weight:800; font-size:48px; letter-spacing:-.03em; margin:0; line-height:1; }
+  .sous { color:var(--encre2); margin:10px 0 0; font-size:16px; }
+  h2 { font-family:"Bricolage Grotesque"; font-weight:800; font-size:28px; letter-spacing:-.02em; margin:48px 0 6px; display:flex; align-items:center; gap:12px; }
+  h2 .pastille { font-family:"DM Sans"; font-size:12px; font-weight:700; border:2px solid var(--encre); border-radius:999px; padding:3px 10px; background:var(--turquoise); letter-spacing:0; }
+  .grille { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:22px; margin-top:16px; }
+  .carte { background:#fff; border:2px solid var(--encre); border-radius:20px; padding:18px; }
+  .icone { width:214px; height:214px; margin:0 auto; border-radius:22.4%; overflow:hidden; border:2px solid var(--encre); box-shadow:0 6px 0 var(--encre); }
+  .icone svg { display:block; width:100%; height:100%; }
+  .nom { font-family:"Bricolage Grotesque"; font-weight:800; font-size:20px; margin:20px 0 4px; letter-spacing:-.01em; }
+  .idee { font-size:14px; color:var(--encre2); margin:0; line-height:1.45; }
+  .ecran { margin-top:48px; background:linear-gradient(160deg,#2B1450,#1A0B2E); border:2px solid var(--encre); border-radius:28px; padding:28px 22px; box-shadow:0 6px 0 var(--encre); }
+  .ecran p { color:#fff; font-weight:700; margin:0 0 18px; }
+  .rangee { display:grid; grid-template-columns:repeat(auto-fill,minmax(76px,1fr)); gap:20px 10px; }
+  .mini { text-align:center; color:#fff; font-size:11px; }
+  .mini .ic { width:60px; height:60px; margin:0 auto 6px; border-radius:22.4%; overflow:hidden; }
+  .mini svg { display:block; width:100%; height:100%; }
+  text { font-family:"Bricolage Grotesque", system-ui, sans-serif; font-weight:800; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Icônes d'appli</h1>
+  <p class="sous">Dans le style LootClip : aplats, contours épais, ombres pleines. En grand, puis à la taille réelle d'un écran d'accueil.</p>
+
+  <h2>XPclip <span class="pastille">mon choix</span></h2>
+  <div class="grille">
+    <div class="carte" data-id="xp-barre">
+      <div class="icone"><svg viewBox="0 0 100 100">
+        <rect width="100" height="100" fill="#F05FA5"/>
+        <text x="52.5" y="60" text-anchor="middle" font-size="50" fill="#1A0B2E">XP</text>
+        <text x="50" y="57" text-anchor="middle" font-size="50" fill="#FDF5EA" stroke="#1A0B2E" stroke-width="3" paint-order="stroke" stroke-linejoin="round">XP</text>
+        <rect x="17" y="71" width="66" height="13" rx="6.5" fill="#1A0B2E"/>
+        <rect x="16" y="69" width="66" height="13" rx="6.5" fill="#FFFFFF" stroke="#1A0B2E" stroke-width="3"/>
+        <rect x="17.5" y="70.5" width="40" height="10" rx="5" fill="#F9D477"/>
+        <line x1="57.5" y1="70.5" x2="57.5" y2="80.5" stroke="#1A0B2E" stroke-width="3"/>
+      </svg></div>
+      <p class="nom">La barre d'XP</p>
+      <p class="idee">Le mot XP et la jauge qui se remplit, comme dans le jeu. Le plus lisible en tout petit.</p>
+    </div>
+
+    <div class="carte" data-id="xp-play">
+      <div class="icone"><svg viewBox="0 0 100 100">
+        <rect width="100" height="100" fill="#1A0B2E"/>
+        <circle cx="49" cy="57" r="27" fill="#0E0619"/>
+        <circle cx="46" cy="54" r="27" fill="#F05FA5" stroke="#FDF5EA" stroke-width="3"/>
+        <path d="M38 41 L60 54 L38 67 Z" fill="#FDF5EA" stroke="#1A0B2E" stroke-width="3" stroke-linejoin="round"/>
+        <g transform="rotate(-10 72 23)">
+          <rect x="57" y="13" width="32" height="21" rx="7" fill="#F9D477" stroke="#1A0B2E" stroke-width="3"/>
+          <text x="73" y="29" text-anchor="middle" font-size="15" fill="#1A0B2E">XP</text>
+        </g>
+      </svg></div>
+      <p class="nom">Lecture + XP</p>
+      <p class="idee">Le bouton lecture de la vidéo, avec une pastille XP collée comme un sticker. Fort sur fond sombre.</p>
+    </div>
+
+    <div class="carte" data-id="xp-manette">
+      <div class="icone"><svg viewBox="0 0 100 100">
+        <rect width="100" height="100" fill="#6FE3D6"/>
+        <path d="M27 34 H73 Q88 34 91 52 L93 66 Q94 79 83 79 Q76 79 71 69 H29 Q24 79 17 79 Q6 79 7 66 L9 52 Q12 34 27 34 Z" fill="#1A0B2E" transform="translate(2 3)"/>
+        <path d="M27 34 H73 Q88 34 91 52 L93 66 Q94 79 83 79 Q76 79 71 69 H29 Q24 79 17 79 Q6 79 7 66 L9 52 Q12 34 27 34 Z" fill="#FDF5EA" stroke="#1A0B2E" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M22 45 L37 53.5 L22 62 Z" fill="#F05FA5" stroke="#1A0B2E" stroke-width="2.6" stroke-linejoin="round"/>
+        <text x="72" y="60.5" text-anchor="middle" font-size="17" fill="#1A0B2E">XP</text>
+        <circle cx="50" cy="45" r="3" fill="#F9D477" stroke="#1A0B2E" stroke-width="2"/>
+      </svg></div>
+      <p class="nom">La manette</p>
+      <p class="idee">Une manette où la croix devient un bouton lecture. « Ta manette peut devenir un salaire », en image.</p>
+    </div>
+
+    <div class="carte" data-id="xp-levelup">
+      <div class="icone"><svg viewBox="0 0 100 100">
+        <rect width="100" height="100" fill="#F9D477"/>
+        <rect x="22" y="20" width="60" height="64" rx="10" fill="#1A0B2E"/>
+        <rect x="19" y="17" width="60" height="64" rx="10" fill="#1A0B2E" stroke="#1A0B2E" stroke-width="3"/>
+        <g fill="#F9D477"><rect x="23" y="23" width="6" height="6" rx="1.5"/><rect x="23" y="37" width="6" height="6" rx="1.5"/><rect x="23" y="51" width="6" height="6" rx="1.5"/><rect x="23" y="65" width="6" height="6" rx="1.5"/><rect x="69" y="23" width="6" height="6" rx="1.5"/><rect x="69" y="37" width="6" height="6" rx="1.5"/><rect x="69" y="51" width="6" height="6" rx="1.5"/><rect x="69" y="65" width="6" height="6" rx="1.5"/></g>
+        <path d="M49 30 L62 46 H54 V60 H44 V46 H36 Z" fill="#F05FA5" stroke="#FDF5EA" stroke-width="2.5" stroke-linejoin="round"/>
+        <text x="49" y="74" text-anchor="middle" font-size="9.5" fill="#FDF5EA">LVL UP</text>
+      </svg></div>
+      <p class="nom">Level up</p>
+      <p class="idee">Une pellicule et la flèche de montée de niveau. L'idée de progresser à chaque vidéo.</p>
+    </div>
+  </div>
+
+  <h2>Moulaclip</h2>
+  <div class="grille">
+    <div class="carte" data-id="moula-billet">
+      <div class="icone"><svg viewBox="0 0 100 100">
+        <rect width="100" height="100" fill="#6FE3D6"/>
+        <g transform="rotate(-9 50 52)">
+          <rect x="14" y="30" width="74" height="46" rx="6" fill="#1A0B2E"/>
+          <rect x="11" y="27" width="74" height="46" rx="6" fill="#F9D477" stroke="#1A0B2E" stroke-width="3"/>
+          <rect x="17" y="33" width="62" height="34" rx="3" fill="none" stroke="#1A0B2E" stroke-width="1.8" stroke-dasharray="3 3"/>
+          <circle cx="48" cy="50" r="13" fill="#F05FA5" stroke="#1A0B2E" stroke-width="3"/>
+          <path d="M44 43.5 L55 50 L44 56.5 Z" fill="#1A0B2E"/>
+          <text x="23" y="42" font-size="9" fill="#1A0B2E">M</text>
+          <text x="73" y="64" font-size="9" fill="#1A0B2E">M</text>
+        </g>
+      </svg></div>
+      <p class="nom">Le billet</p>
+      <p class="idee">Un billet où le portrait est remplacé par le bouton lecture. Ça dit « tes vidéos rapportent » d'un coup d'œil.</p>
+    </div>
+
+    <div class="carte" data-id="moula-piece">
+      <div class="icone"><svg viewBox="0 0 100 100">
+        <rect width="100" height="100" fill="#F2934F"/>
+        <circle cx="53" cy="55" r="31" fill="#1A0B2E"/>
+        <circle cx="50" cy="51" r="31" fill="#F9D477" stroke="#1A0B2E" stroke-width="3.5"/>
+        <circle cx="50" cy="51" r="23" fill="none" stroke="#1A0B2E" stroke-width="2"/>
+        <path d="M43 39 L63 51 L43 63 Z" fill="#F05FA5" stroke="#1A0B2E" stroke-width="3" stroke-linejoin="round"/>
+        <path d="M80 16 l2.5 6 6 2.5 -6 2.5 -2.5 6 -2.5 -6 -6 -2.5 6 -2.5 z" fill="#FDF5EA" stroke="#1A0B2E" stroke-width="1.6"/>
+      </svg></div>
+      <p class="nom">La pièce</p>
+      <p class="idee">Une pièce d'or frappée d'un bouton lecture, avec un éclat. Simple, très « butin ».</p>
+    </div>
+  </div>
+
+  <h2>WantedClip</h2>
+  <div class="grille">
+    <div class="carte" data-id="wanted-etoiles">
+      <div class="icone"><svg viewBox="0 0 100 100">
+        <rect width="100" height="100" fill="#1A0B2E"/>
+        <defs><path id="etoile" d="M0 -8 L2.4 -2.6 L8 -2.5 L3.6 1.2 L5 7 L0 3.8 L-5 7 L-3.6 1.2 L-8 -2.5 L-2.4 -2.6 Z"/></defs>
+        <use href="#etoile" x="18" y="24" fill="#F9D477" stroke="#FDF5EA" stroke-width="1.2"/>
+        <use href="#etoile" x="34" y="17" fill="#F9D477" stroke="#FDF5EA" stroke-width="1.2"/>
+        <use href="#etoile" x="50" y="14" fill="#F9D477" stroke="#FDF5EA" stroke-width="1.2"/>
+        <use href="#etoile" x="66" y="17" fill="none" stroke="#FDF5EA" stroke-width="1.6"/>
+        <use href="#etoile" x="82" y="24" fill="none" stroke="#FDF5EA" stroke-width="1.6"/>
+        <circle cx="53" cy="64" r="22" fill="#0E0619"/>
+        <circle cx="50" cy="61" r="22" fill="#F05FA5" stroke="#FDF5EA" stroke-width="3"/>
+        <path d="M43 50 L61 61 L43 72 Z" fill="#FDF5EA" stroke="#1A0B2E" stroke-width="2.6" stroke-linejoin="round"/>
+      </svg></div>
+      <p class="nom">Les étoiles</p>
+      <p class="idee">Les étoiles de recherche au-dessus du bouton lecture. L'ambiance GTA, sans leur logo.</p>
+    </div>
+
+    <div class="carte" data-id="wanted-affiche">
+      <div class="icone"><svg viewBox="0 0 100 100">
+        <rect width="100" height="100" fill="#F05FA5"/>
+        <g transform="rotate(4 50 52)">
+          <rect x="22" y="14" width="60" height="78" rx="4" fill="#1A0B2E"/>
+          <rect x="19" y="11" width="60" height="78" rx="4" fill="#FDF5EA" stroke="#1A0B2E" stroke-width="3"/>
+          <text x="49" y="28" text-anchor="middle" font-size="12.5" fill="#1A0B2E">WANTED</text>
+          <rect x="28" y="34" width="42" height="36" rx="3" fill="#F9D477" stroke="#1A0B2E" stroke-width="2.5"/>
+          <path d="M43 43 L58 52 L43 61 Z" fill="#1A0B2E"/>
+          <g fill="#F05FA5"><circle cx="34" cy="79" r="2.6"/><circle cx="42" cy="79" r="2.6"/><circle cx="50" cy="79" r="2.6"/></g>
+          <g fill="none" stroke="#1A0B2E" stroke-width="1.4"><circle cx="58" cy="79" r="2.6"/><circle cx="66" cy="79" r="2.6"/></g>
+        </g>
+      </svg></div>
+      <p class="nom">L'avis de recherche</p>
+      <p class="idee">Une affiche « Wanted » dont la photo est ta vidéo. Fun, mais moins lisible en tout petit.</p>
+    </div>
+  </div>
+
+  <h2>Pour comparer : LootClip aujourd'hui</h2>
+  <div class="grille">
+    <div class="carte" data-id="lootclip">
+      <div class="icone"><svg viewBox="0 0 64 64">
+        <rect width="64" height="64" fill="#1A0B2E"/>
+        <path d="M11 22v-7.5Q11 11 14.5 11H22" fill="none" stroke="#F9D477" stroke-width="5" stroke-linecap="round"/>
+        <path d="M53 42v7.5q0 3.5-3.5 3.5H42" fill="none" stroke="#F9D477" stroke-width="5" stroke-linecap="round"/>
+        <circle cx="32" cy="32" r="15" fill="#F05FA5"/>
+        <path d="M28.5 25.2q0-1.8 1.6-.9l9.6 5.9q1.5.9 0 1.8l-9.6 5.9q-1.6.9-1.6-.9z" fill="#1A0B2E"/>
+      </svg></div>
+      <p class="nom">Le viseur</p>
+      <p class="idee">L'icône actuelle : lecture rose dans un viseur jaune.</p>
+    </div>
+  </div>
+
+  <div class="ecran">
+    <p>À la taille réelle, sur un écran d'accueil</p>
+    <div class="rangee" id="rangee"></div>
+  </div>
+</main>
+<script>
+  // Copie chaque icône en petit, comme sur un iPhone, pour juger la lisibilité.
+  const noms = { "xp-barre":"XPclip", "xp-play":"XPclip", "xp-manette":"XPclip", "xp-levelup":"XPclip", "moula-billet":"Moulaclip", "moula-piece":"Moulaclip", "wanted-etoiles":"WantedClip", "wanted-affiche":"WantedClip", "lootclip":"LootClip" };
+  const rangee = document.getElementById("rangee");
+  document.querySelectorAll(".carte").forEach((c) => {
+    const d = document.createElement("div");
+    d.className = "mini";
+    d.innerHTML = `<div class="ic">${c.querySelector("svg").outerHTML}</div>${noms[c.dataset.id]}`;
+    rangee.appendChild(d);
+  });
+</script>
+</body>
+</html>

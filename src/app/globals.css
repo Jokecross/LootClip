@@ -1,0 +1,299 @@
+@import "tailwindcss";
+
+/*
+ * Charte XPclip v3 (validée par Martin le 19/11/2026, d'après ses maquettes) :
+ * fond crème, encre foncée, contours nets de 2 px, aplats de couleur, ombre pleine sous les éléments forts.
+ */
+@theme {
+  --color-*: initial;
+  --color-transparent: transparent;
+
+  --color-fond: #fdf5ea; /* crème */
+  --color-blanc: #ffffff;
+  --color-encre: #1a0b2e; /* texte, contours, ombres */
+  --color-encre2: #5a4b6e; /* texte secondaire */
+  --color-beige: #ede3d6; /* pistes de progression */
+  --color-rose: #f05fa5;
+  --color-orange: #f2934f;
+  --color-jaune: #f9d477;
+  --color-turquoise: #6fe3d6;
+  --color-nuit2: #2b1450; /* fond des aperçus vidéo */
+
+  --font-titre: var(--font-bricolage), system-ui, sans-serif;
+  --font-texte: var(--font-dmsans), system-ui, sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background: var(--color-fond);
+  color: var(--color-encre);
+  font-family: var(--font-texte);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-jaune);
+  color: var(--color-encre);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-turquoise);
+  outline-offset: 2px;
+}
+
+@layer components {
+  .titre {
+    font-family: var(--font-titre);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    text-wrap: balance;
+  }
+
+  /* Boutons : contour 2 px, ombre pleine de 4 px qui s'écrase au toucher */
+  .bouton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    height: 52px;
+    padding: 0 20px;
+    border: 2px solid var(--color-encre);
+    border-radius: 14px;
+    font-family: var(--font-titre);
+    font-weight: 700;
+    font-size: 17px;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
+    text-align: center;
+    color: var(--color-encre);
+    user-select: none;
+    touch-action: manipulation;
+    transition:
+      transform 80ms ease-out,
+      box-shadow 80ms ease-out,
+      opacity 150ms;
+  }
+  .bouton:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .bouton-rose {
+    background: var(--color-rose);
+    box-shadow: 0 4px 0 var(--color-encre);
+  }
+  .bouton-rose:active:not(:disabled) {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 var(--color-encre);
+  }
+  .bouton-blanc {
+    background: var(--color-blanc);
+  }
+  .bouton-blanc:active:not(:disabled) {
+    background: var(--color-fond);
+  }
+  .bouton-petit {
+    height: 40px;
+    padding: 0 14px;
+    border-radius: 12px;
+    font-size: 15px;
+  }
+  .bouton-carre {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    border-radius: 11px;
+    background: var(--color-blanc);
+  }
+
+  .carte {
+    background: var(--color-blanc);
+    border: 2px solid var(--color-encre);
+    border-radius: 16px;
+  }
+  .carte-forte {
+    border: 2px solid var(--color-encre);
+    border-radius: 16px;
+    box-shadow: 0 4px 0 var(--color-encre);
+  }
+  .carte-pointillee {
+    border: 2px dashed var(--color-encre);
+    border-radius: 16px;
+  }
+
+  .pastille {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 26px;
+    padding: 2px 10px;
+    border: 2px solid var(--color-encre);
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  /* Choix de l'onboarding : carte blanche, jaune quand elle est choisie */
+  .option {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    min-height: 56px;
+    padding: 12px 16px;
+    background: var(--color-blanc);
+    border: 2px solid var(--color-encre);
+    border-radius: 14px;
+    text-align: left;
+    transition:
+      background-color 120ms,
+      transform 80ms;
+  }
+  .option:active {
+    transform: scale(0.99);
+  }
+  .option[aria-checked="true"] {
+    background: var(--color-jaune);
+  }
+
+  /* Barre de progression : piste blanche cerclée, remplissage plein */
+  .barre {
+    position: relative;
+    height: 12px;
+    border: 2px solid var(--color-encre);
+    border-radius: 999px;
+    background: var(--color-blanc);
+    overflow: hidden;
+  }
+  .barre > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: var(--remplissage, var(--color-rose));
+    border-right: 2px solid var(--color-encre);
+    transition: width 600ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .champ {
+    width: 100%;
+    height: 50px;
+    padding: 0 14px;
+    background: var(--color-blanc);
+    border: 2px solid var(--color-encre);
+    border-radius: 12px;
+    color: var(--color-encre);
+    font-size: 16px;
+  }
+  .champ::placeholder {
+    color: rgb(90 75 110 / 0.6);
+  }
+  .champ:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--color-turquoise);
+  }
+
+  .lien {
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    text-decoration-thickness: 2px;
+  }
+
+  .curseur {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 40px;
+    background: transparent;
+    cursor: pointer;
+  }
+  .curseur::-webkit-slider-runnable-track {
+    height: 14px;
+    border: 2px solid var(--color-encre);
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--color-encre) 0 var(--p, 50%), var(--color-blanc) var(--p, 50%));
+  }
+  .curseur::-moz-range-track {
+    height: 10px;
+    border: 2px solid var(--color-encre);
+    border-radius: 999px;
+    background: linear-gradient(90deg, var(--color-encre) 0 var(--p, 50%), var(--color-blanc) var(--p, 50%));
+  }
+  .curseur::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 24px;
+    height: 24px;
+    margin-top: -7px;
+    border-radius: 999px;
+    background: var(--color-encre);
+    border: 3px solid var(--color-blanc);
+    box-shadow: 0 0 0 2px var(--color-encre);
+  }
+  .curseur::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 999px;
+    background: var(--color-encre);
+    border: 3px solid var(--color-blanc);
+  }
+
+  /* Entrée douce des écrans. On anime « top » : un transform casserait les éléments fixés dedans. */
+  .entree {
+    position: relative;
+    animation: entree 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+}
+
+@keyframes entree {
+  from {
+    opacity: 0;
+    top: 8px;
+  }
+  to {
+    opacity: 1;
+    top: 0;
+  }
+}
+@keyframes tourne {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes clignote {
+  50% {
+    opacity: 0.5;
+  }
+}
+.clignote {
+  animation: clignote 1.4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+.pb-sur {
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+
+/* Élément fixé juste au-dessus de la barre d'onglets (60 px + marge basse) */
+.au-dessus-onglets {
+  bottom: calc(62px + max(8px, env(safe-area-inset-bottom)));
+}
