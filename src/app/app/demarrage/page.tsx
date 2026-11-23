@@ -6,6 +6,7 @@
  */
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+import { CadreBureau } from "@/components/marque/CadreBureau";
 import { Entete } from "@/components/ui/Parcours";
 import { modifier, useEtat, type Plateforme } from "@/lib/etat";
 import { mettreEnAttente } from "@/lib/onboarding";
@@ -52,7 +53,8 @@ export default function Demarrage() {
   }
 
   return (
-    <div className="flex min-h-dvh flex-col pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(14px,env(safe-area-inset-top))]">
+    <CadreBureau>
+    <div className="flex min-h-dvh flex-col pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(14px,env(safe-area-inset-top))] lg:mx-auto lg:min-h-0 lg:w-full lg:max-w-[480px] lg:p-0">
       <Entete n={i + 1} total={ECRANS.length} retour={() => (i > 0 ? setI(i - 1) : router.back())} />
 
       <div className="mt-5 grid grid-cols-2 gap-1 rounded-[14px] border-2 border-encre bg-blanc p-1" role="radiogroup" aria-label="Ta console">
@@ -102,5 +104,6 @@ export default function Demarrage() {
         )}
       </div>
     </div>
+    </CadreBureau>
   );
 }

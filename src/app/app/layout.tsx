@@ -68,27 +68,71 @@ export default function CoquilleAppli({ children }: { children: React.ReactNode 
   if (!etat.charge || !etat.compte) return <div className="min-h-dvh bg-fond" />;
 
   const q = quota(etat);
+  const estActif = (href: string) => chemin.startsWith(href) || (href === "/app/videos" && chemin.startsWith("/app/video/"));
+  const libelleQuota = `${q.restant} vidéo${q.restant > 1 ? "s" : ""} restante${q.restant > 1 ? "s" : ""}`;
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-[480px] flex-col">
+    <>
+      {/* Ordinateur : barre latérale à la place des onglets du bas */}
       {!tuto && (
-        <header className="flex items-center justify-between px-4 pt-[max(12px,env(safe-area-inset-top))]">
+        <aside className="fixed inset-y-0 left-0 z-30 hidden w-[264px] flex-col border-r-2 border-encre bg-blanc px-5 pb-6 pt-7 lg:flex" aria-label="Navigation">
+          <Link href="/app/creer" className="flex min-h-11 items-center px-2" aria-label="XPclip, créer une vidéo">
+            <Logo taille={34} />
+          </Link>
+          <nav className="mt-10" aria-label="Onglets">
+            <ul className="flex flex-col gap-1.5">
+              {ONGLETS.map((o) => {
+                const actif = estActif(o.href);
+                return (
+                  <li key={o.href}>
+                    <Link
+                      href={o.href}
+                      aria-current={actif ? "page" : undefined}
+                      className={`flex min-h-12 items-center gap-3 rounded-[14px] border-2 px-3 text-[16px] font-bold transition-colors ${actif ? "border-encre bg-jaune shadow-[0_3px_0_var(--color-encre)]" : "border-transparent text-encre2 hover:bg-fond hover:text-encre"}`}
+                    >
+                      <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                        {o.icone}
+                      </svg>
+                      {o.nom}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+          <div className="mt-auto">
+            <Link href="/app/compte" className="carte block bg-fond p-4 hover:bg-beige/60">
+              <span className="block text-[13px] font-bold text-encre2">Ce mois-ci</span>
+              <span className="titre mt-1 block text-[22px] tabular-nums">{libelleQuota}</span>
+              <span className="barre mt-3 block h-3" aria-hidden="true">
+                <span style={{ width: `${q.total ? Math.max(4, (q.restant / q.total) * 100) : 0}%` }} />
+              </span>
+            </Link>
+          </div>
+        </aside>
+      )}
+
+    <div className={`mx-auto flex min-h-dvh max-w-[480px] flex-col ${tuto ? "lg:max-w-none" : "lg:ml-[264px] lg:max-w-none"}`}>
+      {!tuto && (
+        <header className="flex items-center justify-between px-4 pt-[max(12px,env(safe-area-inset-top))] lg:hidden">
           <Link href="/app/creer" className="flex min-h-11 items-center" aria-label="XPclip, créer une vidéo">
             <Logo taille={30} />
           </Link>
-          <Link href="/app/compte" className="pastille bg-blanc text-[12px] tabular-nums" aria-label={`${q.restant} vidéo${q.restant > 1 ? "s" : ""} restante${q.restant > 1 ? "s" : ""} sur ${q.total}`}>
-            {q.restant} vidéo{q.restant > 1 ? "s" : ""} restante{q.restant > 1 ? "s" : ""}
+          <Link href="/app/compte" className="pastille bg-blanc text-[12px] tabular-nums" aria-label={`${libelleQuota} sur ${q.total}`}>
+            {libelleQuota}
           </Link>
         </header>
       )}
 
-      <main className={`flex-1 px-4 ${tuto ? "" : "pb-36 pt-5"}`}>{children}</main>
+      <main className={`flex-1 px-4 ${tuto ? "lg:px-0" : "pb-36 pt-5 lg:px-12 lg:pb-16 lg:pt-14"}`}>
+        <div className={tuto ? "" : "lg:mx-auto lg:max-w-[1040px]"}>{children}</div>
+      </main>
 
       {!tuto && (
-        <nav className="fixed inset-x-0 bottom-0 z-30 border-t-2 border-encre bg-blanc pb-[max(8px,env(safe-area-inset-bottom))]" aria-label="Onglets">
+        <nav className="fixed inset-x-0 bottom-0 z-30 border-t-2 border-encre bg-blanc pb-[max(8px,env(safe-area-inset-bottom))] lg:hidden" aria-label="Onglets">
           <ul className="mx-auto grid max-w-[480px] grid-cols-3">
             {ONGLETS.map((o) => {
-              const actif = chemin.startsWith(o.href) || (o.href === "/app/videos" && chemin.startsWith("/app/video/"));
+              const actif = estActif(o.href);
               return (
                 <li key={o.href}>
                   <Link href={o.href} aria-current={actif ? "page" : undefined} className="flex min-h-[60px] flex-col items-center justify-center gap-1 text-[11px] font-bold">
@@ -109,5 +153,6 @@ export default function CoquilleAppli({ children }: { children: React.ReactNode 
       <Notifier />
       <Toasts />
     </div>
+    </>
   );
 }

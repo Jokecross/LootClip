@@ -7,6 +7,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { FormulaireCompte } from "@/components/compte/FormulaireCompte";
+import { CadreBureau } from "@/components/marque/CadreBureau";
 import { Logo } from "@/components/marque/Logo";
 import { Entete, Options } from "@/components/ui/Parcours";
 import { MENTION_OBJECTIF, NON_AFFILIATION, ONBOARDING } from "@/lib/config";
@@ -106,7 +107,7 @@ function Onboarding() {
       contenu = (
         <>
           {/* Même image que le hero de l'accueil (public/visuels/hero-*.jpg) */}
-          <div className="carte-forte overflow-hidden">
+          <div className="carte-forte overflow-hidden lg:hidden">
             <img
               src="/visuels/hero-900.jpg"
               srcSet="/visuels/hero-900.jpg 900w, /visuels/hero-1672.jpg 1672w"
@@ -118,7 +119,7 @@ function Onboarding() {
               className="block h-auto w-full"
             />
           </div>
-          <h1 className="titre mt-7 text-[40px]">Ta manette peut devenir un salaire.</h1>
+          <h1 className="titre mt-7 text-[40px] lg:mt-0 lg:text-[52px]">Ta manette peut devenir un salaire.</h1>
           <p className="mt-3 text-[16px] leading-snug text-encre2">Tes clips GTA 6, montés pour TikTok en quelques minutes.</p>
         </>
       );
@@ -301,15 +302,22 @@ function Onboarding() {
   }
 
   return (
-    <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(14px,env(safe-area-inset-top))]">
-      {n === 1 ? <Logo taille={30} /> : <Entete n={n} total={TOTAL} retour={n < 8 ? retour : undefined} />}
+    <CadreBureau accroche={n !== 1}>
+    <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(14px,env(safe-area-inset-top))] lg:min-h-0 lg:w-full lg:max-w-[480px] lg:p-0">
+      {n === 1 ? (
+        <span className="lg:hidden">
+          <Logo taille={30} />
+        </span>
+      ) : (
+        <Entete n={n} total={TOTAL} retour={n < 8 ? retour : undefined} />
+      )}
 
       <div key={n} className="entree mt-6 flex flex-1 flex-col">
         {contenu}
       </div>
 
       {action && (
-        <div className="pt-6">
+        <div className="pt-6 lg:pt-10">
           <button type="button" onClick={action.faire} disabled={!action.actif} className="bouton bouton-rose w-full">
             {action.libelle}
           </button>
@@ -317,13 +325,14 @@ function Onboarding() {
         </div>
       )}
     </main>
+    </CadreBureau>
   );
 }
 
 function Titre({ children, sous }: { children: React.ReactNode; sous?: string }) {
   return (
     <div className="mb-5">
-      <h1 className="titre text-[30px]">{children}</h1>
+      <h1 className="titre text-[30px] lg:text-[40px]">{children}</h1>
       {sous && <p className="mt-2 text-[14px] text-encre2">{sous}</p>}
     </div>
   );

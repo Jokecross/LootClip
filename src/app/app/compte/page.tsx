@@ -34,8 +34,8 @@ export default function Compte() {
   const ligne = "flex min-h-14 w-full items-center justify-between gap-4 px-4 text-left text-[15px] font-bold";
 
   return (
-    <div className="entree">
-      <h1 className="titre text-[32px]">Ton compte</h1>
+    <div className="entree lg:mx-auto lg:max-w-[720px]">
+      <h1 className="titre text-[32px] lg:text-[48px]">Ton compte</h1>
       <p className="mt-2 truncate text-[15px] text-encre2">{compte.email}</p>
 
       {/* Abonnement */}

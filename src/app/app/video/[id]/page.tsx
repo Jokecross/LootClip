@@ -48,7 +48,7 @@ export default function PageVideo() {
 
   if (statut === "echoue") {
     return (
-      <div className="entree">
+      <div className="entree lg:mx-auto lg:max-w-[720px]">
         <span className="pastille bg-rose">Échoué</span>
         <h1 className="titre mt-3 text-[32px]">Le montage a échoué.</h1>
         <p className="mt-2 text-[15px] text-encre2">{video.echec}</p>
@@ -62,9 +62,9 @@ export default function PageVideo() {
 
   const conseil = CONSEILS[etape % CONSEILS.length];
   return (
-    <div className="entree">
+    <div className="entree lg:mx-auto lg:max-w-[720px]">
       <span className={`pastille ${statut === "en_cours" ? "bg-jaune" : "bg-blanc"}`}>{LIBELLES_STATUT[statut]}</span>
-      <h1 className="titre mt-3 text-[32px]">{statut === "en_attente" ? "Ta vidéo est dans la file." : "Montage en cours."}</h1>
+      <h1 className="titre mt-3 text-[32px] lg:text-[48px]">{statut === "en_attente" ? "Ta vidéo est dans la file." : "Montage en cours."}</h1>
       <p className="mt-2 text-[15px] text-encre2">Tu peux fermer l&apos;appli. On te prévient quand c&apos;est prêt.</p>
 
       <div className="carte-forte mt-5 bg-jaune p-4">
@@ -173,41 +173,46 @@ function Resultat({ video }: { video: Video }) {
   const gratuit = compte.offre === "gratuit";
 
   return (
-    <div className="entree">
+    <div className="entree lg:grid lg:grid-cols-[280px_1fr] lg:items-start lg:gap-x-8 xl:grid-cols-[380px_1fr] xl:gap-x-12 [&>*]:lg:col-start-2">
       <div className="flex items-start justify-between gap-3">
-        <h1 className="titre text-[30px]">Ta vidéo est prête.</h1>
-        <span className="pastille mt-1 shrink-0 rotate-2 bg-turquoise">{gratuit ? "1 sur 1 gratuite" : `${q.restant} restantes`}</span>
+        <h1 className="titre text-[30px] lg:text-[38px] xl:text-[48px]">Ta vidéo est prête.</h1>
+        <span className="pastille mt-1 shrink-0 rotate-2 bg-turquoise lg:mt-3">{gratuit ? "1 sur 1 gratuite" : `${q.restant} restantes`}</span>
       </div>
 
-      <div className="mt-4 grid grid-cols-[1.55fr_1fr] gap-2.5">
-        <Lecteur video={video} sources={sources} />
-        <div className="flex flex-col gap-2.5">
+      {/* Ordinateur : « contents » libère le lecteur et les infos dans la grille de la page */}
+      <div className="mt-4 grid grid-cols-[1.55fr_1fr] gap-2.5 lg:contents">
+        <div className="lg:sticky lg:top-10 lg:col-start-1 lg:row-span-6 lg:row-start-1">
+          <Lecteur video={video} sources={sources} />
+        </div>
+        <div className="flex flex-col gap-2.5 lg:col-start-2 lg:mt-6 lg:grid lg:grid-cols-3 lg:gap-3">
           <Info libelle="Durée" valeur={chrono(video.duree).replace(":", " min ")} />
           <Info libelle="Format" valeur="9:16" />
           <Info libelle="Style" valeur={STYLES[video.style].nom} />
-          <p className="carte-pointillee p-2.5 text-[11px] leading-snug text-encre2">Prête pour TikTok, Shorts et Reels.</p>
+          <p className="carte-pointillee p-2.5 text-[11px] leading-snug text-encre2 lg:col-span-3 lg:px-4 lg:py-3 lg:text-[14px]">Prête pour TikTok, Shorts et Reels.</p>
         </div>
       </div>
 
-      <div className="carte mt-3 p-3.5">
+      <div className="carte mt-3 p-3.5 lg:p-5">
         <div className="flex items-center justify-between gap-3">
           <p className="text-[13px] font-bold">Légende proposée</p>
           <button type="button" onClick={() => copier(description)} className="lien min-h-9 text-[13px]">
             Copier
           </button>
         </div>
-        <p className="mt-1 text-[14px] leading-snug">
+        <p className="mt-1 text-[14px] leading-snug lg:mt-2 lg:text-[16px]">
           {video.legende} <span className="text-encre2">{video.hashtags.join(" ")}</span>
         </p>
       </div>
 
-      <button type="button" onClick={partager} className="bouton bouton-rose mt-5 w-full">
-        Partager sur TikTok
-      </button>
-      <button type="button" onClick={() => telecharger()} className="bouton bouton-blanc mt-3 w-full">
-        {video.filigrane && gratuit ? "Télécharger sans filigrane" : "Télécharger la vidéo"}
-      </button>
-      <button type="button" onClick={() => setRefaireOuvert(true)} className="lien mx-auto mt-2 flex min-h-11 items-center text-[14px]">
+      <div className="lg:mt-6 lg:grid lg:gap-3 xl:grid-cols-2">
+        <button type="button" onClick={partager} className="bouton bouton-rose mt-5 w-full lg:mt-0">
+          Partager sur TikTok
+        </button>
+        <button type="button" onClick={() => telecharger()} className="bouton bouton-blanc mt-3 w-full lg:mt-0">
+          {video.filigrane && gratuit ? "Télécharger sans filigrane" : "Télécharger la vidéo"}
+        </button>
+      </div>
+      <button type="button" onClick={() => setRefaireOuvert(true)} className="lien mx-auto mt-2 flex min-h-11 items-center text-[14px] lg:mx-0 lg:mt-3">
         Refaire avec un autre style
       </button>
 
@@ -257,9 +262,9 @@ function Resultat({ video }: { video: Video }) {
 
 function Info({ libelle, valeur }: { libelle: string; valeur: string }) {
   return (
-    <div className="carte px-2.5 py-2">
-      <p className="text-[11px] text-encre2">{libelle}</p>
-      <p className="titre mt-0.5 text-[15px] font-bold tracking-[-0.01em]">{valeur}</p>
+    <div className="carte px-2.5 py-2 lg:px-3 lg:py-3 xl:px-4">
+      <p className="text-[11px] text-encre2 lg:text-[13px]">{libelle}</p>
+      <p className="titre mt-0.5 text-[15px] font-bold tracking-[-0.01em] lg:text-[17px] xl:text-[20px]">{valeur}</p>
     </div>
   );
 }

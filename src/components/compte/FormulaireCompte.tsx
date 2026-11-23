@@ -128,7 +128,7 @@ export function FormulaireCompte({
         {erreur}
       </p>
 
-      <div className="mt-auto pt-6">
+      <div className="mt-auto pt-6 lg:pt-8">
         <button type="submit" disabled={envoi} className="bouton bouton-rose w-full">
           {envoi ? "Un instant…" : inscription ? "Créer mon compte" : "Me connecter"}
         </button>

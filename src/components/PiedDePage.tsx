@@ -4,8 +4,8 @@ import { Logo } from "./marque/Logo";
 
 export function PiedDePage() {
   return (
-    <footer className="border-t-2 border-encre bg-encre px-4 pb-32 pt-10 text-fond">
-      <div className="mx-auto flex max-w-[560px] flex-col gap-5">
+    <footer className="border-t-2 border-encre bg-encre px-4 pb-32 pt-10 text-fond lg:px-8 lg:pb-14 lg:pt-14">
+      <div className="mx-auto flex max-w-[560px] flex-col gap-5 lg:max-w-[1120px] lg:flex-row lg:flex-wrap lg:items-start lg:justify-between">
         <div className="[&_.titre]:text-fond">
           <Logo taille={28} />
           <p className="mt-2 text-[14px] text-fond/70">Tes clips. Ton loot.</p>
@@ -21,7 +21,7 @@ export function PiedDePage() {
             Confidentialité
           </Link>
         </nav>
-        <p className="text-[12px] text-fond/60">{NON_AFFILIATION}</p>
+        <p className="text-[12px] text-fond/60 lg:w-full lg:border-t lg:border-fond/15 lg:pt-6">{NON_AFFILIATION}</p>
       </div>
     </footer>
   );

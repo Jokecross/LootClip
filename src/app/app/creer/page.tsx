@@ -30,6 +30,7 @@ type Element = {
 function Creer() {
   const etat = useEtat();
   const router = useRouter();
+  const [survol, setSurvol] = useState(false);
   const [elements, setElements] = useState<Element[]>([]);
   const [etape, setEtape] = useState<"clips" | "style">("clips");
   const [style, setStyle] = useState<Style>("defi");
@@ -155,10 +156,11 @@ function Creer() {
   }
 
   const barreBas = (info: React.ReactNode, bouton: React.ReactNode) => (
-    <div className="au-dessus-onglets fixed inset-x-0 z-20 border-t-2 border-encre bg-fond px-4 pb-3 pt-3">
-      <div className="mx-auto max-w-[448px]">
-        <p className="mb-2 text-center text-[13px] font-bold tabular-nums">{info}</p>
-        {bouton}
+    <div className="au-dessus-onglets fixed inset-x-0 z-20 border-t-2 border-encre bg-fond px-4 pb-3 pt-3 lg:static lg:z-auto lg:mt-8 lg:border-t-0 lg:bg-transparent lg:p-0">
+      {/* Ordinateur : la barre n'est plus collée en bas, elle suit le contenu */}
+      <div className="mx-auto max-w-[448px] lg:flex lg:max-w-[720px] lg:items-center lg:justify-between lg:gap-6 lg:rounded-[18px] lg:border-2 lg:border-encre lg:bg-blanc lg:p-4 lg:pl-6">
+        <p className="mb-2 text-center text-[13px] font-bold tabular-nums lg:mb-0 lg:text-left lg:text-[15px]">{info}</p>
+        <div className="lg:w-[300px] lg:shrink-0">{bouton}</div>
       </div>
     </div>
   );
@@ -166,8 +168,8 @@ function Creer() {
   /* ---------- Offre payante : quota du mois atteint ---------- */
   if (bloque && compte.offre !== "gratuit" && etape === "clips" && !elements.length) {
     return (
-      <div className="entree">
-        <h1 className="titre text-[32px]">Mois bouclé.</h1>
+      <div className="entree lg:mx-auto lg:max-w-[720px]">
+        <h1 className="titre text-[32px] lg:text-[48px]">Mois bouclé.</h1>
         <p className="mt-2 text-[15px] text-encre2">Tes {OFFRES_PAYANTES[compte.offre].videosParMois} vidéos reviennent le 1er du mois.</p>
       </div>
     );
@@ -177,9 +179,9 @@ function Creer() {
   if (etape === "style") {
     return (
       <>
-        <div className="entree">
+        <div className="entree lg:mx-auto lg:max-w-[720px]">
           <BoutonRetour onClick={() => setEtape("clips")} />
-          <h1 className="titre mt-4 text-[32px]">Titre et style.</h1>
+          <h1 className="titre mt-4 text-[32px] lg:text-[48px]">Titre et style.</h1>
           <p className="mt-2 text-[15px] text-encre2">C&apos;est toi qui as joué. Raconte ce qui se passe.</p>
 
           <label htmlFor="titre-video" className="mt-5 block text-[14px] font-bold">
@@ -249,7 +251,7 @@ function Creer() {
             />
           </label>
           <p className="mt-4 text-[13px] text-encre2">En 9:16, 1080 × 1920. On garde les meilleurs passages de tes clips.</p>
-          <div className="h-36" aria-hidden="true" />
+          <div className="h-36 lg:hidden" aria-hidden="true" />
         </div>
         {barreBas(
           `Style : ${STYLES[style].nom}`,
@@ -273,14 +275,14 @@ function Creer() {
   /* ---------- Étape 1 : les clips ---------- */
   return (
     <>
-      <div className="entree">
+      <div className="entree lg:mx-auto lg:max-w-[720px]">
         {etat.videos.length > 0 && (
           <div className="mb-6">
             <DefiSeptJours />
           </div>
         )}
 
-        <h1 className="titre text-[32px]">Dépose tes clips.</h1>
+        <h1 className="titre text-[32px] lg:text-[48px]">Dépose tes clips.</h1>
         <p className="mt-2 text-[15px] text-encre2">
           Jusqu&apos;à {CLIPS.max} clips, 3 minutes maximum chacun.
         </p>
@@ -294,13 +296,31 @@ function Creer() {
         <input ref={entree} type="file" accept="video/*" multiple className="sr-only" onChange={(e) => (ajouter(e.target.files), (e.target.value = ""))} />
 
         {valides.length < CLIPS.max && (
-          <button type="button" onClick={() => entree.current?.click()} className="carte-pointillee mt-5 flex w-full flex-col items-center justify-center gap-3 bg-blanc py-9 active:bg-fond">
+          <button
+            type="button"
+            onClick={() => entree.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setSurvol(true);
+            }}
+            onDragLeave={() => setSurvol(false)}
+            onDrop={(e) => {
+              e.preventDefault();
+              setSurvol(false);
+              ajouter(e.dataTransfer.files);
+            }}
+            className={`carte-pointillee mt-5 flex w-full flex-col items-center justify-center gap-3 py-9 transition-colors active:bg-fond lg:mt-8 lg:py-16 ${survol ? "bg-jaune" : "bg-blanc lg:hover:bg-fond"}`}
+          >
             <span className="grid h-12 w-12 place-items-center rounded-xl border-2 border-encre bg-rose shadow-[0_3px_0_var(--color-encre)]" aria-hidden="true">
               <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
                 <path d="M12 5v14M5 12h14" />
               </svg>
             </span>
-            <span className="titre text-[18px] font-bold tracking-[-0.01em]">{valides.length ? "Ajouter des clips" : "Choisir dans ma galerie"}</span>
+            <span className="titre text-[18px] font-bold tracking-[-0.01em] lg:hidden">{valides.length ? "Ajouter des clips" : "Choisir dans ma galerie"}</span>
+            <span className="hidden text-center lg:block">
+              <span className="titre block text-[24px] font-bold tracking-[-0.01em]">{valides.length ? "Glisse d'autres clips ici" : "Glisse tes clips ici"}</span>
+              <span className="mt-1 block text-[15px] text-encre2">ou clique pour les choisir</span>
+            </span>
           </button>
         )}
 
@@ -338,7 +358,7 @@ function Creer() {
           </ul>
         )}
 
-        <div className="h-36" aria-hidden="true" />
+        <div className="h-36 lg:hidden" aria-hidden="true" />
       </div>
 
       {barreBas(

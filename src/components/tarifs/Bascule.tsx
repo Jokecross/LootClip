@@ -4,7 +4,7 @@ import { REMISE_ANNUELLE, type Periodicite } from "@/lib/config";
 
 export function Bascule({ valeur, changer }: { valeur: Periodicite; changer: (p: Periodicite) => void }) {
   return (
-    <div className="grid grid-cols-2 gap-1 rounded-[14px] border-2 border-encre bg-blanc p-1" role="radiogroup" aria-label="Facturation">
+    <div className="grid grid-cols-2 gap-1 rounded-[14px] border-2 border-encre bg-blanc p-1 lg:mx-auto lg:w-[440px]" role="radiogroup" aria-label="Facturation">
       {(["mensuel", "annuel"] as const).map((p) => (
         <button
           key={p}

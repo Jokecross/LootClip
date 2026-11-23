@@ -60,17 +60,17 @@ function Etiquette({ children, fond, className }: { children: React.ReactNode; f
 
 export function AvantApres() {
   return (
-    <div className="grid items-center gap-10">
+    <div className="grid items-center gap-10 lg:grid-cols-[1fr_auto_1fr] lg:gap-12">
       {/* Avant */}
       <div>
         <p className="text-[14px] font-bold">Avant</p>
-        <p className="titre mt-1 text-[26px] text-fond">Des minutes de jeu brut.</p>
-        <div className="relative mt-6 h-[190px]">
+        <p className="titre mt-1 text-[26px] text-fond lg:text-[34px]">Des minutes de jeu brut.</p>
+        <div className="relative mt-6 aspect-[2/1] lg:mt-10">
           {CLIPS.map((c, i) => (
             <div
               key={c.image}
               className="absolute w-[62%] overflow-hidden rounded-xl border-2 border-fond/70 bg-encre shadow-[0_4px_0_rgb(0_0_0/0.5)]"
-              style={{ left: `${i * 18}%`, top: `${i * 26}px`, transform: `rotate(${c.angle}deg)`, zIndex: 3 - i }}
+              style={{ left: `${i * 18}%`, top: `${i * 13}%`, transform: `rotate(${c.angle}deg)`, zIndex: 3 - i }}
             >
               <img src={c.image} alt="" className="block aspect-video w-full object-cover opacity-60 grayscale-[0.5]" loading="lazy" />
               <span className="absolute bottom-1.5 right-1.5 rounded-md bg-encre/85 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-fond">{c.duree}</span>
@@ -83,7 +83,7 @@ export function AvantApres() {
               <span key={m.debut} className="absolute inset-y-0 bg-jaune" style={{ left: `${m.debut}%`, width: `${m.largeur}%` }} />
             ))}
           </div>
-          <p className="mt-2 text-[13px] text-fond/70">
+          <p className="mt-2 text-[13px] text-fond/70 lg:text-[15px]">
             En jaune, les vrais bons moments. Le reste, personne ne le regarde.
           </p>
         </div>
@@ -91,16 +91,17 @@ export function AvantApres() {
 
       {/* Flèche */}
       <div className="flex justify-center" aria-hidden="true">
-        <span className="pastille rotate-[-4deg] bg-rose px-4 py-1.5 text-[14px] text-encre shadow-[0_3px_0_var(--color-fond)]">
-          XPclip ↓
+        <span className="pastille rotate-[-4deg] bg-rose px-4 py-1.5 text-[14px] text-encre shadow-[0_3px_0_var(--color-fond)] lg:px-5 lg:py-2.5 lg:text-[18px]">
+          XPclip <span className="lg:hidden">↓</span>
+          <span className="hidden lg:inline">→</span>
         </span>
       </div>
 
       {/* Après */}
       <div>
         <p className="text-[14px] font-bold text-jaune">Après</p>
-        <p className="titre mt-1 text-[26px] text-fond">30 secondes qui accrochent.</p>
-        <div className="relative mx-auto mt-8 w-[230px] pb-2">
+        <p className="titre mt-1 text-[26px] text-fond lg:text-[34px]">30 secondes qui accrochent.</p>
+        <div className="relative mx-auto mt-8 w-[230px] pb-2 lg:mt-10 lg:w-[270px]">
           <div className="relative aspect-[9/16] overflow-hidden rounded-[26px] border-[3px] border-fond bg-nuit2 shadow-[0_8px_0_rgb(0_0_0/0.5)]">
             <VideoEnBoucle />
           </div>

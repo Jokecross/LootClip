@@ -21,8 +21,8 @@ export function Feuille({ ouverte, fermer, titre, children }: { ouverte: boolean
       aria-label={titre}
       className="m-0 mt-auto w-full max-w-none bg-transparent p-0 text-encre backdrop:bg-encre/40 sm:m-auto"
     >
-      <div className="entree pb-sur mx-auto max-w-[480px] rounded-t-[22px] border-2 border-b-0 border-encre bg-fond px-5 pt-3 sm:rounded-[22px] sm:border-b-2">
-        <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-beige" aria-hidden="true" />
+      <div className="entree pb-sur mx-auto max-w-[480px] rounded-t-[22px] border-2 border-b-0 border-encre bg-fond px-5 pt-3 sm:rounded-[22px] sm:border-b-2 sm:pt-6 sm:shadow-[0_6px_0_var(--color-encre)]">
+        <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-beige sm:hidden" aria-hidden="true" />
         <div className="flex items-start justify-between gap-4">
           <h2 className="titre text-[26px]">{titre}</h2>
           <button type="button" onClick={fermer} className="bouton bouton-carre" aria-label="Fermer">
