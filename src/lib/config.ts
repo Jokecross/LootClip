@@ -120,6 +120,9 @@ export const MENTION_OBJECTIF = "Objectif fixé par XPclip, pas une prévision d
 /** Adresse publique du site (retour de paiement : Whop exige du https). */
 export const SITE = "https://www.xpclip.com";
 
+/** L'éditeur du site, affiché dans les pages légales. null = à compléter avant d'ouvrir le paiement à tous. */
+export const SOCIETE: { nom: string; forme: string; adresse: string; numero: string; responsable: string; contact: string } | null = null;
+
 export const NON_AFFILIATION = "XPclip n'est pas affilié à Rockstar Games ni à Sony.";
 
 /** « Mot de passe oublié » : à passer à true quand l'envoi d'e-mails (Resend) est branché dans Supabase. */
