@@ -15,7 +15,7 @@ export function EnregistrerSW() {
     let cache = 0;
     const occupe = () =>
       // Dépôt de clips ou paiement en cours : on ne coupe rien.
-      /^\/app\/(creer|merci)/.test(location.pathname) || !!document.querySelector('iframe[src*="whop"], iframe[name*="whop"]');
+      /^\/app\/(creer|merci)/.test(location.pathname) || !!document.querySelector("[data-paiement]");
     const verifier = async () => {
       try {
         const { version } = await (await fetch("/api/version", { cache: "no-store" })).json();

@@ -46,7 +46,7 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
   }
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] overflow-y-auto bg-fond" role="dialog" aria-modal="true" aria-labelledby="t-paiement">
+    <div data-paiement className="fixed inset-0 z-[60] overflow-y-auto bg-fond" role="dialog" aria-modal="true" aria-labelledby="t-paiement">
       <div className="entree mx-auto flex min-h-dvh max-w-[480px] flex-col px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(16px,env(safe-area-inset-top))]">
         <div className="flex items-start justify-between gap-4">
           <div>
