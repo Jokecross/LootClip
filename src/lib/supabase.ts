@@ -14,6 +14,7 @@ export function messageErreur(e: unknown): string {
   const m = e instanceof Error ? e.message : typeof e === "object" && e && "message" in e ? String((e as { message: unknown }).message) : String(e);
   if (m.includes("quota_atteint")) return "quota_atteint";
   if (m.includes("style_ferme")) return "Ce style est inclus dans Pro et Max.";
+  if (m.includes("duree_fermee")) return "Les vidéos longues sont incluses dans Pro et Max.";
   if (m.includes("nombre_de_clips")) return "Il faut entre 1 et 10 clips.";
   if (m.includes("duree_invalide")) return "Durée de vidéo impossible.";
   if (m.includes("clip_invalide")) return "Un clip n'a pas été envoyé correctement. Réessaie.";

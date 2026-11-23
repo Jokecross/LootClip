@@ -139,7 +139,7 @@ function Creer() {
       const id = await lancerMontage({
         style,
         titre,
-        duree: optionsDuree(total).find((o) => o.cle === duree)?.secondes ?? 30,
+        duree: optionsDuree(total, compte.offre).find((o) => o.cle === duree)?.secondes ?? 30,
         clips: valides.map((e) => ({ nom: e.fichier.name, duree: Math.round(e.duree), taille: e.fichier.size, chemin: e.chemin })),
         urls: valides.map((e) => e.url),
       });
@@ -206,7 +206,7 @@ function Creer() {
 
           <p className="mt-6 text-[14px] font-bold">Durée de la vidéo</p>
           <div className="mt-2 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Durée de la vidéo">
-            {optionsDuree(total).map((o) => {
+            {optionsDuree(total, compte.offre).map((o) => {
               const actif = duree === o.cle;
               return (
                 <button
@@ -219,7 +219,7 @@ function Creer() {
                   className={`flex min-h-[68px] flex-col items-center justify-center rounded-[14px] border-2 border-encre px-1 text-center transition-colors disabled:opacity-40 ${actif ? "bg-jaune" : "bg-blanc"}`}
                 >
                   <span className="titre text-[17px] font-bold tracking-[-0.01em]">{o.nom}</span>
-                  <span className="mt-0.5 text-[12px] text-encre2">{o.dispo ? dureeLisible(o.secondes) : "Pas assez de clips"}</span>
+                  <span className="mt-0.5 text-[12px] text-encre2">{o.ferme ? "Pro et Max" : o.dispo ? dureeLisible(o.secondes) : "Pas assez de clips"}</span>
                 </button>
               );
             })}
@@ -369,7 +369,7 @@ function Creer() {
         <button
           type="button"
           onClick={() => {
-            setDuree(dureeParDefaut(total));
+            setDuree(dureeParDefaut(total, compte.offre));
             setEtape("style");
           }}
           disabled={!!probleme || enCours}

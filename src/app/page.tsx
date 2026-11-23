@@ -131,7 +131,7 @@ export default function Accueil() {
         <Section fond="bg-fond" id="t-tarifs">
           <div className="lg:flex lg:items-end lg:justify-between lg:gap-10">
             <h2 id="t-tarifs" className={TITRE_SECTION}>
-              Moins d&apos;un euro par jour.
+              Choisis ton rythme.
             </h2>
             <p className="mt-2 hidden max-w-[30ch] text-[17px] text-encre2 lg:block">Sans engagement. Tu changes d&apos;offre quand tu veux.</p>
           </div>

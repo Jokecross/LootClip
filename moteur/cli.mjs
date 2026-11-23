@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * Montage en local, pour régler la qualité.
- *   node cli.mjs --accroche "Mon titre" [--duree 30|60|180] [--format flou|zoom] [--pro] [--sortie video.mp4] clip1.mp4 ...
+ *   node cli.mjs --accroche "Mon titre" [--duree 30|60|180] [--format flou|zoom] [--style defi|drole|mission] [--pro] [--sortie video.mp4] clip1.mp4 ...
  * Sans clip donné : prend tous les .mp4 du dossier ../CLIP.
  */
 import { readdir } from "node:fs/promises";
@@ -27,8 +27,9 @@ const drapeau = (nom) => {
 
 const accroche = option("accroche", "J'ai tenté le défi le plus bête de GTA 6.");
 const format = option("format", "flou");
+const style = option("style", "defi");
 const duree = Number(option("duree", "60"));
-const sortie = resolve(option("sortie", join(ICI, "sorties", `montage-${format}-${duree}s.mp4`)));
+const sortie = resolve(option("sortie", join(ICI, "sorties", `montage-${format}-${style}-${duree}s.mp4`)));
 const pro = drapeau("pro");
 
 let clips = args.map((c) => resolve(c));
@@ -48,6 +49,7 @@ const r = await monter({
   accroche,
   format,
   filigrane: !pro,
+  style,
   progres: (e, a) => process.stdout.write(`  étape ${e} · ${Math.round(a * 100)} %\n`),
 });
 console.log(`Terminé en ${r.secondes.toFixed(1)} s → ${sortie}`);

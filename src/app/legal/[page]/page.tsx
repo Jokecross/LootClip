@@ -20,9 +20,9 @@ const PAGES: Record<string, { titre: string; blocs: { h: string; p: string[] }[]
         h: "Offres",
         p: [
           "XPclip est accessible avec un abonnement payant.",
-          "Starter : 9,99 € TTC par mois, 20 vidéos par mois, sans filigrane.",
-          "Pro : 19,99 € TTC par mois, 60 vidéos par mois, tous les styles, montage prioritaire.",
-          "Max : 49,99 € TTC par mois, 200 vidéos par mois, plusieurs pages TikTok.",
+          "Starter : 9,99 € TTC par mois, 20 vidéos par mois, 1 minute maximum par vidéo, 2 styles de montage, sans filigrane.",
+          "Pro : 19,99 € TTC par mois, 60 vidéos par mois, 3 minutes maximum par vidéo, 3 styles de montage, sans filigrane.",
+          "Max : 49,99 € TTC par mois, 200 vidéos par mois, et tout ce que contient Pro.",
           "Paiement annuel : -40 % sur le prix mensuel, prélevé en une fois.",
           "Offre de lancement : -20 % pour toute souscription pendant les 14 premiers jours, gardée tant que l'abonnement reste actif.",
         ],

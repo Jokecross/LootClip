@@ -102,12 +102,23 @@ async function analyser(fichier) {
 
 /* ---------- 2. Sélection des passages ---------- */
 
-/** Passages plus courts pour une vidéo courte (rythme rapide), plus longs pour une vidéo longue. */
-const longueurPassage = (duree) => (duree <= 35 ? 2.5 : duree <= 75 ? 4 : 6);
+/**
+ * Les trois styles. `passage` : longueur d'un plan pour une vidéo courte, moyenne, longue.
+ * - defi    : rythme soutenu, le moment le plus fort ouvre la vidéo, zooms et flashs blancs ;
+ * - drole   : coupes très courtes, coup de zoom à chaque plan ;
+ * - mission : plans longs dans l'ordre du jeu, zoom lent, fondus au noir, image contrastée façon film.
+ */
+const STYLES = {
+  defi: { passage: [2.5, 4, 6], ouverture: true, fusion: true },
+  drole: { passage: [1.5, 2, 4], ouverture: true, fusion: false },
+  mission: { passage: [5, 7, 10], ouverture: false, fusion: true },
+};
+const styleDe = (nom) => (Object.hasOwn(STYLES, nom) ? nom : "defi");
 
-function choisir(analyses, dureeCible) {
+function choisir(analyses, dureeCible, style) {
   const { pas } = REGLAGES;
-  const segment = longueurPassage(dureeCible);
+  const regle = STYLES[style];
+  const segment = regle.passage[dureeCible <= 35 ? 0 : dureeCible <= 75 ? 1 : 2];
   const fenetre = Math.round(segment / pas);
   // Toutes les fenêtres possibles, avec leur intensité moyenne
   const candidats = analyses.flatMap((a, k) => {
@@ -160,25 +171,27 @@ function choisir(analyses, dureeCible) {
     if (!agrandi) break;
   }
 
-  // Le plus intense ouvre la vidéo (l'accroche), le reste suit l'ordre des clips et du temps
-  const ouverture = choisis.reduce((m, s) => (s.score > m.score ? s : m), choisis[0]);
+  // Le plus intense ouvre la vidéo (l'accroche), le reste suit l'ordre des clips et du temps.
+  // En style mission, tout reste dans l'ordre : on raconte.
+  const ouverture = regle.ouverture ? choisis.reduce((m, s) => (s.score > m.score ? s : m), choisis[0]) : null;
   const suite = choisis.filter((s) => s !== ouverture).sort((a, b) => a.k - b.k || a.debut - b.debut);
 
   // Deux passages qui se touchent dans le même clip deviennent un seul plan, sans coupure inutile
   const fusion = [];
   for (const s of suite) {
     const d = fusion.at(-1);
-    if (d && d.k === s.k && s.debut - d.fin <= 0.6) d.fin = Math.max(d.fin, s.fin);
+    if (regle.fusion && d && d.k === s.k && s.debut - d.fin <= 0.6) d.fin = Math.max(d.fin, s.fin);
     else fusion.push({ ...s });
   }
-  const plan = [ouverture, ...fusion];
+  const plan = ouverture ? [ouverture, ...fusion] : fusion;
+  const mini = Math.min(2, segment - 0.5);
 
   // Ajustement fin : on raccourcit le dernier passage si on dépasse
   // (les passages fusionnés ont repris le jeu entre eux : on compte le plan, pas les passages choisis)
   let surplus = plan.reduce((t, s) => t + (s.fin - s.debut), 0) - dureeCible;
   for (let i = plan.length - 1; i > 0 && surplus > 0.2; i--) {
     const s = plan[i];
-    const retire = Math.min(surplus, s.fin - s.debut - 2);
+    const retire = Math.min(surplus, s.fin - s.debut - mini);
     if (retire > 0) {
       s.fin -= retire;
       surplus -= retire;
@@ -194,20 +207,28 @@ const moyenne = (l) => (l.length ? l.reduce((a, b) => a + b, 0) / l.length : 0);
 /**
  * Mouvement de caméra d'un passage (zoompan image par image) :
  * - ouverture : zoom choc (on part serré et on recule vite), puis on avance doucement ;
- * - ensuite : zoom lent, alterné avant / arrière, pour que l'image ne soit jamais figée.
+ * - ensuite : zoom lent, alterné avant / arrière, pour que l'image ne soit jamais figée ;
+ * - drole : coup de zoom à chaque plan ; mission : avancée très lente, toujours dans le même sens.
  */
-function mouvement(i, s) {
+function mouvement(i, s, style) {
   const n = Math.max(1, Math.round(s.duree * REGLAGES.ips));
+  if (style === "mission") return `1+0.06*on/${n}`;
+  if (style === "drole") return i % 2 ? `if(lt(on,5),1+0.24*on/5,1.24-0.03*(on-5)/${n})` : `if(lt(on,6),1.36-0.3*on/6,1.06+0.04*(on-6)/${n})`;
   if (i === 0) return `if(lt(on,8),1.32-0.26*on/8,1.06+0.05*(on-8)/${n})`;
   return i % 2 ? `1.08-0.08*on/${n}` : `1+0.08*on/${n}`;
 }
 
-function filtreImage(i, format, s) {
+function filtreImage(i, format, s, style) {
   const { largeur: L, hauteur: H, ips } = REGLAGES;
-  const z = mouvement(i, s);
+  const z = mouvement(i, s, style);
   const camera = (l, h) => `zoompan=z='${z}':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=${l}x${h}:fps=${ips}`;
   // Petit flash blanc au début de chaque passage (sauf le premier) : la coupe se sent.
-  const flash = i > 0 ? ",fade=t=in:st=0:d=0.12:color=white" : "";
+  const flash =
+    style === "mission"
+      ? `,eq=contrast=1.1:saturation=0.88,vignette=PI/6${i > 0 ? ",fade=t=in:st=0:d=0.3" : ""}`
+      : i > 0
+        ? `,fade=t=in:st=0:d=${style === "drole" ? "0.07" : "0.12"}:color=white`
+        : "";
   if (format === "flou") {
     return (
       `[${i}:v]fps=${ips},split=2[f${i}][b${i}];` +
@@ -238,13 +259,14 @@ function filtreSon(i, s, son) {
  * @param {"zoom"|"flou"} o.format recadrage vertical
  * @param {(etape:number, avancement:number)=>void} [o.progres]
  */
-export async function monter({ clips, sortie, duree = 60, accroche, filigrane = true, format = "flou", progres = () => {} }) {
+export async function monter({ clips, sortie, duree = 60, accroche, filigrane = true, format = "flou", style: demande = "defi", progres = () => {} }) {
   const debut = Date.now();
   progres(0, 0.02);
   const analyses = await Promise.all(clips.map(analyser));
   const brut = analyses.reduce((t, a) => t + a.duree, 0);
   const cible = Math.round(borne(duree, REGLAGES.dureeMin, Math.min(REGLAGES.dureeMax, brut * REGLAGES.partUtile)));
-  const plan = choisir(analyses, cible);
+  const style = styleDe(demande);
+  const plan = choisir(analyses, cible, style);
   progres(0, 0.25);
 
   const dossier = await mkdtemp(join(tmpdir(), "lootclip-"));
@@ -266,7 +288,7 @@ export async function monter({ clips, sortie, duree = 60, accroche, filigrane = 
 
     let graphe = "";
     plan.forEach((s, i) => {
-      graphe += filtreImage(i, format, s);
+      graphe += filtreImage(i, format, s, style);
       graphe += filtreSon(i, s, analyses[s.k].son);
     });
     graphe += plan.map((_, i) => `[v${i}][a${i}]`).join("") + `concat=n=${plan.length}:v=1:a=1[vc][ac];`;

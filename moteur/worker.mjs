@@ -104,6 +104,7 @@ async function traiter(m) {
       duree: m.duree ?? 60,
       accroche: m.accroche || m.titre || "",
       filigrane: m.filigrane,
+      style: m.style,
       format: "flou",
       progres: (etape, a) => {
         const avancement = 0.15 + a * 0.8;

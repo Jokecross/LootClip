@@ -24,6 +24,7 @@ type Tache = {
   depot: string;
   duree: number;
   accroche: string;
+  style: string;
   filigrane: boolean;
   suivi?: string;
   jeton?: string;

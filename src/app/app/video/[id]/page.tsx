@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { DefiSeptJours } from "@/components/app/DefiSeptJours";
 import { Lecteur } from "@/components/app/Lecteur";
 import { Paywall, type MomentPaywall } from "@/components/app/Paywall";
@@ -145,10 +145,29 @@ function Resultat({ video }: { video: Video }) {
     }
   }
 
-  /** Partage vers TikTok : titre, légende et hashtags copiés d'abord, puis ouverture de TikTok. */
-  async function partager() {
-    const texte = `${video.titre}\n\n${video.legende}\n\n${video.hashtags.join(" ")}`;
-    await navigator.clipboard?.writeText(texte).catch(() => {});
+  // Le MP4 est chargé d'avance : le menu de partage du téléphone doit s'ouvrir au toucher, sans attente.
+  const partageNatif = usePartageNatif();
+  const [fichier, setFichier] = useState<File | null>(null);
+  const [charge, setCharge] = useState(false);
+  useEffect(() => {
+    if (!partageNatif || !video.videoChemin) return;
+    const stop = new AbortController();
+    supabase.storage
+      .from("videos")
+      .createSignedUrl(video.videoChemin, 600)
+      .then(async ({ data }) => {
+        if (!data?.signedUrl) return;
+        const r = await fetch(data.signedUrl, { signal: stop.signal });
+        if (r.ok) setFichier(new File([await r.blob()], `xpclip-${video.id.slice(0, 8)}.mp4`, { type: "video/mp4" }));
+      })
+      .catch(() => {})
+      .finally(() => setCharge(true));
+    return () => stop.abort();
+  }, [partageNatif, video.videoChemin, video.id]);
+
+  const enPreparation = partageNatif && !!video.videoChemin && !charge;
+
+  function noterPartage() {
     const le = new Date().toISOString();
     modifier((e) => ({
       ...e,
@@ -156,8 +175,25 @@ function Resultat({ video }: { video: Video }) {
       videos: e.videos.map((v) => (v.id === video.id ? { ...v, partageeLe: le } : v)),
     }));
     suivre("partage_tiktok", { video: video.id });
+  }
+
+  /** Téléphone : menu de partage avec la vidéo (TikTok, Instagram…). Ordinateur : textes copiés, puis TikTok. */
+  async function partager() {
+    const texte = `${video.titre}\n\n${video.legende}\n\n${video.hashtags.join(" ")}`;
+    // Sans « await » : le menu de partage exige de s'ouvrir tout de suite après le toucher.
+    navigator.clipboard?.writeText(texte).catch(() => {});
+    if (fichier && navigator.canShare?.({ files: [fichier] })) {
+      try {
+        await navigator.share({ files: [fichier] });
+        noterPartage();
+        afficherToast("Titre et hashtags copiés. Colle-les dans ta publication.");
+        return;
+      } catch (e) {
+        if (e instanceof Error && e.name === "AbortError") return;
+      }
+    }
+    noterPartage();
     afficherToast("Titre et hashtags copiés. Colle-les dans TikTok.");
-    // Une fois le MP4 réel disponible : navigator.share({ files: [mp4] }) ouvre TikTok dans le menu de partage.
     setTimeout(() => window.open("https://www.tiktok.com/upload", "_blank", "noopener"), 600);
   }
 
@@ -216,8 +252,8 @@ function Resultat({ video }: { video: Video }) {
       </div>
 
       <div className="lg:mt-6 lg:grid lg:gap-3 xl:grid-cols-2">
-        <button type="button" onClick={partager} className="bouton bouton-rose mt-5 w-full lg:mt-0">
-          Partager sur TikTok
+        <button type="button" onClick={partager} disabled={enPreparation} className="bouton bouton-rose mt-5 w-full lg:mt-0">
+          {enPreparation ? "Préparation…" : partageNatif ? "Partager sur TikTok ou Instagram" : "Partager sur TikTok"}
         </button>
         <button type="button" onClick={() => telecharger()} className="bouton bouton-blanc mt-3 w-full lg:mt-0">
           {video.filigrane ? "Télécharger sans filigrane" : "Télécharger la vidéo"}
@@ -267,6 +303,17 @@ function Resultat({ video }: { video: Video }) {
       />
     </div>
   );
+}
+
+/** Le téléphone sait-il partager un fichier vidéo ? */
+function usePartageNatif() {
+  const [oui, setOui] = useState(false);
+  useEffect(() => {
+    try {
+      setOui(matchMedia("(pointer: coarse)").matches && !!navigator.canShare?.({ files: [new File([""], "x.mp4", { type: "video/mp4" })] }));
+    } catch {}
+  }, []);
+  return oui;
 }
 
 function Info({ libelle, valeur }: { libelle: string; valeur: string }) {

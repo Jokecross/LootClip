@@ -73,6 +73,7 @@ export async function POST(req: Request) {
         depot: depot.signedUrl,
         duree: tache.duree ?? 60,
         accroche: tache.accroche || tache.titre || "",
+        style: tache.style,
         filigrane: tache.filigrane,
         suivi: `${site}/api/montage/suivi`,
         jeton: jetonMontage(id, tache.debut_le),

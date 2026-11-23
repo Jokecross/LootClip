@@ -120,6 +120,9 @@ const TEXTES: Record<Style, { accroches: string[]; script: string[]; titres: str
   },
 };
 
+/** Fin de légende : une question fait réagir. On n'affirme rien sur l'origine du clip. */
+const FINS = ["Tu aurais fait quoi ?", "Note ce moment sur 10.", "La suite demain ?"];
+
 const hasard = <T,>(l: T[]) => l[Math.floor(Math.random() * l.length)];
 
 /** Textes de la vidéo. Si le joueur a écrit son titre, il sert d'accroche et de titre TikTok. */
@@ -132,7 +135,7 @@ export function genererTextes(style: Style, titrePerso?: string) {
     accroche,
     script: [accroche, ...t.script.slice(1)],
     titre,
-    legende: `${titre}${/[.!?…]$/.test(titre) ? "" : "."} Clip original, monté par moi.`,
+    legende: `${titre}${/[.!?…]$/.test(titre) ? "" : "."} ${hasard(FINS)}`,
     hashtags: ["#gta6", "#gta6clips", ...t.tags, "#ps5", "#gaming", "#fyp"],
   };
 }
@@ -268,18 +271,20 @@ export function verifierClips(clips: Clip[]): string | null {
  * Durées possibles avec les clips déposés. On ne garde jamais plus de 85 % du jeu (le meilleur),
  * donc une durée est grisée quand il n'y a pas assez de matière.
  */
-export function optionsDuree(totalClips: number): { cle: Duree; nom: string; secondes: number; dispo: boolean }[] {
+export function optionsDuree(totalClips: number, offre: Offre): { cle: Duree; nom: string; secondes: number; dispo: boolean; ferme: boolean }[] {
+  const max = offre === "gratuit" ? 60 : OFFRES_PAYANTES[offre].dureeMaxSec;
   const utile = Math.floor(totalClips * VIDEO.partUtile);
   return (Object.keys(DUREES) as Duree[]).map((cle) => {
     const { nom, cible } = DUREES[cle];
-    if (cle === "longue") return { cle, nom, secondes: Math.min(cible, utile), dispo: utile >= 75 };
-    if (cle === "courte") return { cle, nom, secondes: Math.min(cible, utile), dispo: utile >= 10 };
-    return { cle, nom, secondes: cible, dispo: utile >= cible };
+    const ferme = cible > max;
+    if (cle === "longue") return { cle, nom, secondes: Math.min(cible, utile), dispo: utile >= 75 && !ferme, ferme };
+    if (cle === "courte") return { cle, nom, secondes: Math.min(cible, utile), dispo: utile >= 10, ferme };
+    return { cle, nom, secondes: cible, dispo: utile >= cible, ferme };
   });
 }
 
 /** Durée proposée par défaut : la moyenne si possible, sinon la plus longue possible. */
-export function dureeParDefaut(totalClips: number): Duree {
-  const o = optionsDuree(totalClips).filter((x) => x.dispo);
+export function dureeParDefaut(totalClips: number, offre: Offre): Duree {
+  const o = optionsDuree(totalClips, offre).filter((x) => x.dispo);
   return o.find((x) => x.cle === "moyenne")?.cle ?? o.at(-1)?.cle ?? "courte";
 }

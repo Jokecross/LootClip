@@ -4,9 +4,9 @@
  */
 
 export const STYLES = {
-  defi: { nom: "Défi", detail: "Une règle folle, tenue jusqu'au bout.", couleur: "var(--color-rose)" },
-  mission: { nom: "Mission racontée", detail: "Ta mission racontée comme un film.", couleur: "var(--color-orange)" },
-  drole: { nom: "Moments drôles", detail: "Tes bugs et tes ratés, en rafale.", couleur: "var(--color-turquoise)" },
+  defi: { nom: "Défi", detail: "Rythme soutenu, zooms et flashs.", couleur: "var(--color-rose)" },
+  mission: { nom: "Mission racontée", detail: "Plans longs, dans l'ordre, façon film.", couleur: "var(--color-orange)" },
+  drole: { nom: "Moments drôles", detail: "Coupes très courtes, en rafale.", couleur: "var(--color-turquoise)" },
 } as const;
 
 export type Style = keyof typeof STYLES;
@@ -25,21 +25,24 @@ export const OFFRES_PAYANTES = {
     mensuel: 9.99,
     videosParMois: 20,
     styles: ["defi", "drole"] as Style[],
-    avantages: ["20 vidéos par mois", "Sans filigrane"],
+    dureeMaxSec: 60,
+    avantages: ["20 vidéos par mois", "Jusqu'à 1 minute", "2 styles de montage", "Sans filigrane"],
   },
   pro: {
     nom: "Pro",
     mensuel: 19.99,
     videosParMois: 60,
     styles: TOUS_LES_STYLES,
-    avantages: ["60 vidéos par mois", "Tous les styles", "Montage prioritaire"],
+    dureeMaxSec: 180,
+    avantages: ["60 vidéos par mois", "Jusqu'à 3 minutes", "Les 3 styles de montage", "Sans filigrane"],
   },
   max: {
     nom: "Max",
     mensuel: 49.99,
     videosParMois: 200,
     styles: TOUS_LES_STYLES,
-    avantages: ["200 vidéos par mois", "Plusieurs pages TikTok", "Tout ce qu'il y a dans Pro"],
+    dureeMaxSec: 180,
+    avantages: ["200 vidéos par mois", "Tout ce qu'il y a dans Pro"],
   },
 } as const;
 
@@ -49,8 +52,8 @@ export type Periodicite = "mensuel" | "annuel";
 
 export const ORDRE_OFFRES: OffrePayante[] = ["starter", "pro", "max"];
 
-/** Pastille de la carte Pro sur la page Tarifs. À n'afficher que si c'est vrai (voir le point ouvert). */
-export const PASTILLE_PRO = "Le plus choisi";
+/** Pastille de l'offre mise en avant. Pas de « le plus choisi » sans chiffres pour le prouver. */
+export const PASTILLE_PRO = "Conseillé";
 
 /** Remise de l'abonnement annuel. */
 export const REMISE_ANNUELLE = 0.4;
@@ -118,6 +121,9 @@ export const MENTION_OBJECTIF = "Objectif fixé par XPclip, pas une prévision d
 export const SITE = "https://www.xpclip.com";
 
 export const NON_AFFILIATION = "XPclip n'est pas affilié à Rockstar Games ni à Sony.";
+
+/** « Mot de passe oublié » : à passer à true quand l'envoi d'e-mails (Resend) est branché dans Supabase. */
+export const EMAILS_ACTIFS = false;
 
 export const PURGE_CLIPS_JOURS = 14;
 

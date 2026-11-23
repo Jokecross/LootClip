@@ -118,7 +118,7 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
                 onClick={() => setChoix(o)}
                 className={`relative w-full p-4 text-left transition-colors lg:flex lg:min-h-[250px] lg:flex-col lg:p-7 ${actif ? "carte-forte bg-jaune lg:-translate-y-2" : "carte hover:bg-beige/40"} ${o === "pro" ? "mt-2 lg:order-2 lg:mt-0" : o === "starter" ? "lg:order-1" : "lg:order-3"}`}
               >
-                {o === "pro" && <span className="pastille absolute -top-3 right-4 rotate-2 bg-rose">{PASTILLE_PRO}</span>}
+                {o === conseillee && <span className="pastille absolute -top-3 right-4 rotate-2 bg-rose">{PASTILLE_PRO}</span>}
                 <span className="flex items-end justify-between gap-3">
                   <span>
                     <span className="block text-[13px] font-bold lg:text-[18px]">{OFFRES_PAYANTES[o].nom}</span>

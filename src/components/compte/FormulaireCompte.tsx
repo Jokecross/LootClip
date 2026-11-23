@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { EMAILS_ACTIFS } from "@/lib/config";
 import { afficherToast } from "@/components/ui/Toast";
 import { messageErreur, SUPABASE_ANON, SUPABASE_URL, supabase } from "@/lib/supabase";
 
@@ -127,6 +128,11 @@ export function FormulaireCompte({
       <p id="compte-aide" className={`mt-2 min-h-5 text-[13px] ${erreur ? "font-bold" : "text-encre2"}`} role={erreur ? "alert" : undefined}>
         {erreur}
       </p>
+      {!inscription && EMAILS_ACTIFS && (
+        <Link href="/mot-de-passe" className="lien flex min-h-11 w-fit items-center text-[14px]">
+          Mot de passe oublié
+        </Link>
+      )}
 
       <div className="mt-auto pt-6 lg:pt-8">
         <button type="submit" disabled={envoi} className="bouton bouton-rose w-full">

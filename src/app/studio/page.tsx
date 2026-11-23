@@ -23,7 +23,6 @@ import { supabase } from "@/lib/supabase";
 const SUITE = ["regie", "accroche", "console", "tiktok", "objectif", "heures", "plan", "clips", "style", "montage", "resultat", "publier", "fin"] as const;
 type Etape = (typeof SUITE)[number];
 const QUESTIONS: Etape[] = ["console", "tiktok", "objectif", "heures", "plan"];
-const EXEMPLE = "/visuels/apres.mp4";
 
 type Clip = { url: string; duree: number };
 
@@ -114,7 +113,7 @@ function Plateau() {
   const objectif = r.objectif ?? ONBOARDING.objectifParDefaut;
   const frequence = r.frequence ?? videosPourHeures(ONBOARDING.heuresParDefaut);
   const total = clips.reduce((s, c) => s + c.duree, 0);
-  const urlFinale = finale?.url ?? EXEMPLE;
+  const urlFinale = finale?.url ?? "";
 
   const logo = (
     <button
@@ -161,7 +160,7 @@ function Plateau() {
               }}
             />
           </label>
-          {!finale && <p className="mt-2 text-[13px] font-bold">Sans ça, la vidéo d&apos;exemple s&apos;affiche. Ne la publie pas.</p>}
+          {!finale && <p className="mt-2 text-[13px] font-bold">Il te la faut pour commencer.</p>}
 
           <div className="mt-4 grid grid-cols-2 gap-3">
             <Champ libelle="Ton pseudo" valeur={regl.pseudo} changer={(v) => regler({ pseudo: v.replace(/[@\s]/g, "").slice(0, 24) })} />
@@ -183,12 +182,12 @@ function Plateau() {
             <li>Appui long sur le logo : retour ici.</li>
             <li>Aucun compte créé, aucun crédit utilisé.</li>
           </ul>
-          <button type="button" onClick={() => action("clips")} className="lien mx-auto mt-3 flex min-h-11 items-center text-[14px]">
+          <button type="button" disabled={!finale} onClick={() => action("clips")} className="lien disabled:opacity-40 mx-auto mt-3 flex min-h-11 items-center text-[14px]">
             Commencer directement aux clips
           </button>
         </>
       );
-      bouton = { libelle: "Action", faire: () => action() };
+      bouton = { libelle: "Action", faire: () => action(), actif: !!finale };
       break;
 
     case "accroche":

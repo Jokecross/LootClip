@@ -84,6 +84,7 @@ try {
     duree: t.duree,
     accroche: t.accroche,
     filigrane: t.filigrane,
+    style: t.style,
     format: "flou",
     progres: (etape, a) => {
       const avancement = 0.15 + a * 0.8;

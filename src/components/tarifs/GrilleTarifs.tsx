@@ -14,9 +14,9 @@ import { Lancement } from "./Lancement";
 
 const ORDRE: OffrePayante[] = ["pro", "starter", "max"];
 const RESUME: Record<OffrePayante, string> = {
-  starter: "20 vidéos par mois, sans filigrane.",
-  pro: "60 vidéos par mois, tous les styles, montage prioritaire.",
-  max: "200 vidéos par mois, plusieurs pages TikTok.",
+  starter: "20 vidéos par mois, jusqu'à 1 minute.",
+  pro: "60 vidéos par mois, jusqu'à 3 minutes, les 3 styles.",
+  max: "200 vidéos par mois, tout ce qu'il y a dans Pro.",
 };
 
 /**

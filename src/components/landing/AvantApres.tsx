@@ -1,17 +1,13 @@
-"use client";
 /*
  * Avant / après.
  * Avant : la douleur. Une pile de clips bruts, longs, à l'horizontale, où les bons moments sont rares.
  * Après : un téléphone qui joue la vidéo montée par XPclip, avec ce qui a changé pointé par des étiquettes.
- * Fichiers : public/visuels/brut-1..3.jpg (vignettes) et apres.mp4 / apres.jpg (extrait monté).
- * À REMPLACER par des captures de Martin avant la mise en ligne (les clips actuels viennent d'autres créateurs).
+ * Illustré avec notre propre image (public/visuels/hero-*.jpg), en attendant les captures de Martin.
  */
-import { useEffect, useRef } from "react";
-
 const CLIPS = [
-  { image: "/visuels/brut-1.jpg", duree: "0:53", angle: -4 },
-  { image: "/visuels/brut-2.jpg", duree: "0:39", angle: 3 },
-  { image: "/visuels/brut-3.jpg", duree: "0:12", angle: -2 },
+  { cadre: "12% 60%", duree: "0:53", angle: -4 },
+  { cadre: "62% 40%", duree: "0:39", angle: 3 },
+  { cadre: "90% 70%", duree: "0:12", angle: -2 },
 ];
 
 // Frise du jeu brut : les rares bons moments, en jaune. Positions en % de la durée totale.
@@ -23,34 +19,16 @@ const BONS_MOMENTS = [
   { debut: 88, largeur: 5 },
 ];
 
-function VideoEnBoucle() {
-  const ref = useRef<HTMLVideoElement>(null);
-  useEffect(() => {
-    const v = ref.current;
-    if (!v) return;
-    const reduit = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const obs = new IntersectionObserver(
-      ([e]) => {
-        if (e.isIntersecting && !reduit) v.play().catch(() => {});
-        else v.pause();
-      },
-      { threshold: 0.35 },
-    );
-    obs.observe(v);
-    return () => obs.disconnect();
-  }, []);
+/** Une vidéo verticale « format flou », dessinée avec notre image : fond flouté, plan au centre, accroche en carte. */
+function Apercu() {
   return (
-    <video
-      ref={ref}
-      src="/visuels/apres.mp4"
-      poster="/visuels/apres.jpg"
-      muted
-      loop
-      playsInline
-      preload="none"
-      aria-label="La vidéo montée par XPclip : accroche, zooms et meilleurs passages, en vertical"
-      className="absolute inset-0 h-full w-full object-cover"
-    />
+    <div className="absolute inset-0" role="img" aria-label="Aperçu d'une vidéo montée par XPclip, en vertical">
+      <span className="absolute inset-0 scale-150 bg-[url(/visuels/hero-900.jpg)] bg-cover bg-center opacity-70 blur-lg" />
+      <span className="absolute inset-x-0 top-1/2 block aspect-video -translate-y-1/2 overflow-hidden">
+        <span className="zoom-lent block h-full w-full bg-[url(/visuels/hero-900.jpg)] bg-cover bg-[position:50%_70%]" />
+      </span>
+      <span className="titre absolute inset-x-4 top-[13%] -rotate-2 rounded-xl border-2 border-encre bg-jaune px-2 py-2.5 text-center text-[17px] text-encre shadow-[0_3px_0_var(--color-encre)]">Personne ne m&apos;a cru</span>
+    </div>
   );
 }
 
@@ -68,11 +46,11 @@ export function AvantApres() {
         <div className="relative mt-6 aspect-[2/1] lg:mt-10">
           {CLIPS.map((c, i) => (
             <div
-              key={c.image}
+              key={c.cadre}
               className="absolute w-[62%] overflow-hidden rounded-xl border-2 border-fond/70 bg-encre shadow-[0_4px_0_rgb(0_0_0/0.5)]"
               style={{ left: `${i * 18}%`, top: `${i * 13}%`, transform: `rotate(${c.angle}deg)`, zIndex: 3 - i }}
             >
-              <img src={c.image} alt="" className="block aspect-video w-full object-cover opacity-60 grayscale-[0.5]" loading="lazy" />
+              <span className="block aspect-video w-full bg-[url(/visuels/hero-900.jpg)] bg-[length:260%] opacity-70 grayscale-[0.5]" style={{ backgroundPosition: c.cadre }} />
               <span className="absolute bottom-1.5 right-1.5 rounded-md bg-encre/85 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-fond">{c.duree}</span>
             </div>
           ))}
@@ -103,7 +81,7 @@ export function AvantApres() {
         <p className="titre mt-1 text-[26px] text-fond lg:text-[34px]">30 secondes qui accrochent.</p>
         <div className="relative mx-auto mt-8 w-[230px] pb-2 lg:mt-10 lg:w-[270px]">
           <div className="relative aspect-[9/16] overflow-hidden rounded-[26px] border-[3px] border-fond bg-nuit2 shadow-[0_8px_0_rgb(0_0_0/0.5)]">
-            <VideoEnBoucle />
+            <Apercu />
           </div>
           <Etiquette fond="bg-jaune" className="-left-10 -top-3 -rotate-6">
             Accroche dès la 1re seconde
