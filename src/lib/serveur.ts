@@ -4,7 +4,7 @@
  * - Au démarrage et à chaque connexion : charge le profil, les montages et les factures.
  * - Suit les montages en direct (Realtime) : l'avancement écrit par le service de montage arrive tout seul.
  * - Renvoie vers la base ce que les pages changent (console, tutoriel vu, partage, rappel…).
- * L'abonnement n'est jamais écrit d'ici : la base le refuse, seul le webhook Stripe peut le changer.
+ * L'abonnement n'est jamais écrit d'ici : la base le refuse, seul le serveur, d'après Whop, peut le changer.
  */
 import type { RealtimeChannel, User } from "@supabase/supabase-js";
 import type { Style } from "./config";
@@ -27,6 +27,7 @@ type LigneProfil = {
   periodicite: "mensuel" | "annuel" | null;
   abonne_depuis: string | null;
   remise_lancement: boolean;
+  abonnement_fin?: string | null;
   cree_le: string;
 };
 
@@ -67,6 +68,7 @@ function versCompte(p: LigneProfil, user: User): Compte {
     periodicite: p.periodicite ?? undefined,
     abonneDepuis: p.abonne_depuis ?? undefined,
     remiseLancement: p.remise_lancement,
+    abonnementFin: p.abonnement_fin ?? undefined,
     tutoVu: p.tuto_vu,
     plateforme: p.plateforme,
     profil: p.objectif && p.frequence && p.tiktok ? { plateforme: p.plateforme, objectif: p.objectif, tiktok: p.tiktok, frequence: p.frequence } : undefined,

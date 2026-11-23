@@ -153,6 +153,19 @@ export async function demanderMontage(id: string) {
   }).catch(() => {});
 }
 
+/** Après un achat : remet la vidéo gratuite en file, sans filigrane. */
+export async function retirerFiligrane(id: string) {
+  const { data } = await supabase.auth.getSession();
+  const r = await fetch("/api/montage/sans-filigrane", {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${data.session?.access_token ?? ""}` },
+    body: JSON.stringify({ id }),
+  });
+  if (!r.ok) throw new Error("refus");
+  remplacer((e) => ({ ...e, videos: e.videos.map((v) => (v.id === id ? { ...v, filigrane: false, statut: "en_attente" as const, etape: 0, avancement: 0, notifiee: false } : v)) }));
+  demanderMontage(id);
+}
+
 const RELANCE_MS = 20_000;
 const SILENCE_MS = 27 * 60_000;
 

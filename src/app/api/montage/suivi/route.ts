@@ -4,7 +4,7 @@
  */
 import { after } from "next/server";
 import { admin, adminConfigure } from "@/lib/admin";
-import { eteindre, jetonValide } from "@/lib/atelier";
+import { champsEchec, eteindre, jetonValide } from "@/lib/atelier";
 
 export const maxDuration = 60;
 
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   if (!jeton || typeof corps?.id !== "string") return refus(401);
 
   const db = admin();
-  const { data: m } = await db.from("montages").select("id, user_id, statut, debut_le, avancement").eq("id", corps.id).maybeSingle();
+  const { data: m } = await db.from("montages").select("id, user_id, statut, debut_le, avancement, video_chemin").eq("id", corps.id).maybeSingle();
   if (!m?.debut_le || !jetonValide(jeton, m.id, m.debut_le)) return refus(401);
   if (m.statut !== "en_cours") return Response.json({ ok: true }); // déjà fini : la machine peut s'arrêter
 
@@ -43,7 +43,7 @@ export async function POST(req: Request) {
     await ecrire({ statut: "termine", etape: 4, avancement: 1, video_chemin: chemin, termine_le: new Date().toISOString() });
     fermer();
   } else if (corps.echec) {
-    await ecrire({ statut: "echoue", erreur: MESSAGES[corps.echec] ?? MESSAGES.autre, termine_le: new Date().toISOString() });
+    await ecrire(champsEchec(m, MESSAGES[corps.echec] ?? MESSAGES.autre));
     fermer();
   } else {
     const a = Number(corps.avancement);

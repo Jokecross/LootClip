@@ -13,7 +13,7 @@ import { STYLES, type Style } from "@/lib/config";
 import { modifier, useEtat, type Video } from "@/lib/etat";
 import { supabase } from "@/lib/supabase";
 import { chrono } from "@/lib/format";
-import { ETAPES, LIBELLES_STATUT, quota, refaire, sourcesDe, statutDe, useMaintenant } from "@/lib/montage";
+import { ETAPES, LIBELLES_STATUT, quota, refaire, retirerFiligrane, sourcesDe, statutDe, useMaintenant } from "@/lib/montage";
 import { suivre } from "@/lib/suivi";
 
 /** Conseils pour poster, affichés pendant le montage. */
@@ -141,7 +141,7 @@ function Resultat({ video }: { video: Video }) {
       router.push(`/app/video/${id}`);
     } catch (e) {
       const m = e instanceof Error ? e.message : "";
-      afficherToast(m === "quota_atteint" ? "Paiement de démo : ton offre ne change pas côté serveur tant que Stripe n'est pas branché." : m || "Une erreur est survenue.");
+      afficherToast(m === "quota_atteint" ? "Ton offre s'ouvre dans un instant. Réessaie." : m || "Une erreur est survenue.");
     }
   }
 
@@ -161,9 +161,20 @@ function Resultat({ video }: { video: Video }) {
     setTimeout(() => window.open("https://www.tiktok.com/upload", "_blank", "noopener"), 600);
   }
 
+  /** Offre payante : la vidéo gratuite est refaite sans filigrane, sans compter dans le quota. */
+  async function sansFiligrane() {
+    try {
+      await retirerFiligrane(video.id);
+      afficherToast("On refait ta vidéo sans filigrane.");
+    } catch {
+      afficherToast("Ton offre s'ouvre dans un instant. Réessaie.");
+    }
+  }
+
   async function telecharger(avecFiligrane = false) {
     // Téléchargement sans filigrane : l'un des deux moments où l'écran des offres apparaît.
     if (!avecFiligrane && video.filigrane && compte.offre === "gratuit") return setPaywall("telechargement");
+    if (!avecFiligrane && video.filigrane) return sansFiligrane();
     if (!video.videoChemin) return afficherToast("Le fichier MP4 arrive avec le serveur de montage.");
     const { data } = await supabase.storage.from("videos").createSignedUrl(video.videoChemin, 600, { download: `xpclip-${video.id.slice(0, 8)}.mp4` });
     if (data?.signedUrl) window.location.href = data.signedUrl;
@@ -209,7 +220,7 @@ function Resultat({ video }: { video: Video }) {
           Partager sur TikTok
         </button>
         <button type="button" onClick={() => telecharger()} className="bouton bouton-blanc mt-3 w-full lg:mt-0">
-          {video.filigrane && gratuit ? "Télécharger sans filigrane" : "Télécharger la vidéo"}
+          {video.filigrane ? "Télécharger sans filigrane" : "Télécharger la vidéo"}
         </button>
       </div>
       <button type="button" onClick={() => setRefaireOuvert(true)} className="lien mx-auto mt-2 flex min-h-11 items-center text-[14px] lg:mx-0 lg:mt-3">
@@ -250,9 +261,7 @@ function Resultat({ video }: { video: Video }) {
           const etait = paywall;
           setPaywall(null);
           if (etait === "telechargement") {
-            // Avec le serveur : nouvel export sans filigrane.
-            modifier((e) => ({ ...e, videos: e.videos.map((v) => (v.id === video.id ? { ...v, filigrane: false } : v)) }));
-            afficherToast("Paiement réussi. Ta vidéo est sans filigrane.");
+            sansFiligrane();
           } else if (styleEnAttente) lancer(styleEnAttente);
         }}
       />

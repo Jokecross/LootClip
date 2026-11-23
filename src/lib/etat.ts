@@ -26,6 +26,7 @@ export type Compte = {
   periodicite?: Periodicite;
   abonneDepuis?: string;
   remiseLancement?: boolean;
+  abonnementFin?: string; // résilié : fin de l'accès
   tutoVu: boolean;
   plateforme: Plateforme;
   profil?: Profil;

@@ -27,7 +27,7 @@ const PAGES: Record<string, { titre: string; blocs: { h: string; p: string[] }[]
           "Offre de lancement : -20 % pour toute souscription pendant les 14 premiers jours, gardée tant que l'abonnement reste actif.",
         ],
       },
-      { h: "Paiement", p: ["Le paiement est traité par Stripe. L'abonnement se renouvelle à chaque échéance, mensuelle ou annuelle.", "Tu peux résilier à tout moment depuis ton compte. L'accès reste actif jusqu'à la fin de la période payée."] },
+      { h: "Paiement", p: ["Le paiement est traité par Whop. L'abonnement mensuel se renouvelle tous les 30 jours, l'annuel tous les 365 jours.", "Tu peux résilier à tout moment depuis ton compte. L'accès reste actif jusqu'à la fin de la période payée."] },
       { h: "Ce que fait XPclip", p: ["XPclip monte des vidéos à partir de tes clips. La publication et ce qu'elle rapporte se passent sur les plateformes.", "XPclip ne garantit aucun revenu."] },
       { h: "Droit de rétractation", p: ["[À COMPLÉTER : conditions de rétractation pour un service numérique]"] },
     ],
@@ -37,7 +37,7 @@ const PAGES: Record<string, { titre: string; blocs: { h: string; p: string[] }[]
     blocs: [
       { h: "Ce qu'on garde", p: ["Ton e-mail, tes clips, tes vidéos et les chiffres que tu saisis.", `Tes clips bruts sont supprimés automatiquement après ${PURGE_CLIPS_JOURS} jours.`] },
       { h: "Tes droits", p: ["Tu peux supprimer ton compte et tous tes fichiers depuis l'onglet Compte.", "Pour toute demande : [À COMPLÉTER : e-mail]."] },
-      { h: "Prestataires", p: ["[À COMPLÉTER : Supabase (comptes et stockage), Stripe (paiement), Vercel (hébergement), outil de mesure d'audience]"] },
+      { h: "Prestataires", p: ["[À COMPLÉTER : Supabase (comptes et stockage), Whop (paiement), Vercel (hébergement), outil de mesure d'audience]"] },
     ],
   },
 };

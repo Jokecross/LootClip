@@ -103,7 +103,7 @@ export default function CoquilleAppli({ children }: { children: React.ReactNode 
           </nav>
           <div className="mt-auto">
             <Link href="/app/compte" className="carte block bg-fond p-4 hover:bg-beige/60">
-              <span className="block text-[13px] font-bold text-encre2">Ce mois-ci</span>
+              <span className="block text-[13px] font-bold text-encre2">{etat.compte.offre === "gratuit" ? "Ta vidéo gratuite" : "Ce mois-ci"}</span>
               <span className="titre mt-1 block text-[22px] tabular-nums">{libelleQuota}</span>
               <span className="barre mt-3 block h-3" aria-hidden="true">
                 <span style={{ width: `${q.total ? Math.max(4, (q.restant / q.total) * 100) : 0}%` }} />

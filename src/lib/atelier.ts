@@ -47,6 +47,12 @@ export function jetonValide(recu: string, id: string, debutLe: string) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
+/** Échec d'un montage. Si une vidéo existait déjà (nouvel export sans filigrane), on la rend telle quelle. */
+export const champsEchec = (m: { video_chemin?: string | null }, erreur: string) =>
+  m.video_chemin
+    ? { statut: "termine", etape: 4, avancement: 1, filigrane: true, erreur, termine_le: new Date().toISOString() }
+    : { statut: "echoue", erreur, termine_le: new Date().toISOString() };
+
 const nomMachine = (id: string) => `xpclip-${id}`;
 
 /** Démarre le montage et rend la main tout de suite : la machine préviendra XPclip de la suite. */

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Feuille } from "@/components/ui/Feuille";
 import { afficherToast } from "@/components/ui/Toast";
-import { resilier } from "@/lib/abonnement";
+import { arreter, lienGestion, reprendre, resilier } from "@/lib/abonnement";
 import { GRATUIT, MENTION_OBJECTIF, OFFRES_PAYANTES, PURGE_CLIPS_JOURS } from "@/lib/config";
 import { modifier, useEtat } from "@/lib/etat";
 import { deconnecter, supprimerCompte } from "@/lib/serveur";
@@ -22,10 +22,23 @@ export default function Compte() {
   const [gerer, setGerer] = useState(false);
   const [supprimer, setSupprimer] = useState(false);
   const [effacement, setEffacement] = useState(false);
+  const [attente, setAttente] = useState(false);
   const estPro = compte.offre !== "gratuit";
   const nomOffre = compte.offre === "gratuit" ? GRATUIT.nom : OFFRES_PAYANTES[compte.offre].nom;
   const periode = compte.periodicite ?? "mensuel";
   const prix = compte.offre === "gratuit" ? 0 : montant(compte.offre, periode, !!compte.remiseLancement);
+
+  async function changer(action: () => Promise<void>, message: string) {
+    setAttente(true);
+    try {
+      await action();
+      setGerer(false);
+      afficherToast(message);
+    } catch (e) {
+      afficherToast(e instanceof Error ? e.message : "Impossible pour l'instant. Réessaie.");
+    }
+    setAttente(false);
+  }
 
   function choisirConsole(p: "ps5" | "xbox") {
     modifier((e) => ({ ...e, compte: e.compte ? { ...e.compte, plateforme: p } : e.compte }));
@@ -56,6 +69,7 @@ export default function Compte() {
         <div className="barre mt-2" role="progressbar" aria-valuenow={q.utilise} aria-valuemax={q.total} aria-label="Vidéos utilisées">
           <span style={{ width: `${Math.max(3, (q.utilise / q.total) * 100)}%` }} />
         </div>
+        {estPro && compte.abonnementFin && <p className="mt-2 text-[13px] font-bold">Résilié. Ton accès reste ouvert jusqu&apos;au {date(compte.abonnementFin)}.</p>}
         {estPro ? (
           <button type="button" onClick={() => setGerer(true)} className="bouton bouton-blanc bouton-petit mt-4 w-full">
             Gérer mon abonnement
@@ -144,19 +158,32 @@ export default function Compte() {
       <p className="mt-1 text-[12px] text-encre2">Tes clips bruts sont supprimés automatiquement après {PURGE_CLIPS_JOURS} jours.</p>
 
       <Feuille ouverte={gerer} fermer={() => setGerer(false)} titre="Ton abonnement">
-        <p className="text-[14px] text-encre2">Carte, factures et résiliation se gèrent sur le portail sécurisé de Stripe.</p>
+        <p className="text-[14px] text-encre2">
+          {compte.abonnementFin ? `Tu gardes ${nomOffre} jusqu'au ${date(compte.abonnementFin)}. Plus aucun prélèvement.` : "Si tu résilies, tu gardes ton offre jusqu'à la fin de la période payée."}
+        </p>
         <button
           type="button"
-          onClick={() => {
-            resilier();
-            setGerer(false);
-            afficherToast("Abonnement résilié. Tu repasses en Gratuit.");
+          onClick={async () => {
+            setAttente(true);
+            window.location.href = await lienGestion();
           }}
+          disabled={attente}
           className="bouton bouton-blanc mt-5 w-full"
         >
-          Résilier mon abonnement
+          Changer ma carte
         </button>
-        <p className="mt-3 text-center text-[11px] text-encre2">Démo : la résiliation est immédiate.</p>
+        <Link href="/tarifs" className="bouton bouton-blanc mt-3 w-full">
+          Changer d&apos;offre
+        </Link>
+        {compte.abonnementFin ? (
+          <button type="button" disabled={attente} onClick={() => changer(reprendre, "C'est reparti. Ton abonnement continue.")} className="bouton bouton-rose mt-3 w-full">
+            Reprendre mon abonnement
+          </button>
+        ) : (
+          <button type="button" disabled={attente} onClick={() => changer(resilier, "Abonnement résilié. Tu gardes ton accès jusqu'à la fin.")} className="bouton bouton-blanc mt-3 w-full">
+            Résilier mon abonnement
+          </button>
+        )}
       </Feuille>
 
       <Feuille ouverte={supprimer} fermer={() => setSupprimer(false)} titre="Tout supprimer ?">
@@ -167,6 +194,7 @@ export default function Compte() {
           onClick={async () => {
             setEffacement(true);
             try {
+              if (estPro) await arreter(); // plus aucun prélèvement, avant d'effacer le compte
               await supprimerCompte();
               router.replace("/");
               deconnecter(true);

@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { afficherToast } from "@/components/ui/Toast";
-import { souscrire } from "@/lib/abonnement";
+import { Paiement, type Achat } from "@/components/app/Paiement";
+import { commander } from "@/lib/abonnement";
 import { OFFRES_PAYANTES, PASTILLE_PRO, type OffrePayante, type Periodicite } from "@/lib/config";
 import { useEtat } from "@/lib/etat";
 import { eur, lancementActif, libelleBouton, libelleFacturation, libelleJour, montant, parJour } from "@/lib/prix";
@@ -28,20 +29,34 @@ export function GrilleTarifs({ compacte = false }: { compacte?: boolean }) {
   const [periode, setPeriode] = useState<Periodicite>("mensuel");
   const [remise, setRemise] = useState(false);
   const [paiement, setPaiement] = useState<OffrePayante | null>(null);
+  const [achat, setAchat] = useState<Achat | null>(null);
   const compte = etat.compte;
 
   useEffect(() => setRemise(lancementActif()), []);
 
   async function choisir(o: OffrePayante) {
     setPaiement(o);
-    await souscrire(o, periode);
+    try {
+      setAchat({ commande: await commander(o, periode), offre: o, periodicite: periode, montant: montant(o, periode, remise) });
+    } catch (e) {
+      afficherToast(e instanceof Error ? e.message : "Le paiement est indisponible. Réessaie.");
+    }
     setPaiement(null);
-    afficherToast(`Tu es ${OFFRES_PAYANTES[o].nom}. Bon montage.`);
-    router.push("/app/creer");
   }
 
   return (
     <div className="flex flex-col gap-3">
+      {achat && (
+        <Paiement
+          achat={achat}
+          fermer={() => setAchat(null)}
+          reussi={() => {
+            setAchat(null);
+            afficherToast(`Tu es ${OFFRES_PAYANTES[achat.offre].nom}. Bon montage.`);
+            router.push("/app/creer");
+          }}
+        />
+      )}
       {!compacte && <Bascule valeur={periode} changer={setPeriode} />}
       <Lancement />
 
@@ -83,7 +98,7 @@ export function GrilleTarifs({ compacte = false }: { compacte?: boolean }) {
                 <p className="mt-4 text-center text-[14px] font-bold lg:mt-7">Ton offre actuelle</p>
               ) : compte ? (
                 <button type="button" onClick={() => choisir(o)} disabled={!!paiement} className={`bouton mt-4 w-full text-[16px] lg:mt-7 lg:px-3 lg:text-[15px] ${vedette ? "bouton-rose" : "bouton-blanc"}`}>
-                  {paiement === o ? "Paiement en cours…" : libelleBouton(o, prix, periode)}
+                  {paiement === o ? "Un instant…" : libelleBouton(o, prix, periode)}
                 </button>
               ) : (
                 <Link href="/commencer" className={`bouton mt-4 w-full text-[16px] lg:mt-7 lg:px-3 lg:text-[15px] ${vedette ? "bouton-rose" : "bouton-blanc"}`}>
@@ -95,6 +110,9 @@ export function GrilleTarifs({ compacte = false }: { compacte?: boolean }) {
       })}
       </div>
 
+      {compte && compte.offre !== "gratuit" && !compacte && (
+        <p className="mt-2 text-center text-[13px] font-bold">Tu changes d&apos;offre ? Le reste payé devient des jours offerts.</p>
+      )}
       <p className="mt-2 text-center text-[13px] leading-relaxed text-encre2 lg:mt-6 lg:text-[15px]">
         Sans engagement. Résiliation en deux clics. Première vidéo gratuite avec filigrane.
         {compacte && (

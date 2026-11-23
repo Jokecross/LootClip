@@ -5,7 +5,7 @@
  */
 import { after } from "next/server";
 import { admin, adminConfigure, utilisateurDe } from "@/lib/admin";
-import { DELAI_MAX_MIN, demarrer, jetonMontage, preparerBase } from "@/lib/atelier";
+import { champsEchec, DELAI_MAX_MIN, demarrer, jetonMontage, preparerBase } from "@/lib/atelier";
 
 export const maxDuration = 300;
 
@@ -28,7 +28,7 @@ export async function POST(req: Request) {
     // La machine s'est arrêtée sans donner de nouvelles. Un montage échoué ne compte pas dans le quota.
     await db
       .from("montages")
-      .update({ statut: "echoue", erreur: "Le montage a pris trop de temps. Relance-le, il ne compte pas dans ton quota.", termine_le: new Date().toISOString() })
+      .update(champsEchec(m, "Le montage a pris trop de temps. Relance-le, il ne compte pas dans ton quota."))
       .eq("id", id)
       .eq("statut", "en_cours");
     return reponse("abandonne");
@@ -89,7 +89,7 @@ export async function POST(req: Request) {
       .from("montages")
       .update(
         absent
-          ? { statut: "echoue", erreur: "Un de tes clips est introuvable. Renvoie-les et relance le montage.", termine_le: new Date().toISOString() }
+          ? champsEchec(tache, "Un de tes clips est introuvable. Renvoie-les et relance le montage.")
           : { statut: "en_attente", etape: 0, avancement: 0, pris_par: null, debut_le: null }, // l'appli réessaiera
       )
       .eq("id", id)

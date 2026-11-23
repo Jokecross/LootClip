@@ -148,7 +148,7 @@ function Creer() {
       setCreation(false);
       const m = e instanceof Error ? e.message : "";
       if (m === "quota_atteint") {
-        if (apresPaiement) return afficherToast("Paiement de démo : ton offre ne change pas côté serveur tant que Stripe n'est pas branché.");
+        if (apresPaiement) return afficherToast("Ton offre s'ouvre dans un instant. Réessaie.");
         return compte.offre === "gratuit" ? setPaywall(true) : afficherToast("Tes vidéos du mois sont utilisées.");
       }
       afficherToast(m || "Une erreur est survenue. Réessaie.");

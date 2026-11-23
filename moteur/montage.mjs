@@ -174,7 +174,8 @@ function choisir(analyses, dureeCible) {
   const plan = [ouverture, ...fusion];
 
   // Ajustement fin : on raccourcit le dernier passage si on dépasse
-  let surplus = total() - dureeCible;
+  // (les passages fusionnés ont repris le jeu entre eux : on compte le plan, pas les passages choisis)
+  let surplus = plan.reduce((t, s) => t + (s.fin - s.debut), 0) - dureeCible;
   for (let i = plan.length - 1; i > 0 && surplus > 0.2; i--) {
     const s = plan[i];
     const retire = Math.min(surplus, s.fin - s.debut - 2);

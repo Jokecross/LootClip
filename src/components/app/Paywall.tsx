@@ -8,13 +8,15 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Bascule } from "@/components/tarifs/Bascule";
 import { Lancement } from "@/components/tarifs/Lancement";
-import { souscrire } from "@/lib/abonnement";
+import { afficherToast } from "@/components/ui/Toast";
+import { commander } from "@/lib/abonnement";
 import { MENTION_OBJECTIF, ONBOARDING, OFFRES_PAYANTES, PASTILLE_PRO, type OffrePayante, type Periodicite } from "@/lib/config";
 import { useEtat } from "@/lib/etat";
 import { nombre } from "@/lib/format";
 import { objectifBooste, offreConseillee } from "@/lib/onboarding";
 import { eur, lancementActif, libelleBouton, libelleFacturation, libelleJour, montant, parJour } from "@/lib/prix";
 import { suivre } from "@/lib/suivi";
+import { Paiement, type Achat } from "./Paiement";
 
 export type MomentPaywall = "telechargement" | "deuxieme_video";
 
@@ -28,6 +30,7 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
   const [periode, setPeriode] = useState<Periodicite>("mensuel");
   const [paiement, setPaiement] = useState(false);
   const [remise, setRemise] = useState(false);
+  const [achat, setAchat] = useState<Achat | null>(null);
 
   useEffect(() => {
     if (!ouvert) return;
@@ -44,12 +47,27 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
 
   async function payer() {
     setPaiement(true);
-    await souscrire(choix, periode);
+    try {
+      setAchat({ commande: await commander(choix, periode), offre: choix, periodicite: periode, montant: prix });
+    } catch (e) {
+      afficherToast(e instanceof Error ? e.message : "Le paiement est indisponible. Réessaie.");
+    }
     setPaiement(false);
-    apresPaiement();
   }
 
   const prix = montant(choix, periode, remise);
+
+  if (achat)
+    return (
+      <Paiement
+        achat={achat}
+        fermer={() => setAchat(null)}
+        reussi={() => {
+          setAchat(null);
+          apresPaiement();
+        }}
+      />
+    );
 
   // Ordre de la maquette : Pro, Starter, Max. L'offre choisie est en jaune.
   const ordre: OffrePayante[] = ["pro", "starter", "max"];
@@ -118,14 +136,13 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
 
         <div className="mt-auto pt-6">
           <button type="button" onClick={payer} disabled={paiement} className="bouton bouton-rose w-full text-[16px]">
-            {paiement ? "Paiement en cours…" : libelleBouton(choix, prix, periode)}
+            {paiement ? "Un instant…" : libelleBouton(choix, prix, periode)}
           </button>
           <p className="mt-3 text-center text-[13px] text-encre2">Sans engagement. Résiliation en deux clics.</p>
           <button type="button" onClick={fermer} className="lien mx-auto mt-1 flex min-h-11 items-center px-4 text-[14px]">
             Continuer en gratuit
           </button>
           <p className="mt-1 text-center text-[11px] text-encre2">{MENTION_OBJECTIF}</p>
-          <p className="mt-1 text-center text-[11px] text-encre2">Démo : aucun paiement réel n&apos;est fait.</p>
         </div>
       </div>
     </div>,

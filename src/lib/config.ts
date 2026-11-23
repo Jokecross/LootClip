@@ -54,7 +54,7 @@ export const REMISE_ANNUELLE = 0.4;
 
 /**
  * Offre de lancement : -20 % pendant 14 jours, la même fenêtre pour tout le monde.
- * La remise reste acquise tant que l'abonnement est actif (coupon Stripe « forever »).
+ * La remise reste acquise tant que l'abonnement est actif (tarif Whop « lancement », voir outils/whop-offres.mjs).
  */
 export const LANCEMENT = { debut: "2026-11-19T00:00:00+01:00", jours: 14, remise: 0.2 };
 
@@ -103,6 +103,9 @@ export const ONBOARDING = {
 
 export const MENTION_OBJECTIF = "Objectif fixé par XPclip, pas une prévision de gains. Aucun revenu n'est garanti.";
 
+
+/** Adresse publique du site (retour de paiement : Whop exige du https). */
+export const SITE = "https://www.xpclip.com";
 
 export const NON_AFFILIATION = "XPclip n'est pas affilié à Rockstar Games ni à Sony.";
 

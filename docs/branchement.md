@@ -23,14 +23,14 @@ Chaque fichier simulé dit en tête ce qui le remplacera. Ordre conseillé :
 - Fin de montage : notification push (Web Push) + statut en temps réel (Supabase Realtime).
 - Remplace `lancerMontage()` et `statutDe()` dans `src/lib/montage.ts`.
 
-## 3. Stripe
-- 3 produits (Starter, Pro, Max), chacun avec un prix mensuel et un prix annuel (-40 %). Montants dans `src/lib/config.ts`.
-- Offre de lancement : coupon -20 % en durée « forever », proposé seulement entre `LANCEMENT.debut` et +14 jours.
-  Le montant affiché sur le bouton doit être exactement celui de la session Checkout.
-- Stripe Checkout pour payer, portail client pour gérer et résilier.
-- Le webhook Stripe met à jour `profils.offre` et `profils.periodicite` côté serveur.
-- Quotas (1 vidéo en Gratuit, 20/60/200 par mois) vérifiés par la fonction serveur qui crée le montage.
-- Remplace `souscrire()` et `resilier()` dans `src/lib/abonnement.ts`.
+## 3. Whop (branché)
+- Offres et tarifs créés par `node outils/whop-offres.mjs` (masqués chez Whop), identifiants dans `src/lib/whop-tarifs.json`.
+- `src/lib/whop.ts` : commande, synchronisation de l'abonnement, factures, signature. Le prix est choisi côté serveur.
+- Paiement affiché dans la page : `src/components/app/Paiement.tsx`. Retour de vérification bancaire : `/app/merci`.
+- Webhook : `https://www.xpclip.com/api/whop` (membership.activated, membership.updated, payment.succeeded, refund.created, refund.updated).
+- Variables Vercel : `WHOP_API_KEY`, `WHOP_WEBHOOK_SECRET`, `WHOP_TESTEURS` (e-mails), puis `PAIEMENT_OUVERT=1` pour ouvrir à tous.
+- Changer un prix : modifier `src/lib/config.ts` demande de nouveaux tarifs Whop (les abonnés gardent le leur).
+- Sans filigrane après achat : `/api/montage/sans-filigrane` refait la même vidéo, hors quota.
 
 ## Rappel du lendemain
 - Onboarding, réponse « Non » à « Tu as déjà des clips ? » : on enregistre `rappel_le = maintenant + 24 h`.
