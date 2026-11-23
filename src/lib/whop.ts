@@ -61,12 +61,14 @@ type Paiement = {
 
 /* ---------- Ouverture du paiement ---------- */
 
-/** PAIEMENT_OUVERT=1 : tout le monde. Sinon, seuls les comptes de WHOP_TESTEURS (e-mails séparés par des virgules). */
-export function paiementOuvert(email: string | undefined) {
-  if (process.env.PAIEMENT_OUVERT === "1") return true;
+/** Les comptes de WHOP_TESTEURS (e-mails séparés par des virgules). */
+export function estTesteur(email: string | undefined) {
   const testeurs = (process.env.WHOP_TESTEURS ?? "").toLowerCase().split(",").map((e) => e.trim()).filter(Boolean);
   return !!email && testeurs.includes(email.toLowerCase());
 }
+
+/** PAIEMENT_OUVERT=1 : tout le monde. Sinon, seulement les testeurs. */
+export const paiementOuvert = (email: string | undefined) => process.env.PAIEMENT_OUVERT === "1" || estTesteur(email);
 
 /* ---------- Commande ---------- */
 

@@ -89,3 +89,63 @@ export function bravo() {
   const t = ctx!.currentTime;
   [784, 988, 1175, 1568].forEach((f, i) => note(f, t + i * 0.08, 0.32, 0.18, "triangle"));
 }
+
+/** Un élément apparaît. `hauteur` de 0 à 1. */
+export function pop(hauteur = 0.5) {
+  if (!pret()) return;
+  const t = ctx!.currentTime;
+  const o = ctx!.createOscillator();
+  const g = ctx!.createGain();
+  o.frequency.setValueAtTime(280 + hauteur * 320, t);
+  o.frequency.exponentialRampToValueAtTime(620 + hauteur * 700, t + 0.07);
+  g.gain.setValueAtTime(0.28, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
+  o.connect(g).connect(sortie!);
+  o.start(t);
+  o.stop(t + 0.13);
+}
+
+/** Coupe de montage : souffle court. */
+export function coupe() {
+  souffle(0.07, 1800, 900, 0.35);
+}
+
+/** La vidéo part. */
+export function envol() {
+  souffle(0.5, 400, 5200, 0.6);
+}
+
+function souffle(duree: number, de: number, vers: number, volume: number) {
+  if (!pret()) return;
+  const t = ctx!.currentTime;
+  const s = ctx!.createBufferSource();
+  const f = ctx!.createBiquadFilter();
+  const g = ctx!.createGain();
+  s.buffer = bruit;
+  s.loop = true;
+  f.type = "bandpass";
+  f.Q.value = 1.2;
+  f.frequency.setValueAtTime(de, t);
+  f.frequency.exponentialRampToValueAtTime(vers, t + duree);
+  g.gain.setValueAtTime(volume, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + duree);
+  s.connect(f).connect(g).connect(sortie!);
+  s.start(t);
+  s.stop(t + duree + 0.02);
+}
+
+/** Coup de tampon : sourd et sec. */
+export function tampon() {
+  if (!pret()) return;
+  const t = ctx!.currentTime;
+  const o = ctx!.createOscillator();
+  const g = ctx!.createGain();
+  o.frequency.setValueAtTime(170, t);
+  o.frequency.exponentialRampToValueAtTime(45, t + 0.18);
+  g.gain.setValueAtTime(0.9, t);
+  g.gain.exponentialRampToValueAtTime(0.0001, t + 0.24);
+  o.connect(g).connect(sortie!);
+  o.start(t);
+  o.stop(t + 0.25);
+  souffle(0.06, 1200, 500, 0.6);
+}
