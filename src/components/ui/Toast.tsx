@@ -28,7 +28,7 @@ export function Toasts() {
   }, []);
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 top-0 z-50 flex flex-col items-center gap-2 px-4 pt-[max(12px,env(safe-area-inset-top))]" aria-live="polite">
+    <div className="pointer-events-none fixed inset-x-0 top-0 z-[70] flex flex-col items-center gap-2 px-4 pt-[max(12px,env(safe-area-inset-top))]" aria-live="polite">
       {liste.map((t) => (
         <div key={t.id} className="entree pointer-events-auto flex w-full max-w-[448px] items-center justify-between gap-3 rounded-2xl border-2 border-encre bg-blanc px-4 py-3 shadow-[0_4px_0_var(--color-encre)]">
           <p className="text-[15px] font-medium">{t.texte}</p>

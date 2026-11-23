@@ -30,16 +30,18 @@ export function GrilleTarifs({ compacte = false }: { compacte?: boolean }) {
   const [remise, setRemise] = useState(false);
   const [paiement, setPaiement] = useState<OffrePayante | null>(null);
   const [achat, setAchat] = useState<Achat | null>(null);
+  const [refus, setRefus] = useState<{ offre: OffrePayante; texte: string } | null>(null);
   const compte = etat.compte;
 
   useEffect(() => setRemise(lancementActif()), []);
 
   async function choisir(o: OffrePayante) {
     setPaiement(o);
+    setRefus(null);
     try {
       setAchat({ commande: await commander(o, periode), offre: o, periodicite: periode, montant: montant(o, periode, remise) });
     } catch (e) {
-      afficherToast(e instanceof Error ? e.message : "Le paiement est indisponible. Réessaie.");
+      setRefus({ offre: o, texte: e instanceof Error ? e.message : "Le paiement est indisponible. Réessaie." });
     }
     setPaiement(null);
   }
@@ -93,6 +95,11 @@ export function GrilleTarifs({ compacte = false }: { compacte?: boolean }) {
               <p className="mt-5 hidden text-[16px] lg:block">{RESUME[o]}</p>
             )}
             <span className="hidden flex-1 lg:block" aria-hidden="true" />
+            {refus?.offre === o && (
+              <p className="carte mt-4 bg-blanc p-3 text-center text-[14px] font-bold" role="alert">
+                {refus.texte}
+              </p>
+            )}
             {!compacte &&
               (actuelle ? (
                 <p className="mt-4 text-center text-[14px] font-bold lg:mt-7">Ton offre actuelle</p>

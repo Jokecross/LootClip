@@ -8,7 +8,6 @@ import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { Bascule } from "@/components/tarifs/Bascule";
 import { Lancement } from "@/components/tarifs/Lancement";
-import { afficherToast } from "@/components/ui/Toast";
 import { commander } from "@/lib/abonnement";
 import { MENTION_OBJECTIF, ONBOARDING, OFFRES_PAYANTES, PASTILLE_PRO, type OffrePayante, type Periodicite } from "@/lib/config";
 import { useEtat } from "@/lib/etat";
@@ -31,6 +30,7 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
   const [paiement, setPaiement] = useState(false);
   const [remise, setRemise] = useState(false);
   const [achat, setAchat] = useState<Achat | null>(null);
+  const [refus, setRefus] = useState("");
 
   useEffect(() => {
     if (!ouvert) return;
@@ -47,10 +47,11 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
 
   async function payer() {
     setPaiement(true);
+    setRefus("");
     try {
       setAchat({ commande: await commander(choix, periode), offre: choix, periodicite: periode, montant: prix });
     } catch (e) {
-      afficherToast(e instanceof Error ? e.message : "Le paiement est indisponible. Réessaie.");
+      setRefus(e instanceof Error ? e.message : "Le paiement est indisponible. Réessaie.");
     }
     setPaiement(false);
   }
@@ -138,6 +139,11 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
           <button type="button" onClick={payer} disabled={paiement} className="bouton bouton-rose w-full text-[16px]">
             {paiement ? "Un instant…" : libelleBouton(choix, prix, periode)}
           </button>
+          {refus && (
+            <p className="carte mt-3 bg-jaune p-3 text-center text-[14px] font-bold" role="alert">
+              {refus}
+            </p>
+          )}
           <p className="mt-3 text-center text-[13px] text-encre2">Sans engagement. Résiliation en deux clics.</p>
           <button type="button" onClick={fermer} className="lien mx-auto mt-1 flex min-h-11 items-center px-4 text-[14px]">
             Continuer en gratuit
