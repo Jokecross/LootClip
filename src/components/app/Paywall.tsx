@@ -78,14 +78,14 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
   // Rendu à la racine de la page : rien (barre d'onglets, animation) ne peut passer par-dessus.
   return createPortal(
     <div className="fixed inset-0 z-50 overflow-y-auto bg-fond" role="dialog" aria-modal="true" aria-labelledby="t-paywall">
-      <div className="entree mx-auto flex min-h-dvh max-w-[480px] flex-col px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(16px,env(safe-area-inset-top))]">
-        <div className="flex items-start justify-between gap-4">
+      <div className="entree mx-auto flex min-h-dvh max-w-[480px] flex-col px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(16px,env(safe-area-inset-top))] lg:max-w-[1120px] lg:justify-center lg:px-8 lg:py-10">
+        <div className="flex items-start justify-between gap-4 lg:items-end">
           <div>
-            <p className="text-[13px] font-bold">Ton objectif XPclip</p>
-            <h1 id="t-paywall" className="titre mt-1 text-[34px]">
+            <p className="text-[13px] font-bold lg:text-[16px]">Ton objectif XPclip</p>
+            <h1 id="t-paywall" className="titre mt-1 text-[34px] lg:text-[64px]">
               {nombre(objectifBooste(objectif))}&nbsp;€ par mois
             </h1>
-            <p className="mt-1.5 text-[14px] text-encre2">Ton plan : {frequence} vidéos par semaine.</p>
+            <p className="mt-1.5 text-[14px] text-encre2 lg:mt-3 lg:text-[18px]">Ton plan : {frequence} vidéos par semaine.</p>
           </div>
           {fermer && (
             <button type="button" onClick={fermer} className="bouton bouton-carre shrink-0" aria-label="Fermer">
@@ -96,14 +96,16 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
           )}
         </div>
 
-        <div className="mt-5">
-          <Bascule valeur={periode} changer={setPeriode} />
-        </div>
-        <div className="mt-3">
-          <Lancement />
+        <div className="lg:mt-8 lg:grid lg:grid-cols-2 lg:items-center lg:gap-6">
+          <div className="mt-5 lg:mt-0 lg:[&>div]:w-full">
+            <Bascule valeur={periode} changer={setPeriode} />
+          </div>
+          <div className="mt-3 lg:mt-0">
+            <Lancement />
+          </div>
         </div>
 
-        <div className="mt-3 flex flex-col gap-3" role="radiogroup" aria-label="Offre">
+        <div className="mt-3 flex flex-col gap-3 lg:mt-10 lg:grid lg:grid-cols-3 lg:items-stretch lg:gap-6" role="radiogroup" aria-label="Offre">
           {ordre.map((o) => {
             const actif = choix === o;
             const p = montant(o, periode, remise);
@@ -114,32 +116,39 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
                 role="radio"
                 aria-checked={actif}
                 onClick={() => setChoix(o)}
-                className={`relative w-full p-4 text-left transition-colors ${actif ? "carte-forte bg-jaune" : "carte"} ${o === "pro" ? "mt-2" : ""}`}
+                className={`relative w-full p-4 text-left transition-colors lg:flex lg:min-h-[250px] lg:flex-col lg:p-7 ${actif ? "carte-forte bg-jaune lg:-translate-y-2" : "carte hover:bg-beige/40"} ${o === "pro" ? "mt-2 lg:order-2 lg:mt-0" : o === "starter" ? "lg:order-1" : "lg:order-3"}`}
               >
                 {o === "pro" && <span className="pastille absolute -top-3 right-4 rotate-2 bg-rose">{PASTILLE_PRO}</span>}
                 <span className="flex items-end justify-between gap-3">
                   <span>
-                    <span className="block text-[13px] font-bold">{OFFRES_PAYANTES[o].nom}</span>
-                    <span className={`titre mt-0.5 block ${actif ? "text-[24px]" : "text-[20px]"}`}>{libelleJour(parJour(p, periode))} par jour</span>
+                    <span className="block text-[13px] font-bold lg:text-[18px]">{OFFRES_PAYANTES[o].nom}</span>
+                    <span className={`titre mt-0.5 block lg:mt-2 lg:text-[30px] ${actif ? "text-[24px]" : "text-[20px]"}`}>{libelleJour(parJour(p, periode))} par jour</span>
                   </span>
-                  {!actif && <span className="shrink-0 pb-0.5 text-[13px] font-bold">{OFFRES_PAYANTES[o].videosParMois} vidéos</span>}
+                  {!actif && <span className="shrink-0 pb-0.5 text-[13px] font-bold lg:hidden">{OFFRES_PAYANTES[o].videosParMois} vidéos</span>}
                 </span>
-                <span className="mt-1 block text-[13px]">
+                <span className="mt-1 block text-[13px] lg:mt-2 lg:text-[15px]">
                   {libelleFacturation(p, periode)}
                   {remise && <s className="ml-2 text-encre2">{eur(montant(o, periode, false))}</s>}
                 </span>
+                {/* Ordinateur : les avantages de chaque offre, toujours visibles */}
+                <span className="mt-5 hidden flex-col gap-1.5 text-[16px] lg:flex">
+                  {OFFRES_PAYANTES[o].avantages.map((a) => (
+                    <span key={a}>{a}</span>
+                  ))}
+                  {o === conseillee && <span className="font-bold">Couvre ton rythme de publication</span>}
+                </span>
                 {actif && (
-                  <span className="mt-1.5 block text-[13px]">
+                  <span className="mt-1.5 block text-[13px] lg:hidden">
                     {OFFRES_PAYANTES[o].videosParMois} vidéos par mois{o === conseillee ? " · Couvre ton rythme de publication" : ""}
                   </span>
                 )}
-                {!actif && o === conseillee && <span className="mt-1.5 block text-[12px] font-bold">Couvre ton rythme de publication</span>}
+                {!actif && o === conseillee && <span className="mt-1.5 block text-[12px] font-bold lg:hidden">Couvre ton rythme de publication</span>}
               </button>
             );
           })}
         </div>
 
-        <div className="mt-auto pt-6">
+        <div className="mt-auto pt-6 lg:mx-auto lg:mt-6 lg:w-full lg:max-w-[480px]">
           <button type="button" onClick={payer} disabled={paiement} className="bouton bouton-rose w-full text-[16px]">
             {paiement ? "Un instant…" : libelleBouton(choix, prix, periode)}
           </button>
