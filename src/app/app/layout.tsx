@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { Logo } from "@/components/marque/Logo";
 import { afficherToast, Toasts } from "@/components/ui/Toast";
 import { modifier, useEtat } from "@/lib/etat";
-import { quota, statutDe, useMaintenant } from "@/lib/montage";
+import { quota, statutDe, surveillerMontages, useMaintenant } from "@/lib/montage";
 
 const ONGLETS = [
   {
@@ -30,6 +30,7 @@ const ONGLETS = [
 function Notifier() {
   const etat = useEtat();
   const t = useMaintenant(1000);
+  useEffect(() => surveillerMontages(), []);
   useEffect(() => {
     const prets = etat.videos.filter((v) => !v.notifiee && statutDe(v, t).statut === "termine");
     if (!prets.length) return;

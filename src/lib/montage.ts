@@ -1,8 +1,8 @@
 "use client";
 /*
  * Montages : créés dans Supabase par la fonction creer_montage (qui vérifie le quota),
- * puis traités par le service de montage (FFmpeg), qui écrit statut, étape et avancement.
- * Tant que ce service n'existe pas, NEXT_PUBLIC_MONTAGE_SIMULE=1 fait avancer les états avec le temps.
+ * puis lancés par /api/montage dans une machine Vercel (src/lib/atelier.ts) qui donne son avancement.
+ * NEXT_PUBLIC_MONTAGE_SIMULE=1 fait avancer les états avec le temps, sans rien monter (démo).
  */
 import { useEffect, useState } from "react";
 import { CLIPS, DUREES, GRATUIT, OFFRES_PAYANTES, VIDEO, type Duree, type Offre, type Style } from "./config";
@@ -137,6 +137,43 @@ export function genererTextes(style: Style, titrePerso?: string) {
   };
 }
 
+/* ---------- Lancement sur le serveur ---------- */
+
+/** Demande au serveur de démarrer le montage. Sans danger si on le demande plusieurs fois. */
+export async function demanderMontage(id: string) {
+  if (SIMULE) return;
+  const { data } = await supabase.auth.getSession();
+  const jeton = data.session?.access_token;
+  if (!jeton) return;
+  await fetch("/api/montage", {
+    method: "POST",
+    headers: { "content-type": "application/json", authorization: `Bearer ${jeton}` },
+    body: JSON.stringify({ id }),
+    keepalive: true, // part même si le joueur ferme la page juste après
+  }).catch(() => {});
+}
+
+const RELANCE_MS = 20_000;
+const SILENCE_MS = 27 * 60_000;
+
+/** Tant que l'appli est ouverte : relance un montage resté en attente, signale un montage sans nouvelles. */
+export function surveillerMontages() {
+  if (SIMULE) return () => {};
+  const verifier = () => {
+    const t = Date.now();
+    for (const v of lireEtat().videos) {
+      const age = t - new Date(v.creeLe).getTime();
+      if ((v.statut === "en_attente" && age > 10_000) || (v.statut === "en_cours" && age > SILENCE_MS)) demanderMontage(v.id);
+    }
+  };
+  const depart = setTimeout(verifier, 4000);
+  const id = setInterval(verifier, RELANCE_MS);
+  return () => {
+    clearTimeout(depart);
+    clearInterval(id);
+  };
+}
+
 /* ---------- Création d'un montage ---------- */
 
 /** Les fichiers déposés restent lisibles pendant la session : sert à l'aperçu dans le lecteur. */
@@ -175,6 +212,8 @@ export async function lancerMontage({
     p_source: source ?? null,
   });
   if (error || !id) throw new Error(messageErreur(error));
+
+  demanderMontage(id as string);
 
   if (urls.length) sourcesSession.set(id as string, urls);
   const premiere = lireEtat().videos.length === 0;

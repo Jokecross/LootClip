@@ -7,6 +7,8 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["192.168.*.*", "10.*.*.*", "*.local"],
   devIndicators: false,
   poweredByHeader: false,
+  // Le moteur est copié dans la machine de montage au moment du lancement (src/lib/atelier.ts).
+  outputFileTracingIncludes: { "/api/montage": ["./moteur/*.mjs", "./moteur/bac.sh", "./moteur/package*.json", "./moteur/polices/*"] },
   headers: async () => [
     {
       source: "/:chemin*",
