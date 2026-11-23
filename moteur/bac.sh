@@ -5,7 +5,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 if [ ! -f .pret ]; then
   sudo apt-get update -qq
-  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends ffmpeg >/dev/null
+  sudo DEBIAN_FRONTEND=noninteractive apt-get install -y -qq --no-install-recommends ffmpeg fonts-noto-color-emoji >/dev/null
   npm ci --omit=dev --no-audit --no-fund --silent
   touch .pret
 fi

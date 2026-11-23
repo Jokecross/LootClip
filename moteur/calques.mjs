@@ -4,11 +4,17 @@
  * Format plein cadre 1080 × 1920, pour un overlay direct dans FFmpeg.
  */
 import { createCanvas, GlobalFonts } from "@napi-rs/canvas";
+import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ICI = dirname(fileURLToPath(import.meta.url));
 GlobalFonts.registerFromPath(join(ICI, "polices", "Bricolage-ExtraBold.ttf"), "Bricolage");
+
+// Emojis du titre : police Noto sur la machine de montage (bac.sh), police Apple sur Mac.
+const EMOJIS = ["/usr/share/fonts/truetype/noto/NotoColorEmoji.ttf", "/System/Library/Fonts/Apple Color Emoji.ttc"].find(existsSync);
+if (EMOJIS) GlobalFonts.registerFromPath(EMOJIS, "Emojis");
+else console.warn("Police d'emojis absente : les emojis du titre ne s'afficheront pas.");
 
 const L = 1080;
 const H = 1920;
@@ -51,7 +57,7 @@ export async function dessinerAccroche(texte, echelle = 1, angle = -2) {
   let taille = 74;
   let lignes;
   do {
-    ctx.font = `${taille}px Bricolage`;
+    ctx.font = `${taille}px Bricolage, Emojis`;
     lignes = decouper(ctx, texte, largeurTexte);
     if (lignes.length <= 3) break;
     taille -= 4;
@@ -87,8 +93,14 @@ export async function dessinerAccroche(texte, echelle = 1, angle = -2) {
 
   ctx.fillStyle = ENCRE;
   ctx.textAlign = "center";
+  // Ligne de base commune : en mode « top », une police d'emojis décale toute sa ligne vers le haut.
+  ctx.font = `${taille}px Bricolage`;
   ctx.textBaseline = "top";
-  lignes.forEach((l, i) => ctx.fillText(l, L / 2, y + padV + i * interligne - taille * 0.06));
+  const haut = ctx.measureText("H").actualBoundingBoxAscent;
+  ctx.textBaseline = "alphabetic";
+  const base = ctx.measureText("H").actualBoundingBoxAscent - haut;
+  ctx.font = `${taille}px Bricolage, Emojis`;
+  lignes.forEach((l, i) => ctx.fillText(l, L / 2, y + padV + i * interligne + taille * 0.07 + base));
 
   return toile.encode("png");
 }
