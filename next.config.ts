@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Numéro de version, pour recharger une appli restée ouverte depuis longtemps (EnregistrerSW).
+  env: { NEXT_PUBLIC_VERSION: process.env.VERCEL_GIT_COMMIT_SHA ?? "local" },
   // Le dossier personnel contient un autre package-lock.json : on fixe la racine ici.
   turbopack: { root: __dirname },
   // Autorise le téléphone (même Wi-Fi) à charger le serveur de dev.
