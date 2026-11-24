@@ -136,44 +136,62 @@ export function ecranHeures({ r, repondre }: Props): Parties {
 
 export function ecranPlan({ objectif, frequence }: { objectif: number; frequence: number }): Parties {
   const p = plan(objectif, frequence);
+  const apparait = (ms: number) => ({ "--d": `${ms}ms` }) as React.CSSProperties;
+  const signe = "surgit absolute -top-[19px] left-1/2 z-10 -ml-[18px] grid h-9 w-9 place-items-center rounded-full border-2 border-encre bg-fond text-[22px] font-extrabold leading-none lg:-top-[38px] lg:-ml-[26px] lg:h-[52px] lg:w-[52px] lg:text-[32px]";
+  const carte = "surgit carte-forte relative flex flex-col justify-center px-4 py-3 lg:min-h-0 lg:rounded-3xl lg:px-9 lg:py-4 lg:shadow-[0_6px_0_var(--color-encre)]";
+  const petit = "text-[12px] font-bold lg:text-[clamp(15px,1.3vw,22px)]";
+  const gros = "titre mt-1 whitespace-nowrap text-[30px] tabular-nums lg:mt-[min(8px,1vh)] lg:text-[clamp(38px,min(4.4vw,7.4vh),84px)]";
+  const note = "mt-1 text-[12px] leading-snug text-encre2 lg:mt-[min(8px,1vh)] lg:text-[clamp(15px,1.2vw,20px)] lg:text-encre";
   return {
     gauche: (
       <>
         <span className="pastille w-fit bg-turquoise lg:min-h-9 lg:px-4 lg:text-[16px]">Ton plan</span>
-        <h1 className="titre mt-3 text-[28px] lg:mt-6 lg:text-[clamp(38px,min(4.1vw,7vh),76px)]">
-          Tu vises {nombre(objectif)}&nbsp;€. On te fixe la barre à <Compteur de={objectif} vers={p.booste} />&nbsp;€.
-        </h1>
-        <p className="mt-2 text-[14px] leading-snug text-encre2 lg:mt-6 lg:max-w-[34ch] lg:text-[clamp(17px,1.4vw,24px)]">On vise 6 % plus haut pour que tu passes ton objectif, pas juste que tu l&apos;approches.</p>
+        <h1 className="titre mt-3 text-[28px] lg:mt-6 lg:text-[clamp(40px,min(4.5vw,7.6vh),84px)]">Voilà comment viser {nombre(objectif)}&nbsp;€ par mois.</h1>
+        <p className="mt-2 text-[14px] leading-snug text-encre2 max-lg:[@media(max-height:720px)]:hidden lg:mt-6 lg:max-w-[34ch] lg:text-[clamp(17px,1.4vw,24px)]">On place la barre 6 % plus haut, pour dépasser ton objectif.</p>
       </>
     ),
     droite: (
-      <div className="contents lg:flex lg:flex-1 lg:flex-col lg:gap-6">
-        <div className="carte-forte mt-5 bg-jaune p-4 lg:mt-0 lg:flex lg:flex-[1.25] lg:flex-col lg:justify-end lg:rounded-3xl lg:bg-blanc lg:p-10">
-          <p className="text-[13px] font-bold lg:text-[20px]">Vues à faire par mois</p>
-          <p className="titre mt-1.5 text-[26px] lg:mt-3 lg:text-[clamp(44px,4.6vw,88px)]">
-            {vuesLisibles(p.vuesMin)} à {vuesLisibles(p.vuesMax)}
+      <div className="mt-5 flex flex-col gap-3.5 max-lg:[@media(max-height:720px)]:mt-3 lg:mt-0 lg:min-h-0 lg:flex-1 lg:gap-6">
+        <div className={`${carte} bg-turquoise lg:flex-1`} style={apparait(250)}>
+          <p className={petit}>Tu postes</p>
+          <p className={gros}>{videos(p.parMois)}</p>
+          <p className={note}>par mois, {frequence} par semaine</p>
+        </div>
+
+        <div className={`${carte} bg-blanc lg:flex-1`} style={apparait(800)}>
+          <span className={signe} style={apparait(800)} aria-label="fois">
+            ×
+          </span>
+          <p className={petit}>Objectif par vidéo</p>
+          <p className={gros}>
+            <span className="text-[0.5em] font-bold tracking-normal">environ </span>
+            {euros(p.booste / p.parMois)}
+          </p>
+          <p className={note}>
+            avec {vuesLisibles(p.vuesParVideoMin)} à {vuesLisibles(p.vuesParVideoMax)} {p.vuesParVideoMax >= 1_000_000 ? "de vues" : "vues"}
           </p>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-3 lg:mt-0 lg:flex-1 lg:gap-6">
-          <div className="carte p-3.5 lg:flex lg:flex-col lg:justify-end lg:rounded-3xl lg:bg-turquoise lg:p-8 lg:shadow-[0_4px_0_var(--color-encre)]">
-            <p className="text-[12px] font-bold lg:text-[18px]">Ton rythme</p>
-            <p className="titre mt-1 text-[20px] lg:mt-2 lg:text-[clamp(30px,3vw,56px)]">{videos(frequence)}</p>
-            <p className="text-[12px] text-encre2 lg:mt-1 lg:text-[17px] lg:text-encre">par semaine</p>
-          </div>
-          <div className="carte p-3.5 lg:flex lg:flex-col lg:justify-end lg:rounded-3xl lg:bg-rose lg:p-8 lg:shadow-[0_4px_0_var(--color-encre)]">
-            <p className="text-[12px] font-bold lg:text-[18px]">À viser par vidéo</p>
-            <p className="titre mt-1 text-[20px] lg:mt-2 lg:text-[clamp(28px,2.6vw,50px)]">
-              {vuesLisibles(p.vuesParVideoMin)} à {vuesLisibles(p.vuesParVideoMax)}
-            </p>
-            <p className="text-[12px] text-encre2 lg:mt-1 lg:text-[17px] lg:text-encre">vues</p>
-          </div>
+        <div className={`${carte} bg-rose py-4 lg:flex-[1.5]`} style={apparait(1350)}>
+          <span className={signe} style={apparait(1350)} aria-label="égale">
+            =
+          </span>
+          <p className={petit}>Ton objectif par mois</p>
+          <p className="titre mt-1 whitespace-nowrap text-[52px] tabular-nums lg:mt-[min(10px,1.2vh)] lg:text-[clamp(60px,min(8.2vw,14vh),160px)]">
+            <Compteur de={objectif} vers={p.booste} attente={1700} />&nbsp;€
+          </p>
+          <p className={`${note} !text-encre`}>
+            avec {vuesLisibles(p.vuesMin)} à {vuesLisibles(p.vuesMax)} {p.vuesMax >= 1_000_000 ? "de vues" : "vues"}
+          </p>
         </div>
       </div>
     ),
     fond: "lg:bg-jaune",
   };
 }
+
+/** 75,7 → « 76 € » ; 1,4 → « 1,40 € » */
+const euros = (n: number) => (n >= 10 ? `${nombre(Math.round(n))} €` : `${n.toFixed(2).replace(".", ",")} €`);
 
 /** Cartes de choix : liste simple sur téléphone, grandes cartes illustrées sur ordinateur. */
 function Choix({
@@ -314,7 +332,7 @@ function Semaine({ n }: { n: number }) {
 }
 
 /** Le montant qui grimpe de l'objectif choisi à la barre fixée, avec les crans de la roue. */
-function Compteur({ de, vers }: { de: number; vers: number }) {
+function Compteur({ de, vers, attente }: { de: number; vers: number; attente: number }) {
   const [v, setV] = useState(de);
   useEffect(() => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) {
@@ -322,7 +340,7 @@ function Compteur({ de, vers }: { de: number; vers: number }) {
       return;
     }
     const duree = 1100;
-    const t0 = performance.now() + 500;
+    const t0 = performance.now() + attente;
     let image = 0;
     let dernier = de;
     const tic = (t: number) => {
@@ -338,6 +356,6 @@ function Compteur({ de, vers }: { de: number; vers: number }) {
     };
     image = requestAnimationFrame(tic);
     return () => cancelAnimationFrame(image);
-  }, [de, vers]);
+  }, [de, vers, attente]);
   return <span className="tabular-nums">{nombre(v)}</span>;
 }
