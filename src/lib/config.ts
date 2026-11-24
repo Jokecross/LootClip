@@ -142,8 +142,3 @@ export const TITRE_MAX = 70;
 
 /** Défi affiché sur l'accueil après la première vidéo. */
 export const DEFI_JOURS = 7;
-
-/**
- * Publication automatique sur TikTok et Instagram : pas encore branchée.
- * Tant que c'est false, les écrans « Publier » n'existent que dans /studio, avec la mention « Bientôt ».
- */
