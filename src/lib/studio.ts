@@ -5,13 +5,21 @@
  */
 export type Reglages = { credits: number; pseudo: string; titre: string; secondes: number };
 
-export const REGLAGES_DEFAUT: Reglages = { credits: 60, pseudo: "monpseudo", titre: "", secondes: 9 };
+export const REGLAGES_DEFAUT: Reglages = { credits: 60, pseudo: "", titre: "", secondes: 9 };
+
+const MOTS = ["vice", "manette", "pixel", "turbo", "neon", "palmier", "ocean", "minuit"];
+const FINS = ["clips", "gaming", "replay", "joue", "ride"];
+const hasard = <T,>(l: T[]) => l[Math.floor(Math.random() * l.length)];
+
+/** Un compte inventé pour la démo, avec assez de chiffres pour ne tomber sur personne. */
+export const pseudoAuHasard = () => `${hasard(MOTS)}.${hasard(FINS)}${10000 + Math.floor(Math.random() * 90000)}`;
 
 const CLE = "xpclip:studio";
 
 export function lireReglages(): Reglages {
   try {
-    return { ...REGLAGES_DEFAUT, ...JSON.parse(localStorage.getItem(CLE) || "{}") };
+    const r = { ...REGLAGES_DEFAUT, ...JSON.parse(localStorage.getItem(CLE) || "{}") };
+    return r.pseudo === "monpseudo" ? { ...r, pseudo: "" } : r; // ancien réglage par défaut
   } catch {
     return REGLAGES_DEFAUT;
   }

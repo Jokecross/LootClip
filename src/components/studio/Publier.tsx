@@ -43,7 +43,7 @@ export function Bientot() {
 }
 
 export function Publier({ entete, pseudo, partir }: { entete: React.ReactNode; pseudo: string; partir: (d: Depart) => void }) {
-  const [reseaux, setReseaux] = useState<Reseau[]>(["tiktok", "instagram"]);
+  const [reseaux, setReseaux] = useState<Reseau[]>([]);
   const [plus, setPlus] = useState(true);
   const [jour, setJour] = useState(0);
   const [minutes, setMinutes] = useState(19 * 60);
@@ -56,7 +56,7 @@ export function Publier({ entete, pseudo, partir }: { entete: React.ReactNode; p
 
   const envoyer = (
     <button type="button" disabled={!reseaux.length} onClick={() => partir({ reseaux, quand: plus ? `${l[jour].long} à ${heure(minutes)}` : null })} className="bouton bouton-rose w-full">
-      {plus ? "Planifier ma vidéo" : "Envoyer ma vidéo"}
+      {!reseaux.length ? "Choisis une plateforme" : plus ? "Programmer ma vidéo" : "Publier ma vidéo"}
     </button>
   );
 
@@ -69,7 +69,7 @@ export function Publier({ entete, pseudo, partir }: { entete: React.ReactNode; p
       gauche={
         <>
           <div className="flex items-start justify-between gap-3 lg:flex-col-reverse lg:gap-3">
-            <h1 className="titre text-[30px] lg:text-[clamp(44px,4.5vw,84px)]">On publie où ?</h1>
+            <h1 className="titre text-[30px] lg:text-[clamp(44px,4.5vw,84px)]">Tu postes où ?</h1>
             <Bientot />
           </div>
 
@@ -92,7 +92,7 @@ export function Publier({ entete, pseudo, partir }: { entete: React.ReactNode; p
           <div className="mt-4 grid grid-cols-2 gap-1 rounded-[14px] border-2 border-encre bg-blanc p-1" role="radiogroup" aria-label="Moment de la publication">
             {[true, false].map((v) => (
               <button key={String(v)} type="button" role="radio" aria-checked={plus === v} onClick={() => (pop(0.5), setPlus(v))} className={`min-h-12 rounded-[10px] text-[15px] font-bold lg:min-h-14 lg:text-[18px] ${plus === v ? "bg-encre text-fond" : ""}`}>
-                {v ? "Planifier" : "Maintenant"}
+                {v ? "Programmer" : "Publier maintenant"}
               </button>
             ))}
           </div>

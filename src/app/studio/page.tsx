@@ -20,7 +20,7 @@ import { useEtat, type Video } from "@/lib/etat";
 import { duree as dureeLisible, videos } from "@/lib/format";
 import { videosPourHeures, type Reponses } from "@/lib/onboarding";
 import { bravo, envol, pop, reveiller, tampon } from "@/lib/sons";
-import { ecrireReglages, garderVideo, lireReglages, lireVideo, REGLAGES_DEFAUT, type Reglages } from "@/lib/studio";
+import { ecrireReglages, garderVideo, lireReglages, pseudoAuHasard, lireVideo, REGLAGES_DEFAUT, type Reglages } from "@/lib/studio";
 import { supabase } from "@/lib/supabase";
 
 const SUITE = ["regie", "accroche", "console", "tiktok", "objectif", "heures", "plan", "clips", "style", "montage", "resultat", "publier", "fin"] as const;
@@ -65,6 +65,7 @@ function Plateau() {
   const [style, setStyle] = useState<Style>("defi");
   const [titre, setTitre] = useState("");
   const [credits, setCredits] = useState(0);
+  const [hasard, setHasard] = useState(""); // compte inventé, retiré à chaque prise
   const [depart, setDepart] = useState<Depart | null>(null);
   const [parti, setParti] = useState(false);
   const [lu, setLu] = useState(false);
@@ -125,8 +126,16 @@ function Plateau() {
     setStyle("defi");
     setTitre(regl.titre);
     setCredits(regl.credits);
+    setHasard(pseudoAuHasard());
     setDepart(null);
     setEtape(depuis);
+  }
+
+  /** Une autre vidéo, avec les crédits restants. */
+  function autre() {
+    const reste = credits;
+    action("clips");
+    setCredits(reste);
   }
 
   async function ajouter(f: FileList | null) {
@@ -181,6 +190,7 @@ function Plateau() {
 
   let contenu: { gauche: React.ReactNode; droite: React.ReactNode; fond?: string } = { gauche: null, droite: null };
   let bouton: { libelle: string; faire: () => void; actif?: boolean } | false | null = null;
+  let second: { libelle: string; faire: () => void } | null = null;
   let pied: React.ReactNode = null;
 
   switch (etape) {
@@ -225,7 +235,7 @@ function Plateau() {
           </div>
 
           <div className="mt-5">
-            <Champ libelle="Ton pseudo TikTok" valeur={regl.pseudo} changer={(v) => regler({ pseudo: v.replace(/[@\s]/g, "").slice(0, 24) })} />
+            <Champ libelle="Ton pseudo" exemple="Vide : un pseudo au hasard" valeur={regl.pseudo} changer={(v) => regler({ pseudo: v.replace(/[@\s]/g, "").slice(0, 24) })} />
           </div>
 
           <details className="carte mt-4 px-4">
@@ -436,14 +446,15 @@ function Plateau() {
         ),
         fond: "lg:bg-rose",
       };
-      bouton = { libelle: "Publier ma vidéo", faire: suivant };
+      bouton = { libelle: "Poster ma vidéo", faire: suivant };
+      second = { libelle: "Continuer", faire: autre };
       break;
 
     case "publier":
       return (
         <Publier
           entete={entete}
-          pseudo={regl.pseudo}
+          pseudo={regl.pseudo || hasard}
           partir={(d) => {
             setDepart(d);
             setParti(false);
@@ -460,18 +471,14 @@ function Plateau() {
           depart={depart}
           url={urlFinale}
           titre={titre}
-          pseudo={regl.pseudo}
+          pseudo={regl.pseudo || hasard}
           fini={() => setParti(true)}
           action={
             parti && (
               <button
                 type="button"
                 className="bouton bouton-rose w-full"
-                onClick={() => {
-                  const reste = credits;
-                  action("clips");
-                  setCredits(reste);
-                }}
+                onClick={autre}
               >
                 Créer une autre vidéo
               </button>
@@ -489,9 +496,16 @@ function Plateau() {
       {...contenu}
       action={
         bouton && (
-          <button type="button" onClick={bouton.faire} disabled={bouton.actif === false} className="bouton bouton-rose w-full">
-            {bouton.libelle}
-          </button>
+          <div className="flex gap-3 lg:gap-4">
+            {second && (
+              <button type="button" onClick={second.faire} className="bouton bouton-blanc shrink-0">
+                {second.libelle}
+              </button>
+            )}
+            <button type="button" onClick={bouton.faire} disabled={bouton.actif === false} className="bouton bouton-rose w-full">
+              {bouton.libelle}
+            </button>
+          </div>
         )
       }
       pied={pied}
@@ -510,11 +524,11 @@ function urlsDe(c: Clip[]) {
   return memo.get(c)!;
 }
 
-function Champ({ libelle, valeur, changer, numerique }: { libelle: string; valeur: string; changer: (v: string) => void; numerique?: boolean }) {
+function Champ({ libelle, valeur, changer, numerique, exemple }: { exemple?: string; libelle: string; valeur: string; changer: (v: string) => void; numerique?: boolean }) {
   return (
     <label className="block text-[14px] font-bold">
       {libelle}
-      <input className="champ mt-1.5 font-normal" inputMode={numerique ? "numeric" : undefined} value={valeur} onChange={(e) => changer(e.target.value)} />
+      <input placeholder={exemple} className="champ mt-1.5 font-normal" inputMode={numerique ? "numeric" : undefined} value={valeur} onChange={(e) => changer(e.target.value)} />
     </label>
   );
 }
@@ -584,8 +598,8 @@ function Fin({ entete, depart, url, titre, pseudo, fini, action }: { entete: Rea
                   <PictoReseau r={r} />
                   <span className="min-w-0 flex-1">
                     <span className="titre block text-[19px] lg:text-[clamp(26px,2.4vw,42px)]">{nomsReseaux([r])}</span>
-                    <span className="mt-1 block truncate text-[13px] text-encre2 lg:mt-2 lg:text-[18px]">
-                      @{pseudo} · {depart.quand ?? "maintenant"}
+                    <span className="mt-1 block text-[13px] leading-snug text-encre2 lg:mt-2 lg:text-[18px]">
+                      <span className="inline-block">@{pseudo}</span> <span className="inline-block">· {depart.quand ?? "maintenant"}</span>
                     </span>
                   </span>
                   <Coche className="h-7 w-7 shrink-0 lg:h-11 lg:w-11" />
@@ -607,8 +621,8 @@ function Fin({ entete, depart, url, titre, pseudo, fini, action }: { entete: Rea
           )}
           <div className="flex min-h-[110px] items-center justify-center lg:absolute lg:inset-0">
             {t >= 4 && (
-              <p className="tampon titre whitespace-nowrap rounded-2xl border-4 border-encre bg-rose px-6 py-3 text-[48px] shadow-[0_6px_0_var(--color-encre)] lg:rounded-[32px] lg:border-[6px] lg:px-10 lg:py-7 lg:text-[clamp(60px,6.6vw,128px)] lg:shadow-[0_12px_0_var(--color-encre)]">
-                {depart.quand ? "Planifiée !" : "Envoyée !"}
+              <p className="tampon titre whitespace-nowrap rounded-2xl border-4 border-encre bg-rose px-5 py-3 text-[42px] shadow-[0_6px_0_var(--color-encre)] lg:rounded-[32px] lg:border-[6px] lg:px-9 lg:py-7 lg:text-[clamp(52px,5.8vw,112px)] lg:shadow-[0_12px_0_var(--color-encre)]">
+                {depart.quand ? "Programmée !" : "Publiée !"}
               </p>
             )}
           </div>
