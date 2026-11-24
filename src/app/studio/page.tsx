@@ -13,7 +13,7 @@ import { Bientot, nomsReseaux, PictoReseau, Publier, type Depart } from "@/compo
 import { Coche, Entete } from "@/components/ui/Parcours";
 import { CLIPS, MENTION_OBJECTIF, NON_AFFILIATION, ONBOARDING, PUBLICATION_AUTO, STYLES, TITRE_MAX, type Style } from "@/lib/config";
 import { lireDuree } from "@/lib/depot";
-import { useEtat } from "@/lib/etat";
+import { useEtat, type Video } from "@/lib/etat";
 import { duree as dureeLisible, videos } from "@/lib/format";
 import { videosPourHeures, type Reponses } from "@/lib/onboarding";
 import { bravo, envol, pop, reveiller, tampon } from "@/lib/sons";
@@ -64,16 +64,46 @@ function Plateau() {
   const [credits, setCredits] = useState(0);
   const [depart, setDepart] = useState<Depart | null>(null);
   const [parti, setParti] = useState(false);
+  const [lu, setLu] = useState(false);
+  const [cherche, setCherche] = useState(false);
+  const etat = useEtat();
+  const derniere = etat.videos.find((v) => v.videoChemin && v.statut === "termine") ?? null;
   const galerie = useRef<HTMLInputElement>(null);
   const appui = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
     setRegl(lireReglages());
-    lireVideo().then(setFinale);
+    lireVideo().then((v) => {
+      setFinale(v);
+      setLu(true);
+    });
     const go = () => reveiller();
     window.addEventListener("click", go);
     return () => window.removeEventListener("click", go);
   }, []);
+
+  /** Prend une vidéo déjà créée dans XPclip, et la garde sur ce téléphone. */
+  async function prendre(v: Video) {
+    setCherche(true);
+    try {
+      const { data } = await supabase.storage.from("videos").createSignedUrl(v.videoChemin!, 600);
+      const r = await fetch(data!.signedUrl);
+      if (!r.ok) throw new Error();
+      const b = await r.blob();
+      setFinale({ url: URL.createObjectURL(b), nom: v.titre });
+      await garderVideo(b, v.titre).catch(() => {});
+    } catch {}
+    setCherche(false);
+  }
+
+  // Rien de choisi : la dernière vidéo créée est prise toute seule.
+  const auto = useRef(false);
+  useEffect(() => {
+    if (!lu || finale || !derniere || auto.current) return;
+    auto.current = true;
+    prendre(derniere);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lu, finale, derniere]);
 
   const repondre = (x: Reponses) => setR((v) => ({ ...v, ...x }));
   const suivant = () => setEtape(SUITE[SUITE.indexOf(etape) + 1]);
@@ -139,55 +169,70 @@ function Plateau() {
     case "regie":
       contenu = (
         <>
-          <h1 className="titre text-[34px]">Studio.</h1>
-          <p className="mt-2 text-[14px] text-encre2">Règle une fois. Ensuite, appuie sur Action et filme.</p>
+          <h1 className="titre text-[34px]">Prêt à filmer ?</h1>
+          <p className="mt-2 text-[14px] text-encre2">Cette page, personne ne la voit. Le tournage commence après.</p>
 
-          <label className="carte mt-5 flex min-h-[68px] cursor-pointer items-center justify-between gap-3 px-4 py-3">
-            <span className="min-w-0">
-              <span className="block text-[15px] font-bold">Vidéo finale</span>
-              <span className="mt-0.5 block truncate text-[13px] text-encre2">{finale ? finale.nom : "Choisis un MP4 fait avec XPclip."}</span>
-            </span>
-            <span className={`pastille ${finale ? "bg-turquoise" : "bg-jaune"}`}>{finale ? "Prête" : "Choisir"}</span>
-            <input
-              type="file"
-              accept="video/*"
-              className="sr-only"
-              onChange={async (e) => {
-                const f = e.target.files?.[0];
-                if (!f) return;
-                setFinale({ url: URL.createObjectURL(f), nom: f.name });
-                await garderVideo(f).catch(() => {});
-              }}
-            />
-          </label>
-          {!finale && <p className="mt-2 text-[13px] font-bold">Il te la faut pour commencer.</p>}
+          <p className="mt-6 text-[14px] font-bold">La vidéo montrée à la fin</p>
+          <div className="mt-2 flex items-center gap-4">
+            <div className="carte-forte grid aspect-[9/16] w-[96px] shrink-0 place-items-center overflow-hidden bg-encre">
+              {finale ? (
+                <video key={finale.url} src={finale.url} muted playsInline autoPlay loop className="h-full w-full object-cover" />
+              ) : (
+                <span className="px-2 text-center text-[11px] font-bold text-fond">{cherche ? "Un instant…" : "Aucune vidéo"}</span>
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[15px] font-bold">{finale ? finale.nom : cherche ? "On cherche ta dernière vidéo." : "Crée d'abord une vidéo dans XPclip."}</p>
+              <label className="lien flex min-h-11 w-fit cursor-pointer items-center text-[14px]">
+                {finale ? "En prendre une autre" : "Ou choisis un fichier"}
+                <input
+                  type="file"
+                  accept="video/*"
+                  className="sr-only"
+                  onChange={async (e) => {
+                    const f = e.target.files?.[0];
+                    if (!f) return;
+                    setFinale({ url: URL.createObjectURL(f), nom: f.name });
+                    await garderVideo(f, f.name).catch(() => {});
+                  }}
+                />
+              </label>
+              {derniere && (
+                <button type="button" onClick={() => prendre(derniere)} className="lien flex min-h-11 items-center text-[14px]">
+                  Reprendre ma dernière vidéo
+                </button>
+              )}
+            </div>
+          </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3">
-            <Champ libelle="Ton pseudo" valeur={regl.pseudo} changer={(v) => regler({ pseudo: v.replace(/[@\s]/g, "").slice(0, 24) })} />
-            <Champ libelle="Crédits affichés" numerique valeur={String(regl.credits || "")} changer={(v) => regler({ credits: Math.min(200, Number(v.replace(/\D/g, "")) || 0) })} />
+          <div className="mt-5">
+            <Champ libelle="Ton pseudo TikTok" valeur={regl.pseudo} changer={(v) => regler({ pseudo: v.replace(/[@\s]/g, "").slice(0, 24) })} />
           </div>
-          <div className="mt-3">
-            <Champ libelle="Titre déjà écrit (facultatif)" valeur={regl.titre} changer={(v) => regler({ titre: v.slice(0, TITRE_MAX) })} />
-          </div>
-          <p className="mt-4 text-[14px] font-bold">Durée du montage à l&apos;écran</p>
-          <div className="mt-2 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Durée du montage">
-            {[6, 9, 14].map((s) => (
-              <button key={s} type="button" role="radio" aria-checked={regl.secondes === s} onClick={() => regler({ secondes: s })} className={`min-h-12 rounded-[14px] border-2 border-encre text-[15px] font-bold ${regl.secondes === s ? "bg-jaune" : "bg-blanc"}`}>
-                {s} s
+
+          <details className="carte mt-4 px-4">
+            <summary className="flex min-h-12 cursor-pointer items-center text-[14px] font-bold">Autres réglages</summary>
+            <div className="pb-4">
+              <Champ libelle="Crédits affichés" numerique valeur={String(regl.credits || "")} changer={(v) => regler({ credits: Math.min(200, Number(v.replace(/\D/g, "")) || 0) })} />
+              <div className="mt-3">
+                <Champ libelle="Titre déjà écrit" valeur={regl.titre} changer={(v) => regler({ titre: v.slice(0, TITRE_MAX) })} />
+              </div>
+              <p className="mt-4 text-[14px] font-bold">Durée du montage à l&apos;écran</p>
+              <div className="mt-2 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Durée du montage">
+                {[6, 9, 14].map((s) => (
+                  <button key={s} type="button" role="radio" aria-checked={regl.secondes === s} onClick={() => regler({ secondes: s })} className={`min-h-12 rounded-[14px] border-2 border-encre text-[15px] font-bold ${regl.secondes === s ? "bg-jaune" : "bg-blanc"}`}>
+                    {s} s
+                  </button>
+                ))}
+              </div>
+              <button type="button" disabled={!finale} onClick={() => action("clips")} className="lien mt-3 flex min-h-11 items-center text-[14px] disabled:opacity-40">
+                Commencer directement aux clips
               </button>
-            ))}
-          </div>
-          <ul className="carte-pointillee mt-5 flex flex-col gap-1.5 p-4 text-[13px] leading-snug">
-            <li>Enlève le mode silencieux de ton téléphone.</li>
-            <li>Appui long sur le logo : retour ici.</li>
-            <li>Aucun compte créé, aucun crédit utilisé.</li>
-          </ul>
-          <button type="button" disabled={!finale} onClick={() => action("clips")} className="lien disabled:opacity-40 mx-auto mt-3 flex min-h-11 items-center text-[14px]">
-            Commencer directement aux clips
-          </button>
+            </div>
+          </details>
+          <p className="mt-4 text-[13px] text-encre2">Enlève le mode silencieux. Appui long sur le logo : retour ici.</p>
         </>
       );
-      bouton = { libelle: "Action", faire: () => action(), actif: !!finale };
+      bouton = { libelle: "Commencer à filmer", faire: () => action(), actif: !!finale };
       break;
 
     case "accroche":

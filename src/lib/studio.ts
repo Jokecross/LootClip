@@ -33,12 +33,12 @@ function base(): Promise<IDBDatabase> {
 }
 
 /** On garde les octets plutôt que le fichier : Safari perd parfois les fichiers de la galerie. */
-export async function garderVideo(f: File) {
+export async function garderVideo(f: Blob, nom: string) {
   const octets = await f.arrayBuffer();
   const b = await base();
   await new Promise<void>((ok, non) => {
     const t = b.transaction("f", "readwrite");
-    t.objectStore("f").put({ octets, type: f.type || "video/mp4", nom: f.name }, "finale");
+    t.objectStore("f").put({ octets, type: f.type || "video/mp4", nom }, "finale");
     t.oncomplete = () => ok();
     t.onerror = () => non(t.error);
   });
