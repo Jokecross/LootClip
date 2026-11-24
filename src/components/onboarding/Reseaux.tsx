@@ -84,11 +84,12 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
                 <span className="relative z-20 block min-w-0 px-3 pb-3.5 lg:px-7 lg:pb-7">
                   <span className="flex min-w-0 items-center gap-2 lg:gap-3">
                     {c?.photo ? <Photo url={c.photo} secours={<PictoReseau r={r} />} /> : c ? <PictoReseau r={r} /> : null}
-                    <span className="titre block min-w-0 truncate pb-0.5 text-[19px] lg:text-[clamp(34px,3.2vw,60px)]">{c ? `@${c.pseudo ?? NOMS[r]}` : NOMS[r]}</span>
+                    <span className={`titre block min-w-0 truncate pb-0.5 ${c ? "text-[15px] lg:text-[clamp(24px,2vw,38px)]" : "text-[19px] lg:text-[clamp(34px,3.2vw,60px)]"}`}>{c ? `@${c.pseudo ?? NOMS[r]}` : NOMS[r]}</span>
                   </span>
                   <span className="mt-1 block min-h-[34px] text-[12px] font-medium leading-tight lg:mt-2 lg:min-h-0 lg:text-[19px]">{c ? `${NOMS[r]} est relié.` : AIDE[r]}</span>
+                  {!c && <span className="pastille mt-2 w-full justify-center bg-turquoise py-2 text-[14px] lg:mt-4 lg:min-h-12 lg:text-[19px]">{attente === r ? "Un instant…" : "Relier"}</span>}
                 </span>
-                {c ? <Coche className="absolute -right-2 -top-2 z-30 h-9 w-9 rounded-full border-[3px] border-fond lg:-right-4 lg:-top-4 lg:h-16 lg:w-16" /> : <span className="pastille absolute right-2.5 top-2.5 z-20 bg-turquoise lg:right-5 lg:top-5 lg:min-h-12 lg:px-5 lg:text-[19px]">{attente === r ? "Un instant…" : "Relier"}</span>}
+                {c && <Coche className="absolute -right-2 -top-2 z-30 h-9 w-9 rounded-full border-[3px] border-fond lg:-right-4 lg:-top-4 lg:h-16 lg:w-16" />}
               </button>
             );
           })}
