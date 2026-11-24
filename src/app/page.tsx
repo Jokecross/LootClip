@@ -2,13 +2,17 @@ import Link from "next/link";
 import { AvantApres } from "@/components/landing/AvantApres";
 import { BarreFixe } from "@/components/landing/BarreFixe";
 import { Logo } from "@/components/marque/Logo";
+import { Ancre } from "@/components/monde/Ancre";
+import { Pieces } from "@/components/landing/Pieces";
+import { SceneAccroche } from "@/components/onboarding/Ecrans";
+import { Mots } from "@/components/ui/Duo";
 import { PiedDePage } from "@/components/PiedDePage";
 import { GrilleTarifs } from "@/components/tarifs/GrilleTarifs";
 
 const ETAPES = [
-  { titre: "Joue à GTA 6", texte: "Un appui sur ta manette garde chaque bon moment.", fond: "bg-jaune" },
-  { titre: "Dépose tes clips", texte: "Les tiens, ceux de ta console. XPclip les monte.", fond: "bg-orange" },
-  { titre: "Poste ta vidéo", texte: "Plus tu fais de vues, plus ça peut rapporter.", fond: "bg-turquoise" },
+  { titre: "Joue à GTA 6", texte: "Un appui sur ta manette garde chaque bon moment.", fond: "bg-jaune", couleur: "turquoise" },
+  { titre: "Dépose tes clips", texte: "Les tiens, ceux de ta console. XPclip les monte.", fond: "bg-orange", couleur: "orange" },
+  { titre: "Poste ta vidéo", texte: "Plus tu fais de vues, plus ça peut rapporter.", fond: "bg-turquoise", couleur: "rose" },
 ];
 
 const FAQ = [
@@ -27,13 +31,46 @@ const FAQ = [
 /** Une section : colonne de 560 px sur téléphone, 1120 px sur ordinateur. */
 function Section({ fond, children, id, sombre = false }: { fond: string; children: React.ReactNode; id?: string; sombre?: boolean }) {
   return (
-    <section id={id ? `s-${id}` : undefined} aria-labelledby={id} className={`scroll-mt-4 border-t-2 border-encre px-4 py-12 sm:py-16 lg:px-8 lg:py-24 ${fond} ${sombre ? "text-fond" : ""}`}>
-      <div className="mx-auto max-w-[560px] lg:max-w-[1120px]">{children}</div>
+    <section id={id ? `s-${id}` : undefined} aria-labelledby={id} className={`relative scroll-mt-4 border-t-[4px] border-encre px-4 py-12 sm:py-16 lg:px-8 lg:py-24 ${fond} ${sombre ? "text-fond" : ""}`}>
+      <div className="relative z-20 mx-auto max-w-[560px] lg:max-w-[1240px]">{children}</div>
     </section>
   );
 }
 
-const TITRE_SECTION = "titre text-[32px] sm:text-[40px] lg:text-[56px]";
+const TITRE_SECTION = "titre text-[38px] leading-[0.95] sm:text-[48px] lg:text-[clamp(56px,5.4vw,100px)]";
+
+/** Fond rayonnant d'une section. */
+function Rayons({ couleur, x = "68%", y = "52%" }: { couleur: string; x?: string; y?: string }) {
+  return (
+    <span className="absolute inset-0 block overflow-hidden" style={{ background: `var(--color-${couleur})` }} aria-hidden="true">
+      <span className="rayons" style={{ left: x, top: y, "--r": `color-mix(in srgb, var(--color-${couleur}), white 24%)` } as React.CSSProperties} />
+      <span className="trame" style={{ "--p": `color-mix(in srgb, var(--color-${couleur}), var(--color-encre) 16%)` } as React.CSSProperties} />
+    </span>
+  );
+}
+
+const RUBAN = ["Ton jeu", "Tes clips", "Tes vidéos", "PS5 et Xbox", "TikTok et Instagram"];
+
+function Ruban() {
+  return (
+    <div className="relative z-20 -rotate-[1.2deg] overflow-hidden border-y-[4px] border-encre bg-encre py-3.5 lg:py-6" aria-hidden="true" style={{ width: "104%", marginLeft: "-2%" }}>
+      <div className="ruban">
+        {[0, 1].map((k) => (
+          <span key={k} className="flex">
+            {[...RUBAN, ...RUBAN].map((t, i) => (
+              <span key={i} className={`titre flex items-center whitespace-nowrap text-[26px] lg:text-[54px] ${["text-jaune", "text-rose", "text-turquoise", "text-orange", "text-fond"][i % 5]}`}>
+                {t}
+                <svg viewBox="0 0 24 24" className="mx-5 h-5 w-5 fill-fond lg:mx-10 lg:h-9 lg:w-9">
+                  <path d="M12 1l3.1 7.4 8 .7-6.1 5.2 1.9 7.8L12 17.9 5.1 22.1 7 14.3.9 9.1l8-.7z" />
+                </svg>
+              </span>
+            ))}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 const LIENS = [
   { href: "#s-t-etapes", nom: "Comment ça marche" },
@@ -44,16 +81,17 @@ const LIENS = [
 
 export default function Accueil() {
   return (
-    <>
+    <div className="v2 overflow-x-clip">
       {/* 1. Hero */}
-      <header className="px-4 pb-12 pt-4 lg:px-8 lg:pb-24 lg:pt-6">
-        <div className="mx-auto max-w-[1080px] lg:max-w-[1120px]">
-          <nav className="flex items-center justify-between gap-6">
+      <header className="relative px-4 pb-6 pt-4 lg:flex lg:min-h-[max(94dvh,640px)] lg:flex-col lg:px-[4.5vw] lg:pb-10 lg:pt-7">
+        <Rayons couleur="jaune" />
+        <div className="relative lg:flex lg:flex-1 lg:flex-col">
+          <nav className="relative z-20 flex items-center justify-between gap-6">
             <Logo />
             <ul className="hidden items-center gap-1 lg:flex">
               {LIENS.map((l) => (
                 <li key={l.href}>
-                  <a href={l.href} className="rounded-full px-4 py-2.5 text-[15px] font-bold hover:bg-beige">
+                  <a href={l.href} className="rounded-full px-4 py-2.5 text-[15px] font-bold hover:bg-blanc/60">
                     {l.nom}
                   </a>
                 </li>
@@ -69,55 +107,59 @@ export default function Accueil() {
             </div>
           </nav>
 
-          <div className="mt-8 grid items-center gap-8 lg:mt-20 lg:grid-cols-[1fr_1.12fr] lg:gap-16">
-            <div className="entree">
-              <span className="pastille bg-turquoise lg:text-[14px]">Pour les joueurs PS5 et Xbox</span>
-              <h1 className="titre mt-4 text-[44px] sm:text-[64px] lg:mt-6 lg:text-[76px] xl:text-[84px]">Tes parties de GTA 6 peuvent te payer.</h1>
-              <p className="mt-4 max-w-[34ch] text-[17px] leading-snug text-encre2 lg:mt-6 lg:text-[21px]">
-                Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.
-              </p>
-              <div id="cta-hero" className="mt-6 sm:max-w-[380px] lg:mt-9">
-                <Link href="/commencer" className="bouton bouton-rose w-full lg:h-[60px] lg:text-[19px]">
+          <div className="mt-7 lg:grid lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:items-center lg:gap-[2vw]">
+            <div className="relative z-20">
+              <span className="pastille bg-turquoise lg:min-h-10 lg:px-5 lg:text-[17px]">Pour les joueurs PS5 et Xbox</span>
+              <h1 className="titre mt-4 text-[50px] leading-[0.92] sm:text-[68px] lg:mt-7 lg:text-[clamp(64px,min(7.2vw,13.4vh),160px)]">
+                <Mots>Tes parties de GTA 6 peuvent te payer.</Mots>
+              </h1>
+              <p className="mt-4 max-w-[34ch] text-[17px] font-medium leading-snug lg:mt-7 lg:text-[clamp(20px,1.7vw,30px)]">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
+              <div id="cta-hero" className="mt-6 sm:max-w-[400px] lg:mt-9">
+                <Link href="/commencer" className="bouton bouton-rose w-full lg:h-[80px] lg:rounded-[22px] lg:text-[24px] lg:font-extrabold">
                   Créer ma première vidéo
                 </Link>
-                <p className="mt-3 text-center text-[13px] text-encre2 lg:text-left lg:text-[14px]">Sans engagement. Résiliation en deux clics.</p>
+                <p className="mt-3 text-center text-[13px] font-bold lg:mt-4 lg:text-left lg:text-[15px]">Sans engagement. Résiliation en deux clics.</p>
               </div>
             </div>
-            {/* Visuel du hero : image fournie par Martin (public/visuels/hero-*.jpg) */}
-            <div className="carte-forte mx-auto w-full max-w-[560px] overflow-hidden lg:max-w-none lg:rotate-[1.5deg]">
-              <img
-                src="/visuels/hero-1672.jpg"
-                srcSet="/visuels/hero-900.jpg 900w, /visuels/hero-1672.jpg 1672w"
-                sizes="(min-width: 1024px) 620px, 100vw"
-                width={1672}
-                height={941}
-                alt="Coucher de soleil néon sur une ville côtière, avec le logo XP et sa barre d'expérience"
-                fetchPriority="high"
-                className="block h-auto w-full"
-              />
+            <div className="mt-6 flex h-[420px] lg:mt-0 lg:h-full">
+              <SceneAccroche />
             </div>
           </div>
         </div>
       </header>
 
+      <Ruban />
+
       <main>
-        {/* 2. Trois étapes */}
-        <Section fond="bg-blanc" id="t-etapes">
-          <h2 id="t-etapes" className={TITRE_SECTION}>
+        {/* 2. Trois étapes : les objets descendent avec la page */}
+        <section id="s-t-etapes" aria-labelledby="t-etapes" className="relative scroll-mt-4 px-4 py-14 lg:px-[4.5vw] lg:py-28">
+          <h2 id="t-etapes" className="titre relative z-20 text-center text-[40px] leading-[0.95] sm:text-[52px] lg:text-[clamp(64px,6.4vw,120px)]">
             Ton jeu, tes clips, tes vidéos.
           </h2>
-          <ol className="mt-6 flex flex-col gap-3 lg:mt-12 lg:grid lg:grid-cols-3 lg:gap-6">
+          <ol className="mx-auto mt-8 flex max-w-[560px] flex-col gap-6 lg:mt-16 lg:max-w-[1500px] lg:gap-10">
             {ETAPES.map((e, i) => (
-              <li key={e.titre} className={`carte flex items-center gap-4 bg-fond p-4 lg:flex-col lg:items-start lg:gap-10 lg:p-7 ${i === 1 ? "lg:-rotate-1" : i === 2 ? "lg:rotate-1" : ""}`}>
-                <span className={`titre grid h-11 w-11 shrink-0 place-items-center rounded-xl border-2 border-encre text-[20px] lg:h-16 lg:w-16 lg:rounded-2xl lg:text-[30px] lg:shadow-[0_4px_0_var(--color-encre)] ${e.fond}`}>{i + 1}</span>
-                <span>
-                  <span className="titre block text-[18px] font-bold tracking-[-0.01em] lg:text-[28px]">{e.titre}</span>
-                  <span className="mt-0.5 block text-[14px] leading-snug text-encre2 lg:mt-2 lg:text-[17px]">{e.texte}</span>
-                </span>
+              <li key={e.titre} className={`relative overflow-clip rounded-[30px] border-[4px] border-encre shadow-[0_10px_0_var(--color-encre)] lg:grid lg:min-h-[min(74vh,640px)] lg:items-center lg:rounded-[56px] lg:shadow-[0_18px_0_var(--color-encre)] ${i % 2 ? "lg:grid-cols-[1.15fr_1fr]" : "lg:grid-cols-[1fr_1.15fr]"}`}>
+                <Rayons couleur={e.couleur} x={i % 2 ? "30%" : "72%"} />
+                <div className={`relative z-20 p-6 lg:p-16 ${i % 2 ? "lg:order-2" : ""}`}>
+                  <span className="titre block text-[92px] leading-[0.8] lg:text-[clamp(140px,15vw,280px)]">{i + 1}</span>
+                  <h3 className="titre mt-4 text-[34px] lg:mt-8 lg:text-[clamp(48px,4.8vw,92px)]">{e.titre}</h3>
+                  <p className="mt-2 text-[16px] font-medium leading-snug lg:mt-5 lg:text-[clamp(20px,1.6vw,28px)]">{e.texte}</p>
+                </div>
+                <div className={`relative h-[300px] lg:h-full ${i % 2 ? "lg:order-1" : ""}`}>
+                  {i === 0 && <Ancre nom="manette" className="absolute inset-[4%]" pose={{ ry: -0.3, rx: -0.35, rz: -0.08, z: 120 }} donnees={{ valeur: 1 }} />}
+                  {i === 1 && (
+                    <>
+                      <Ancre nom="clip1" className="absolute left-[4%] top-[6%] h-[46%] w-[58%]" pose={{ ry: 0.4, rz: 0.12, flotte: 12, z: 40 }} />
+                      <Ancre nom="clip0" className="absolute right-[4%] top-[24%] h-[46%] w-[58%]" pose={{ ry: -0.35, rz: -0.1, flotte: 14, z: 120 }} />
+                      <Ancre nom="clip2" className="absolute bottom-[4%] left-[14%] h-[46%] w-[58%]" pose={{ ry: 0.2, rz: 0.06, flotte: 10, z: 180 }} />
+                    </>
+                  )}
+                  {i === 2 && <Ancre nom="telephone" className="absolute inset-x-0 inset-y-[3%]" pose={{ ry: -0.3, rz: 0.06, flotte: 8, z: 100 }} donnees={{ ecran: "jeu", tour: 1 }} />}
+                </div>
               </li>
             ))}
           </ol>
-        </Section>
+        </section>
 
         {/* 4. Avant / après */}
         <Section fond="bg-encre" id="t-avap" sombre>
@@ -168,23 +210,31 @@ export default function Accueil() {
         </Section>
 
         {/* 7. Rappel final */}
-        <Section fond="bg-jaune" id="t-fin">
-          <div className="lg:flex lg:items-center lg:justify-between lg:gap-12">
-          <h2 id="t-fin" className="titre text-[34px] sm:text-[44px] lg:text-[64px]">
-            Ta prochaine session peut payer.
-          </h2>
-          <div id="cta-fin" className="mt-6 lg:mt-0 lg:w-[380px] lg:shrink-0">
-            <Link href="/commencer" className="bouton bouton-rose w-full lg:h-[64px] lg:text-[20px]">
-              Créer ma première vidéo
-            </Link>
-            <p className="mt-3 hidden text-center text-[14px] font-bold lg:block">Sans engagement. Résiliation en deux clics.</p>
+        <section id="s-t-fin" aria-labelledby="t-fin" className="relative border-t-[4px] border-encre px-4 pb-10 pt-14 lg:grid lg:min-h-[86vh] lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-[3vw] lg:px-[4.5vw]">
+          <Rayons couleur="rose" x="72%" y="60%" />
+          <div className="relative z-20">
+            <h2 id="t-fin" className="titre text-[48px] leading-[0.92] sm:text-[64px] lg:text-[clamp(64px,7vw,150px)]">
+              Ta prochaine session peut payer.
+            </h2>
+            <div id="cta-fin" className="mt-7 sm:max-w-[420px] lg:mt-12">
+              <Link href="/commencer" className="bouton w-full bg-jaune shadow-[0_7px_0_var(--color-encre)] lg:h-[84px] lg:rounded-[22px] lg:text-[24px] lg:font-extrabold">
+                Créer ma première vidéo
+              </Link>
+              <p className="mt-4 text-center text-[14px] font-bold lg:text-left lg:text-[16px]">Sans engagement. Résiliation en deux clics.</p>
+            </div>
           </div>
+          <div className="relative mt-6 h-[340px] lg:mt-0 lg:h-[76vh]">
+            <Pieces />
+            <Ancre nom="telephone" className="absolute right-[2%] top-0 h-[66%] w-[46%]" pose={{ ry: -0.35, rz: 0.1, flotte: 10, z: -60 }} donnees={{ ecran: "jeu" }} />
+            <Ancre nom="manette" className="absolute left-[-2%] top-[4%] h-[46%] w-[64%]" pose={{ ry: 0.35, rx: -0.35, rz: 0.12, flotte: 12, z: 60 }} donnees={{ valeur: 0.8 }} />
           </div>
-        </Section>
+        </section>
       </main>
 
-      <PiedDePage />
+      <div className="relative z-20 bg-fond">
+        <PiedDePage />
+      </div>
       <BarreFixe />
-    </>
+    </div>
   );
 }

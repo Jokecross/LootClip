@@ -6,13 +6,13 @@
  */
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
-import { ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
-import { PanneauHero } from "@/components/onboarding/PanneauHero";
+import { SceneAccroche, ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
 import { Reseaux } from "@/components/onboarding/Reseaux";
 import { FormulaireCompte } from "@/components/compte/FormulaireCompte";
 import { Paywall } from "@/components/app/Paywall";
+import { Ancre } from "@/components/monde/Ancre";
 import { Logo } from "@/components/marque/Logo";
-import { Duo, Titre } from "@/components/ui/Duo";
+import { Duo, Mots, Titre } from "@/components/ui/Duo";
 import { Entete } from "@/components/ui/Parcours";
 import { MENTION_OBJECTIF, NON_AFFILIATION, ONBOARDING } from "@/lib/config";
 import { aAcces, modifier, sansOnboarding, useEtat } from "@/lib/etat";
@@ -130,7 +130,7 @@ function Onboarding() {
 
   const objectif = r.objectif ?? 0;
 
-  let contenu: { gauche: React.ReactNode; droite: React.ReactNode; fond?: string } = { gauche: null, droite: null };
+  let contenu: { gauche: React.ReactNode; droite: React.ReactNode; fond?: string; large?: boolean } = { gauche: null, droite: null };
   let action: { libelle: string; faire: () => void; actif: boolean } | null = null;
   let pied: React.ReactNode = null;
 
@@ -139,25 +139,15 @@ function Onboarding() {
       contenu = {
         gauche: (
           <>
-            {/* Même image que le hero de l'accueil (public/visuels/hero-*.jpg) */}
-            <div className="carte-forte overflow-hidden lg:hidden">
-              <img
-                src="/visuels/hero-900.jpg"
-                srcSet="/visuels/hero-900.jpg 900w, /visuels/hero-1672.jpg 1672w"
-                sizes="(min-width: 640px) 480px, 100vw"
-                width={1672}
-                height={941}
-                alt="Coucher de soleil néon sur une ville côtière, avec le logo XP et sa barre d'expérience"
-                fetchPriority="high"
-                className="block h-auto w-full"
-              />
-            </div>
-            <h1 className="titre mt-7 text-[40px] lg:mt-0 lg:text-[clamp(52px,5.6vw,104px)]">Tes parties de GTA 6 peuvent te payer.</h1>
-            <p className="mt-3 text-[16px] leading-snug text-encre2 lg:mt-7 lg:max-w-[28ch] lg:text-[clamp(20px,1.7vw,30px)]">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
+            <h1 className="titre text-[44px] leading-[0.93] lg:text-[clamp(60px,min(6.9vw,13vh),150px)]">
+              <Mots>Tes parties de GTA 6 peuvent te payer.</Mots>
+            </h1>
+            <p className="mt-3 text-[16px] font-medium leading-snug text-encre2 lg:mt-7 lg:max-w-[28ch] lg:text-[clamp(20px,1.8vw,32px)]">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
           </>
         ),
-        droite: <PanneauHero />,
-        fond: "lg:bg-nuit2",
+        droite: <SceneAccroche />,
+        fond: "jaune",
+        large: true,
       };
       action = { libelle: "Commencer", faire: suivant, actif: true };
       pied = (
@@ -205,11 +195,12 @@ function Onboarding() {
       contenu = {
         gauche: <Titre sous="Pour garder ton plan et tes vidéos.">Crée ton compte.</Titre>,
         droite: (
-          <div className="flex flex-1 flex-col lg:m-auto lg:w-full lg:max-w-[560px] lg:flex-none lg:rounded-3xl lg:border-2 lg:border-encre lg:bg-fond lg:p-10 lg:shadow-[0_6px_0_var(--color-encre)]">
+          <div className="relative flex flex-none flex-col rounded-3xl border-[3px] border-encre bg-fond p-4 shadow-[0_7px_0_var(--color-encre)] lg:m-auto lg:w-full lg:max-w-[600px] lg:flex-none lg:rounded-[36px] lg:p-12 lg:pt-16 lg:shadow-[0_14px_0_var(--color-encre)]">
+            <Ancre nom="cadenas" className="absolute -top-[86px] right-1 h-[96px] w-[84px] lg:-right-[96px] lg:-top-[190px] lg:h-[250px] lg:w-[200px]" pose={{ ry: -0.4, rz: 0.12, z: 200 }} />
             <FormulaireCompte mode="inscription" retour={`/commencer?e=${RESEAUX}`} valider={creerCompte} />
           </div>
         ),
-        fond: "lg:bg-rose",
+        fond: "rose",
       };
       break;
 

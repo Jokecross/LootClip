@@ -1,3 +1,4 @@
+import { Ancre } from "@/components/monde/Ancre";
 /*
  * Avant / après.
  * Avant : la douleur. Une pile de clips bruts, longs, à l'horizontale, où les bons moments sont rares.
@@ -19,21 +20,8 @@ const BONS_MOMENTS = [
   { debut: 88, largeur: 5 },
 ];
 
-/** Une vidéo verticale « format flou », dessinée avec notre image : fond flouté, plan au centre, accroche en carte. */
-function Apercu() {
-  return (
-    <div className="absolute inset-0" role="img" aria-label="Aperçu d'une vidéo montée par XPclip, en vertical">
-      <span className="absolute inset-0 scale-150 bg-[url(/visuels/hero-900.jpg)] bg-cover bg-center opacity-70 blur-lg" />
-      <span className="absolute inset-x-0 top-1/2 block aspect-video -translate-y-1/2 overflow-hidden">
-        <span className="zoom-lent block h-full w-full bg-[url(/visuels/hero-900.jpg)] bg-cover bg-[position:50%_70%]" />
-      </span>
-      <span className="titre absolute inset-x-4 top-[13%] -rotate-2 rounded-xl border-2 border-encre bg-jaune px-2 py-2.5 text-center text-[17px] text-encre shadow-[0_3px_0_var(--color-encre)]">Personne ne m&apos;a cru</span>
-    </div>
-  );
-}
-
 function Etiquette({ children, fond, className }: { children: React.ReactNode; fond: string; className: string }) {
-  return <span className={`pastille absolute z-10 px-3 py-1 text-[12px] text-encre shadow-[0_3px_0_var(--color-encre)] ${fond} ${className}`}>{children}</span>;
+  return <span className={`pastille absolute z-20 px-3 py-1 text-[12px] text-encre shadow-[0_3px_0_var(--color-encre)] ${fond} ${className}`}>{children}</span>;
 }
 
 export function AvantApres() {
@@ -79,10 +67,8 @@ export function AvantApres() {
       <div>
         <p className="text-[14px] font-bold text-jaune">Après</p>
         <p className="titre mt-1 text-[26px] text-fond lg:text-[34px]">30 secondes qui accrochent.</p>
-        <div className="relative mx-auto mt-8 w-[230px] pb-2 lg:mt-10 lg:w-[270px]">
-          <div className="relative aspect-[9/16] overflow-hidden rounded-[26px] border-[3px] border-fond bg-nuit2 shadow-[0_8px_0_rgb(0_0_0/0.5)]">
-            <Apercu />
-          </div>
+        <div className="relative mx-auto mt-8 w-[230px] pb-2 lg:mt-10 lg:w-[330px]">
+          <Ancre nom="telephone" className="aspect-[9/16] w-full scale-110" pose={{ ry: -0.3, rz: 0.04, flotte: 6, z: 60 }} donnees={{ ecran: "jeu", coupe: 0.9, tour: 2 }} />
           <Etiquette fond="bg-jaune" className="-left-10 -top-3 -rotate-6">
             Accroche dès la 1re seconde
           </Etiquette>

@@ -6,13 +6,15 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/marque/Logo";
-import { ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
-import { PanneauHero } from "@/components/onboarding/PanneauHero";
+import { SceneAccroche, ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
+import { Ancre } from "@/components/monde/Ancre";
+import { eclats } from "@/components/monde/store";
 import { Confettis } from "@/components/studio/Confettis";
 import { Montage } from "@/components/studio/Montage";
 import { nomsReseaux, PictoReseau, Publier, type Depart } from "@/components/studio/Publier";
+import { useLecteur } from "@/components/studio/lecteur";
 import { VideoPortrait } from "@/components/studio/VideoPortrait";
-import { Duo } from "@/components/ui/Duo";
+import { Duo, Mots, Titre } from "@/components/ui/Duo";
 import { Coche, Entete } from "@/components/ui/Parcours";
 import { CLIPS, MENTION_OBJECTIF, NON_AFFILIATION, ONBOARDING, STYLES, TITRE_MAX, type Style } from "@/lib/config";
 import { lireDuree } from "@/lib/depot";
@@ -172,7 +174,7 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
       </header>
     );
 
-  let contenu: { gauche: React.ReactNode; droite: React.ReactNode; fond?: string } = { gauche: null, droite: null };
+  let contenu: { gauche: React.ReactNode; droite: React.ReactNode; fond?: string; large?: boolean } = { gauche: null, droite: null };
   let bouton: { libelle: string; faire: () => void; actif?: boolean } | false | null = null;
   let second: { libelle: string; faire: () => void } | null = null;
   let pied: React.ReactNode = null;
@@ -272,20 +274,16 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
     case "accroche":
       contenu = {
         gauche: (
-          <div className="flex flex-1 flex-col justify-center lg:block">
-            <div className="carte-forte surgit overflow-hidden lg:hidden">
-              <img src="/visuels/hero-900.jpg" width={1672} height={941} alt="" className="block h-auto w-full" />
-            </div>
-            <h1 className="surgit titre mt-8 text-[46px] lg:mt-0 lg:text-[clamp(52px,5.6vw,104px)]" style={{ "--d": "160ms" } as React.CSSProperties}>
-              Tes parties de GTA 6 peuvent te payer.
+          <>
+            <h1 className="titre text-[44px] leading-[0.93] lg:text-[clamp(60px,min(6.9vw,13vh),150px)]">
+              <Mots>Tes parties de GTA 6 peuvent te payer.</Mots>
             </h1>
-            <p className="surgit mt-3 text-[17px] leading-snug text-encre2 lg:mt-7 lg:max-w-[28ch] lg:text-[clamp(20px,1.7vw,30px)]" style={{ "--d": "320ms" } as React.CSSProperties}>
-              Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.
-            </p>
-          </div>
+            <p className="mt-3 text-[16px] font-medium leading-snug text-encre2 lg:mt-7 lg:max-w-[28ch] lg:text-[clamp(20px,1.8vw,32px)]">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
+          </>
         ),
-        droite: <PanneauHero />,
-        fond: "lg:bg-nuit2",
+        droite: <SceneAccroche />,
+        fond: "jaune",
+        large: true,
       };
       bouton = { libelle: "Commencer", faire: suivant };
       pied = <p className="mt-3 text-center text-[11px] text-encre2">{NON_AFFILIATION}</p>;
@@ -322,15 +320,10 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
 
     case "clips":
       contenu = {
-        gauche: (
-          <>
-            <h1 className="titre text-[34px] lg:text-[clamp(52px,5.2vw,96px)]">Dépose tes clips{r.plateforme ? ` ${r.plateforme === "xbox" ? "Xbox" : "PS5"}` : ""}.</h1>
-            <p className="mt-2 text-[15px] text-encre2 lg:mt-6 lg:text-[clamp(18px,1.5vw,26px)]">{clips.length ? `${dureeLisible(total)} de ton jeu.` : "Tes parties, enregistrées avec ta manette."}</p>
-          </>
-        ),
+        gauche: <Titre sous={clips.length ? `${dureeLisible(total)} de ton jeu.` : "Tes parties, enregistrées avec ta manette."}>{`Dépose tes clips${r.plateforme ? ` ${r.plateforme === "xbox" ? "Xbox" : "PS5"}` : ""}.`}</Titre>,
         droite: (
           <div
-            className="contents lg:flex lg:min-h-0 lg:flex-1 lg:flex-col"
+            className="relative flex min-h-0 flex-1 flex-col lg:py-[2vh]"
             onDragOver={(e) => e.preventDefault()}
             onDrop={(e) => {
               e.preventDefault();
@@ -338,27 +331,40 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
             }}
           >
             <input ref={galerie} type="file" accept="video/*" multiple className="sr-only" onChange={(e) => (ajouter(e.target.files), (e.target.value = ""))} />
-            <button type="button" onClick={() => galerie.current?.click()} className={`carte-pointillee mt-5 flex w-full flex-col items-center justify-center gap-3 bg-blanc transition-[padding] duration-300 lg:mt-0 lg:rounded-3xl ${clips.length ? "py-5 lg:flex-row lg:gap-5" : "flex-1 py-12 lg:gap-7"}`}>
-              <span className={`grid place-items-center rounded-2xl border-2 border-encre bg-rose shadow-[0_4px_0_var(--color-encre)] transition-all ${clips.length ? "h-12 w-12" : "h-20 w-20 lg:h-32 lg:w-32 lg:rounded-[32px]"}`} aria-hidden="true">
-                <svg viewBox="0 0 24 24" className="h-1/2 w-1/2" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
+            <button
+              type="button"
+              onClick={() => galerie.current?.click()}
+              className={`group relative mt-5 flex w-full flex-col items-center justify-center gap-3 rounded-[26px] border-[4px] border-dashed border-encre transition-[padding,background-color] duration-300 lg:mt-0 lg:rounded-[44px] ${clips.length ? "bg-blanc/70 py-5 lg:flex-row lg:gap-5 lg:py-6" : "flex-1 bg-blanc/40 py-12 hover:bg-blanc/60 lg:gap-9"}`}
+            >
+              {!clips.length && (
+                <>
+                  <Ancre nom="clip1" className="absolute left-[-3%] top-[5%] h-[24%] w-[36%]" pose={{ ry: 0.5, rz: 0.14, flotte: 14, z: 60 }} />
+                  <Ancre nom="clip0" className="absolute right-[-3%] top-[9%] h-[24%] w-[36%]" pose={{ ry: -0.5, rz: -0.12, flotte: 16, z: 60 }} donnees={{ retard: 0.12 }} />
+                  <Ancre nom="clip3" className="absolute bottom-[5%] right-[0%] h-[22%] w-[34%]" pose={{ ry: -0.4, rz: 0.12, flotte: 12, z: 90 }} donnees={{ retard: 0.24 }} />
+                  <Ancre nom="manette" className="absolute bottom-[-4%] left-[-5%] h-[38%] w-[48%]" pose={{ ry: 0.35, rx: -0.4, rz: 0.14, z: 160 }} donnees={{ retard: 0.3, valeur: 0.7 }} />
+                </>
+              )}
+              <span className={`relative z-20 grid place-items-center border-[3px] border-encre bg-rose shadow-[0_5px_0_var(--color-encre)] transition-all group-hover:-translate-y-1 ${clips.length ? "h-12 w-12 rounded-2xl" : "h-24 w-24 rounded-[30px] lg:h-40 lg:w-40 lg:rounded-[48px] lg:shadow-[0_10px_0_var(--color-encre)]"}`} aria-hidden="true">
+                <svg viewBox="0 0 24 24" className="h-1/2 w-1/2" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round">
                   <path d="M12 5v14M5 12h14" />
                 </svg>
               </span>
-              <span className={`titre text-[19px] font-bold ${clips.length ? "lg:text-[24px]" : "lg:text-[clamp(28px,2.6vw,46px)]"}`}>{clips.length ? "Ajouter des clips" : <><span className="lg:hidden">Choisir dans ma galerie</span><span className="hidden lg:inline">Glisse tes clips ici</span></>}</span>
+              <span className={`titre relative z-20 text-[20px] ${clips.length ? "lg:text-[26px]" : "lg:text-[clamp(32px,3vw,58px)]"}`}>{clips.length ? "Ajouter des clips" : <><span className="lg:hidden">Choisir dans ma galerie</span><span className="hidden lg:inline">Glisse tes clips ici</span></>}</span>
             </button>
             {clips.length > 0 && (
-              <div className={`mt-4 grid gap-2.5 lg:mt-6 lg:min-h-0 lg:flex-1 lg:auto-rows-fr lg:gap-5 ${clips.length <= 4 ? "grid-cols-2" : "grid-cols-3"} ${clips.length <= 3 ? COLONNES[clips.length] : ""}`}>
+              <div className={`relative mt-4 grid gap-3 lg:mt-7 lg:min-h-0 lg:flex-1 lg:auto-rows-fr lg:gap-7 ${clips.length <= 4 ? "grid-cols-2" : "grid-cols-3"} ${clips.length <= 3 ? COLONNES[clips.length] : ""}`}>
                 {clips.map((c, i) => (
-                  <div key={c.url} className={`carte-forte surgit relative aspect-[4/5] overflow-hidden bg-encre lg:aspect-auto lg:min-h-0 lg:rounded-3xl ${i % 2 ? "rotate-1" : "-rotate-1"}`}>
+                  <div key={c.url} ref={eclater} className={`surgit relative aspect-[4/5] overflow-hidden rounded-[22px] border-[3px] border-encre bg-encre shadow-[0_7px_0_var(--color-encre)] lg:aspect-auto lg:min-h-0 lg:rounded-[34px] lg:shadow-[0_12px_0_var(--color-encre)] ${i % 2 ? "rotate-[1.6deg]" : "-rotate-[1.6deg]"}`}>
                     <video src={`${c.url}#t=0.5`} muted playsInline autoPlay loop preload="auto" className="h-full w-full object-cover lg:absolute lg:inset-0" />
-                    <span className="pastille absolute bottom-1.5 left-1.5 bg-blanc tabular-nums lg:bottom-4 lg:left-4 lg:text-[15px]">{dureeLisible(c.duree)}</span>
+                    <span className="pastille absolute bottom-2 left-2 bg-jaune tabular-nums lg:bottom-5 lg:left-5 lg:min-h-10 lg:px-4 lg:text-[18px]">{dureeLisible(c.duree)}</span>
                   </div>
                 ))}
               </div>
             )}
           </div>
         ),
-        fond: "lg:bg-jaune",
+        fond: "jaune",
+        large: true,
       };
       bouton = { libelle: clips.length ? `Continuer avec ${clips.length} clip${clips.length > 1 ? "s" : ""}` : "Ajoute au moins un clip", faire: suivant, actif: clips.length > 0 };
       break;
@@ -367,17 +373,16 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
       contenu = {
         gauche: (
           <>
-            <h1 className="titre text-[34px] lg:text-[clamp(52px,5.2vw,96px)]">Titre et style.</h1>
-            <label htmlFor="titre-studio" className="mt-5 block text-[14px] font-bold lg:mt-9 lg:text-[18px]">
+            <Titre>Titre et style.</Titre>
+            <label htmlFor="titre-studio" className="mt-1 block text-[14px] font-bold lg:mt-9 lg:text-[20px]">
               Ton titre
             </label>
-            <input id="titre-studio" maxLength={TITRE_MAX} placeholder="Ex. Mon chien conduit mieux que moi" className="champ mt-2 lg:mt-3 lg:h-[72px] lg:rounded-2xl lg:px-6 lg:text-[22px]" value={titre} onChange={(e) => setTitre(e.target.value)} />
+            <input id="titre-studio" maxLength={TITRE_MAX} placeholder="Ex. Mon chien conduit mieux que moi" className="champ mt-2 !border-[3px] lg:mt-3 lg:h-[80px] lg:rounded-[22px] lg:px-7 lg:text-[24px]" value={titre} onChange={(e) => setTitre(e.target.value)} />
           </>
         ),
         droite: (
-          <>
-            <p className="mt-6 text-[14px] font-bold lg:hidden">Ton style</p>
-            <div className="mt-2 flex flex-col gap-3 lg:mt-0 lg:flex-1 lg:gap-6" role="radiogroup" aria-label="Style">
+          <div className="mt-4 grid min-h-0 flex-1 grid-cols-[1fr_0.72fr] gap-3 lg:mt-0 lg:grid-cols-[1fr_0.8fr] lg:gap-8 lg:py-[2vh]">
+            <div className="relative z-20 flex min-w-0 flex-col gap-3 lg:gap-6" role="radiogroup" aria-label="Style">
               {(Object.keys(STYLES) as Style[]).map((s, i) => (
                 <button
                   key={s}
@@ -389,25 +394,25 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
                     setStyle(s);
                   }}
                   style={{ "--d": `${i * 90}ms` } as React.CSSProperties}
-                  className="option surgit min-h-[84px] lg:flex-1 lg:rounded-3xl lg:px-10 lg:shadow-[0_6px_0_var(--color-encre)]"
+                  className={`surgit relative flex min-h-[92px] flex-1 flex-col justify-center rounded-[22px] border-[3px] border-encre px-4 py-3 text-left transition-[transform,box-shadow,background-color] duration-200 ease-[cubic-bezier(.3,1.6,.6,1)] lg:rounded-[34px] lg:px-9 ${style === s ? "bg-jaune shadow-[0_10px_0_var(--color-encre)] lg:translate-x-3" : "bg-blanc shadow-[0_5px_0_var(--color-encre)] hover:-translate-y-1"}`}
                 >
-                  <span className="lg:min-w-0 lg:flex-1">
-                    <span className="titre block text-[21px] lg:text-[clamp(30px,2.9vw,54px)]">{STYLES[s].nom}</span>
-                    <span className="mt-1 block text-[13px] text-encre2 lg:mt-2 lg:text-[18px]">{STYLES[s].detail}</span>
-                    {/* Le rythme du style : longueur des plans */}
-                    <span className="mt-6 hidden h-6 gap-1.5 lg:flex" aria-hidden="true">
-                      {RYTHMES[s].map((f, j) => (
-                        <span key={j} className={`rounded-md border-2 border-encre ${["bg-rose", "bg-turquoise", "bg-orange"][j % 3]}`} style={{ flex: f }} />
-                      ))}
-                    </span>
+                  <span className="titre block text-[20px] lg:text-[clamp(30px,2.9vw,58px)]">{STYLES[s].nom}</span>
+                  <span className="mt-1 block text-[12px] font-medium leading-tight lg:mt-2 lg:text-[18px]">{STYLES[s].detail}</span>
+                  {/* Le rythme du style : longueur des plans */}
+                  <span className="mt-3 flex h-4 gap-1 lg:mt-6 lg:h-8 lg:gap-1.5" aria-hidden="true">
+                    {RYTHMES[s].map((f, j) => (
+                      <span key={j} className={`rounded-md border-2 border-encre lg:rounded-lg lg:border-[2.5px] ${["bg-rose", "bg-turquoise", "bg-orange"][j % 3]}`} style={{ flex: f }} />
+                    ))}
                   </span>
-                  {style === s && <Coche className="h-6 w-6 shrink-0 lg:h-11 lg:w-11" />}
+                  {style === s && <Coche className="absolute right-3 top-3 h-6 w-6 lg:right-6 lg:top-6 lg:h-11 lg:w-11" />}
                 </button>
               ))}
             </div>
-          </>
+            <Essai url={clips[0]?.url ?? ""} titre={titre} style={style} />
+          </div>
         ),
-        fond: "lg:bg-turquoise",
+        fond: "turquoise",
+        large: true,
       };
       bouton = { libelle: "Générer ma vidéo", faire: suivant };
       break;
@@ -431,22 +436,20 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
         gauche: (
           <>
             <Confettis />
-            <h1 className="surgit titre text-center text-[38px] lg:text-left lg:text-[clamp(60px,6.4vw,120px)]">Ta vidéo est prête.</h1>
-            <div className="order-2 mt-5 flex flex-wrap justify-center gap-2 lg:order-none lg:mt-9 lg:justify-start lg:gap-3.5">
+            <h1 className="titre text-center text-[44px] leading-[0.93] lg:text-left lg:text-[clamp(64px,min(7.4vw,14vh),160px)]">
+              <Mots>Ta vidéo est prête.</Mots>
+            </h1>
+            <div className="order-2 mt-4 flex flex-wrap justify-center gap-2 lg:order-none lg:mt-9 lg:justify-start lg:gap-3.5">
               {["100 % ton jeu", "9:16", "1080 × 1920", STYLES[style].nom].map((t, i) => (
-                <span key={t} className={`pastille surgit lg:min-h-11 lg:px-5 lg:text-[18px] ${["bg-turquoise", "bg-jaune", "bg-rose", "bg-orange"][i]}`} style={{ "--d": `${400 + i * 120}ms` } as React.CSSProperties}>
+                <span key={t} className={`pastille surgit lg:min-h-12 lg:px-5 lg:text-[19px] ${["bg-turquoise", "bg-jaune", "bg-blanc", "bg-orange"][i]}`} style={{ "--d": `${700 + i * 130}ms` } as React.CSSProperties}>
                   {t}
                 </span>
               ))}
             </div>
           </>
         ),
-        droite: (
-          <div className="order-1 mt-5 flex min-h-0 flex-1 items-center justify-center lg:order-none lg:mt-0">
-            <Finale url={urlFinale} titre={titre} />
-          </div>
-        ),
-        fond: "lg:bg-rose",
+        droite: <Finale url={urlFinale} titre={titre} />,
+        fond: "rose",
       };
       bouton = { libelle: "Poster ma vidéo", faire: suivant };
       second = { libelle: "Continuer", faire: autre };
@@ -457,6 +460,8 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
         <Publier
           entete={entete}
           pseudo={regl.pseudo || hasard}
+          url={urlFinale}
+          titre={titre}
           partir={(d) => {
             setDepart(d);
             setParti(false);
@@ -535,40 +540,57 @@ function Champ({ libelle, valeur, changer, numerique, exemple }: { exemple?: str
   );
 }
 
-/** La vidéo finale, avec le son si le téléphone l'autorise. */
-function Finale({ url, titre }: { url: string; titre: string }) {
-  const ref = useRef<HTMLVideoElement>(null);
-  const [muet, setMuet] = useState(false);
+/** Aperçu du rythme : le premier clip, coupé comme le fera le style choisi. */
+function Essai({ url, titre, style }: { url: string; titre: string; style: Style }) {
+  const { video } = useLecteur(url);
   useEffect(() => {
-    const v = ref.current!;
-    v.muted = false;
-    v.play().catch(() => {
-      v.muted = true;
-      setMuet(true);
-      v.play().catch(() => {});
-    });
+    if (!video) return;
+    const id = setInterval(() => {
+      const d = video.duration;
+      if (Number.isFinite(d) && d > 1) video.currentTime = Math.random() * (d - 0.9);
+    }, { defi: 900, drole: 420, mission: 2600 }[style]);
+    return () => clearInterval(id);
+  }, [video, style]);
+  const numero = (Object.keys(STYLES) as Style[]).indexOf(style) + 1;
+  return (
+    <div className="relative min-h-0">
+      <Ancre nom="telephone" className="absolute inset-x-[-4%] inset-y-0" pose={{ ry: -0.28, rz: 0.04, flotte: 8, z: 60 }} donnees={{ source: video, titre: titre || "Ton titre", tour: numero }} />
+    </div>
+  );
+}
+
+/** La vidéo finale dans le téléphone, avec le son si l'appareil l'autorise. */
+function Finale({ url, titre }: { url: string; titre: string }) {
+  const { video, muet, basculer } = useLecteur(url, true);
+  const zone = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    const id = setTimeout(() => {
+      const r = zone.current?.getBoundingClientRect();
+      if (r) eclats(r.left + r.width / 2, r.top + r.height * 0.42, 44);
+    }, 520);
+    return () => clearTimeout(id);
   }, []);
   return (
-    <button
-      type="button"
-      className="carte-forte surgit relative aspect-[9/16] h-[52dvh] max-h-[620px] min-h-[300px] -rotate-1 lg:h-[min(76dvh,960px)] lg:max-h-none lg:rounded-3xl overflow-hidden bg-encre shadow-[0_8px_0_var(--color-encre)]"
-      onClick={() => {
-        const v = ref.current!;
-        v.muted = !v.muted;
-        setMuet(v.muted);
-        v.play().catch(() => {});
-      }}
-      aria-label={muet ? "Activer le son" : "Couper le son"}
-    >
-      <VideoPortrait url={url} titre={titre} lecteur={ref} />
-      {muet && <span className="pastille absolute bottom-3 left-1/2 -translate-x-1/2 bg-blanc">Toucher pour le son</span>}
+    <button ref={zone} type="button" onClick={basculer} aria-label={muet ? "Activer le son" : "Couper le son"} className="relative order-1 mt-4 min-h-[320px] flex-1 lg:order-none lg:mt-0 lg:min-h-0">
+      <Ancre nom="telephone" className="absolute inset-x-0 inset-y-0 lg:inset-y-[1%]" pose={{ ry: -0.2, rz: 0.035, flotte: 9, z: 80 }} donnees={{ source: video, titre, tour: 1 }} />
+      {muet && <span className="pastille absolute bottom-[12%] left-1/2 z-20 -translate-x-1/2 bg-blanc lg:min-h-11 lg:px-5 lg:text-[16px]">Toucher pour le son</span>}
     </button>
   );
 }
 
+const eclater = (el: HTMLElement | null) => {
+  if (!el || el.dataset.vu) return;
+  el.dataset.vu = "1";
+  setTimeout(() => {
+    const r = el.getBoundingClientRect();
+    eclats(r.left + r.width / 2, r.top + r.height / 2, 12);
+  }, 120);
+};
+
 /** Le départ : la vidéo s'envole, les comptes se cochent, le tampon tombe. */
 function Fin({ entete, depart, url, titre, pseudo, fini, action }: { entete: React.ReactNode; depart: Depart; url: string; titre: string; pseudo: string; fini: () => void; action: React.ReactNode }) {
   const [t, setT] = useState(0);
+  const { video } = useLecteur(url);
   const fin = useRef(fini);
   fin.current = fini;
   useEffect(() => {
@@ -588,14 +610,14 @@ function Fin({ entete, depart, url, titre, pseudo, fini, action }: { entete: Rea
       cle="fin"
       entete={entete}
       action={action}
-      fond="lg:bg-turquoise"
+      fond="turquoise"
       gauche={
         <div className="order-1 flex flex-1 flex-col lg:order-none lg:flex-none">
           {t >= 5 && <Confettis />}
           <div className="mt-6 flex flex-col gap-3 lg:mt-0 lg:gap-5">
             {depart.reseaux.map((r, i) => (
               <div key={r} className={t >= 2 + i ? "" : "invisible"}>
-                <div key={String(t >= 2 + i)} className="carte-forte surgit flex items-center gap-3 bg-blanc p-3.5 lg:gap-6 lg:rounded-3xl lg:p-7">
+                <div key={String(t >= 2 + i)} className="carte-forte surgit relative z-20 flex items-center gap-3 bg-blanc p-3.5 lg:gap-6 lg:rounded-[30px] lg:p-8">
                   <PictoReseau r={r} />
                   <span className="min-w-0 flex-1">
                     <span className="titre block text-[19px] lg:text-[clamp(26px,2.4vw,42px)]">{nomsReseaux([r])}</span>
@@ -611,19 +633,16 @@ function Fin({ entete, depart, url, titre, pseudo, fini, action }: { entete: Rea
         </div>
       }
       droite={
-        <div className="relative flex flex-1 items-end justify-center lg:items-center">
-          {t < 2 && (
-            <div className={`carte-forte absolute top-1/2 -mt-[210px] h-[380px] w-[214px] overflow-hidden bg-encre lg:relative lg:top-auto lg:mt-0 lg:aspect-[9/16] lg:h-[min(70dvh,860px)] lg:w-auto lg:rounded-3xl ${t >= 1 ? "envol" : ""}`}>
-              <VideoPortrait url={url} titre={titre} />
-            </div>
+        <div className="relative flex min-h-[300px] flex-1 items-center justify-center lg:min-h-0">
+          {t < 4 && <Ancre nom="telephone" className="absolute inset-x-0 inset-y-[6%]" pose={{ ry: -0.15, flotte: 6, z: 120 }} donnees={{ source: video, titre, envol: t >= 1 }} />}
+          {t >= 4 && (
+            <>
+              <p className="tampon titre relative z-30 whitespace-nowrap rounded-[22px] border-[5px] border-encre bg-rose px-5 py-3 text-[42px] shadow-[0_8px_0_var(--color-encre)] lg:rounded-[40px] lg:border-[8px] lg:px-12 lg:py-10 lg:text-[clamp(60px,6.8vw,140px)] lg:shadow-[0_18px_0_var(--color-encre)]">{depart.quand ? "Programmée !" : "Publiée !"}</p>
+              <Ancre nom="clip0" className="absolute left-[2%] top-[4%] h-[24%] w-[38%]" pose={{ ry: 0.4, rz: 0.2, flotte: 16 }} />
+              <Ancre nom="clip2" className="absolute bottom-[6%] right-[0%] h-[24%] w-[38%]" pose={{ ry: -0.4, rz: -0.18, flotte: 14 }} donnees={{ retard: 0.15 }} />
+              <Ancre nom="manette" className="absolute bottom-[-2%] left-[-4%] h-[36%] w-[46%]" pose={{ ry: 0.3, rx: -0.35, rz: 0.12, z: 120 }} donnees={{ retard: 0.1, valeur: 1 }} />
+            </>
           )}
-          <div className="flex min-h-[110px] items-center justify-center lg:absolute lg:inset-0">
-            {t >= 4 && (
-              <p className="tampon titre whitespace-nowrap rounded-2xl border-4 border-encre bg-rose px-5 py-3 text-[42px] shadow-[0_6px_0_var(--color-encre)] lg:rounded-[32px] lg:border-[6px] lg:px-9 lg:py-7 lg:text-[clamp(52px,5.8vw,112px)] lg:shadow-[0_12px_0_var(--color-encre)]">
-                {depart.quand ? "Programmée !" : "Publiée !"}
-              </p>
-            )}
-          </div>
         </div>
       }
     />

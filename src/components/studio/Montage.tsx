@@ -4,6 +4,8 @@
  * La durée est raccourcie (réglage du studio), d'où la mention « Séquence accélérée ».
  */
 import { useEffect, useRef, useState } from "react";
+import { Ancre } from "@/components/monde/Ancre";
+import { eclats, type Donnees } from "@/components/monde/store";
 import { Duo } from "@/components/ui/Duo";
 import { Coche } from "@/components/ui/Parcours";
 import { ETAPES } from "@/lib/montage";
@@ -14,9 +16,11 @@ const COULEURS = ["bg-rose", "bg-jaune", "bg-turquoise", "bg-orange"];
 
 export function Montage({ entete, urls, titre, secondes, fini }: { entete: React.ReactNode; urls: string[]; titre: string; secondes: number; fini: () => void }) {
   const clips = useRef<(HTMLVideoElement | null)[]>([]);
-  const net = useRef<HTMLCanvasElement>(null);
-  const flou = useRef<HTMLCanvasElement>(null);
-  const eclair = useRef<HTMLSpanElement>(null);
+  // Lus par le moteur 3D à chaque image : l'écran du téléphone et les clips qui y volent.
+  const [ecran] = useState<Donnees>({ source: null, titre: "" });
+  const [cartes] = useState<Donnees[]>(() => [0, 1, 2].map((i) => ({ flux: { de: "clip3", vers: "telephone", delai: i * 0.5, duree: 1.5 } })));
+  const titreRef = useRef(titre);
+  titreRef.current = titre;
   const cadre = useRef<HTMLDivElement>(null);
   const [k, setK] = useState(0);
   const fin = useRef(fini);
@@ -30,6 +34,7 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
     let prochaine = 0;
     let morceau = 0;
     let dernierK = -1;
+    let derniereEtape = 0;
     const n = Math.min(urls.length, 5);
     clips.current.slice(0, n).forEach((v) => v?.play().catch(() => {}));
 
@@ -47,27 +52,24 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
           if (v.paused) v.play().catch(() => {});
         }
         coupe();
-        eclair.current?.animate([{ opacity: 0.8 }, { opacity: 0 }], { duration: 160 });
-        cadre.current?.animate([{ transform: "scale(1.025) rotate(0.5deg)" }, { transform: "none" }], { duration: 180, easing: "ease-out" });
+        cadre.current?.animate([{ transform: "scale(1.03) rotate(1.1deg)" }, { transform: "none" }], { duration: 200, easing: "ease-out" });
       }
       const v = clips.current[actif];
-      const gn = net.current?.getContext("2d");
-      const gf = flou.current?.getContext("2d");
-      if (v && v.readyState >= 2 && gn && gf) {
-        const L = v.videoWidth;
-        const H = v.videoHeight;
-        const c = gn.canvas;
-        const e = Math.min(c.width / L, c.height / H);
-        gn.clearRect(0, 0, c.width, c.height);
-        gn.drawImage(v, (c.width - L * e) / 2, (c.height - H * e) / 2, L * e, H * e);
-        const f = gf.canvas;
-        const b = Math.max(f.width / L, f.height / H);
-        gf.drawImage(v, (f.width - L * b) / 2, (f.height - H * b) / 2, L * b, H * b);
-      }
+      if (v && v.readyState >= 2) ecran.source = v;
+      ecran.titre = x > 0.48 ? titreRef.current : "";
+      clips.current.slice(0, n).forEach((c, i) => {
+        if (c && cartes[i]) cartes[i].source = c;
+      });
       const m = Math.min(MORCEAUX, Math.floor(x * MORCEAUX * 1.02));
       if (m !== morceau) {
         morceau = m;
         pop(m / MORCEAUX);
+      }
+      const etapeIci = Math.floor(x * ETAPES.length);
+      if (etapeIci !== derniereEtape) {
+        derniereEtape = etapeIci;
+        const r = cadre.current?.getBoundingClientRect();
+        if (r && x > 0.05) eclats(r.left + r.width / 2, r.top + r.height / 2, 16);
       }
       const p = Math.round(x * 100);
       if (p !== dernierK) {
@@ -86,7 +88,7 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
       arrete = true;
       cancelAnimationFrame(image);
     };
-  }, [urls, secondes]);
+  }, [urls, secondes, ecran, cartes]);
 
   const etape = Math.min(ETAPES.length - 1, Math.floor((k / 100) * ETAPES.length));
   const poses = Math.min(MORCEAUX, Math.floor((k / 100) * MORCEAUX * 1.02));
@@ -95,7 +97,8 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
     <Duo
       cle="montage"
       entete={entete}
-      fond="lg:bg-orange"
+      fond="orange"
+      large
       gauche={
         <>
           {/* Les clips tournent cachés : seul leur dessin est affiché */}
@@ -107,7 +110,7 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
 
           <div className="flex w-full items-end justify-between gap-3">
             <p key={etape} className="surgit titre text-[22px] leading-[1.05] lg:hidden">{ETAPES[etape]}</p>
-            <p className="titre shrink-0 text-[46px] tabular-nums lg:text-[clamp(96px,10vw,190px)]">{k}&nbsp;%</p>
+            <p className="titre shrink-0 text-[46px] tabular-nums lg:text-[clamp(110px,min(12vw,24vh),260px)] lg:leading-[0.8]">{k}&nbsp;%</p>
           </div>
           <ol className="mt-8 hidden flex-col gap-4 lg:flex">
             {ETAPES.map((e, i) => (
@@ -121,26 +124,22 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
       }
       droite={
         <>
-          <div className="relative my-4 flex min-h-0 w-full flex-1 items-center justify-center lg:my-0">
-            <div ref={cadre} className="carte-forte relative aspect-[9/16] h-[60dvh] max-h-[640px] min-h-[280px] overflow-hidden bg-encre shadow-[0_6px_0_var(--color-encre)] lg:h-[min(64dvh,900px)] lg:max-h-none lg:rounded-3xl">
-              <canvas ref={flou} width={18} height={32} className="absolute inset-0 h-full w-full scale-125 opacity-80 blur-md" />
-              <canvas ref={net} width={540} height={960} className="absolute inset-0 h-full w-full" />
-              {titre && k > 48 && (
-                <span className="surgit absolute inset-x-3 top-[11%] text-center">
-                  <span className="titre box-decoration-clone rounded-md border-2 border-encre bg-jaune px-2 py-0.5 text-[20px] leading-[1.5] lg:text-[28px]">{titre}</span>
-                </span>
-              )}
-              <span ref={eclair} className="absolute inset-0 bg-blanc opacity-0" />
-              <span className="absolute bottom-3 right-3 grid place-items-center">{k > 78 && <span className="surgit pastille bg-turquoise">1080 × 1920</span>}</span>
-            </div>
+          <div ref={cadre} className="relative min-h-[260px] w-full flex-1 lg:min-h-0">
+            <Ancre nom="clip4" className="absolute left-[-2%] top-[40%] h-[22%] w-[32%]" pose={{ ry: 0.5, rz: 0.12, flotte: 5, z: -60 }} donnees={ecran} />
+            <Ancre nom="clip3" className="absolute left-[2%] top-[30%] h-[22%] w-[32%]" pose={{ ry: 0.45, rz: 0.05, flotte: 6, z: -20 }} donnees={ecran} />
+            {cartes.map((c, i) => (
+              <Ancre key={i} nom={`clip${i}` as "clip0"} className="absolute left-[2%] top-[34%] h-[20%] w-[30%]" pose={{ z: 240 }} donnees={c} />
+            ))}
+            <Ancre nom="telephone" className="absolute inset-y-[1%] left-[30%] right-[4%]" pose={{ ry: -0.22, rz: 0.03, flotte: 4, z: 40 }} donnees={ecran} />
+            {k > 78 && <span className="surgit pastille absolute bottom-[8%] right-[6%] z-20 bg-turquoise lg:min-h-12 lg:px-5 lg:text-[20px]">1080 × 1920</span>}
           </div>
 
-          <div className="carte flex h-11 w-full items-stretch gap-[3px] p-1.5 lg:mt-[min(24px,3vh)] lg:h-[min(64px,8vh)] lg:gap-1.5 lg:p-2" role="progressbar" aria-valuenow={k} aria-label="Avancement du montage">
+          <div className="carte relative z-20 mt-3 flex h-12 w-full items-stretch gap-[3px] p-1.5 lg:mt-[min(24px,3vh)] lg:h-[min(84px,10vh)] lg:gap-1.5 lg:p-2" role="progressbar" aria-valuenow={k} aria-label="Avancement du montage">
             {Array.from({ length: MORCEAUX }, (_, i) =>
               i < poses ? <span key={i} className={`surgit rounded-[5px] border-2 border-encre lg:rounded-lg ${COULEURS[i % 4]}`} style={{ flex: [2, 1, 3, 1, 2, 2, 1][i % 7] }} /> : <span key={i} className="rounded-[5px] bg-beige lg:rounded-lg" style={{ flex: [2, 1, 3, 1, 2, 2, 1][i % 7] }} />,
             )}
           </div>
-          <p className="mt-2 text-center text-[11px] text-encre2 lg:text-[14px] lg:text-encre">Séquence accélérée</p>
+          <p className="mt-2 text-center text-[11px] font-medium lg:text-[14px]">Séquence accélérée</p>
         </>
       }
     />

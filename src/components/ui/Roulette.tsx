@@ -19,7 +19,10 @@ export function Roulette({
   label,
   elan = true,
   centre,
+  nu = false,
 }: {
+  /** V2 : sans cadre, la roue est posée sur la page et déborde. */
+  nu?: boolean;
   valeurs: number[];
   valeur: number;
   libelle: (v: number) => string;
@@ -221,7 +224,7 @@ export function Roulette({
       e = 1;
       // Ordinateur : la roue remplit le panneau, et le choix s'affiche en son centre.
       if (H > 420 && L > 480) {
-        R = Math.max(290, Math.min(L * 0.53, H * 0.78));
+        R = nu ? Math.max(300, Math.min(L * 0.5 - 6, H * 0.8)) : Math.max(290, Math.min(L * 0.53, H * 0.78));
         e = Math.min(1.7, Math.max(1.15, R / 340));
         if (moyeu.current) {
           const r = R * 0.56;
@@ -338,7 +341,7 @@ export function Roulette({
   return (
     <div
       ref={boite}
-      className="carte-forte relative max-h-[320px] min-h-[220px] flex-1 overflow-hidden bg-nuit2 lg:max-h-none lg:min-h-[300px] lg:rounded-[32px] lg:shadow-[0_8px_0_var(--color-encre)]"
+      className={nu ? "relative -mx-4 max-h-[330px] min-h-[200px] flex-1 overflow-hidden lg:-mb-[30px] lg:-ml-[2.5vw] lg:-mr-[3vw] lg:max-h-none lg:min-h-[300px]" : "carte-forte relative max-h-[320px] min-h-[220px] flex-1 overflow-hidden bg-nuit2 lg:max-h-none lg:min-h-[300px] lg:rounded-[32px] lg:shadow-[0_8px_0_var(--color-encre)]"}
     >
       <canvas
         ref={toile}
@@ -357,7 +360,7 @@ export function Roulette({
           {centre}
         </div>
       )}
-      <span className={`pastille pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 bg-blanc transition-opacity duration-300 ${touchee ? "opacity-0" : "clignote"}`}>
+      <span className={`pastille pointer-events-none absolute bottom-3 left-1/2 z-20 -translate-x-1/2 bg-blanc ${nu ? "lg:bottom-auto lg:top-[55%] lg:min-h-11 lg:px-5 lg:text-[16px]" : ""} transition-opacity duration-300 ${touchee ? "opacity-0" : "clignote"}`}>
         Fais tourner la roue
       </span>
       <button
@@ -368,7 +371,7 @@ export function Roulette({
           reglerSon(!son);
           setSon(!son);
         }}
-        className="absolute bottom-0 right-0 grid h-12 w-12 place-items-center"
+        className={`absolute bottom-0 grid h-12 w-12 place-items-center ${nu ? "right-2 z-20 lg:bottom-6 lg:right-6" : "right-0"}`}
       >
         <span className="grid h-8 w-8 place-items-center rounded-full border-2 border-encre bg-blanc">
           <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">

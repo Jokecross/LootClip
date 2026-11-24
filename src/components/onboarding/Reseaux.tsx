@@ -1,6 +1,7 @@
 "use client";
 /* Dernier écran avant les offres : relier TikTok et Instagram. Facultatif, et passé si la publication est fermée. */
 import { useEffect, useState } from "react";
+import { Ancre } from "@/components/monde/Ancre";
 import { NOMS, PictoReseau } from "@/components/studio/Publier";
 import { Duo, Titre } from "@/components/ui/Duo";
 import { Coche, Entete } from "@/components/ui/Parcours";
@@ -53,7 +54,7 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
       cle="reseaux"
       marque
       entete={<Entete n={n} total={total} />}
-      fond="lg:bg-turquoise"
+      fond="turquoise"
       gauche={
         <>
           <Titre sous={etat.compte?.profil?.tiktok === "non" && !relies.length ? "Pas encore de page ? Touche « Plus tard »." : "Tes vidéos partiront à l'heure que tu choisis."}>Relie tes comptes.</Titre>
@@ -65,7 +66,7 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
         </>
       }
       droite={
-        <div className="flex flex-col gap-3 lg:flex-1 lg:gap-6">
+        <div className="grid min-h-[300px] flex-1 grid-cols-2 gap-2.5 pt-3 lg:min-h-0 lg:gap-6 lg:py-[min(5vh,56px)]">
           {(["tiktok", "instagram"] as Reseau[]).map((r, i) => {
             const c = relies.find((x) => x.reseau === r);
             return (
@@ -75,14 +76,19 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
                 disabled={!!c || attente !== null}
                 onClick={() => choisir(r)}
                 style={{ "--d": `${i * 110}ms` } as React.CSSProperties}
-                className={`surgit flex min-h-[132px] w-full items-center gap-4 p-4 text-left lg:flex-1 lg:gap-8 lg:rounded-3xl lg:p-10 ${c ? "carte-forte bg-jaune" : "carte-forte bg-blanc lg:hover:-translate-y-1"}`}
+                className={`surgit relative flex min-w-0 flex-col rounded-[22px] border-[3px] border-encre text-left transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(.3,1.6,.6,1)] lg:rounded-[36px] ${c ? "bg-jaune shadow-[0_10px_0_var(--color-encre)]" : `${r === "tiktok" ? "bg-blanc" : "bg-rose"} shadow-[0_5px_0_var(--color-encre)] hover:-translate-y-1.5 hover:shadow-[0_10px_0_var(--color-encre)]`}`}
               >
-                <span className="lg:scale-[1.7] lg:px-4">{c?.photo ? <Photo url={c.photo} secours={<PictoReseau r={r} />} /> : <PictoReseau r={r} />}</span>
-                <span className="min-w-0 flex-1">
-                  <span className="titre block truncate text-[24px] lg:text-[clamp(34px,3.2vw,60px)]">{c ? `@${c.pseudo ?? NOMS[r]}` : NOMS[r]}</span>
-                  <span className="mt-1 block text-[13px] text-encre2 lg:mt-3 lg:text-[20px]">{c ? `${NOMS[r]} est relié.` : AIDE[r]}</span>
+                <span className="relative block min-h-0 flex-1">
+                  <Ancre nom={i ? "telephone2" : "telephone"} className="absolute inset-x-[4%] -top-[4%] bottom-[2%]" pose={{ ry: 0.22 - i * 0.44, rz: 0.06 - i * 0.12, z: 80 }} donnees={{ ecran: c ? "relie" : "relier", etat: c ? "oui" : undefined, retard: i * 0.12 }} />
                 </span>
-                {c ? <Coche className="h-8 w-8 shrink-0 lg:h-14 lg:w-14" /> : <span className="pastille shrink-0 bg-rose lg:min-h-11 lg:px-5 lg:text-[18px]">{attente === r ? "Un instant…" : "Relier"}</span>}
+                <span className="relative z-20 block min-w-0 px-3 pb-3.5 lg:px-7 lg:pb-7">
+                  <span className="flex min-w-0 items-center gap-2 lg:gap-3">
+                    {c?.photo ? <Photo url={c.photo} secours={<PictoReseau r={r} />} /> : c ? <PictoReseau r={r} /> : null}
+                    <span className="titre block min-w-0 truncate pb-0.5 text-[19px] lg:text-[clamp(34px,3.2vw,60px)]">{c ? `@${c.pseudo ?? NOMS[r]}` : NOMS[r]}</span>
+                  </span>
+                  <span className="mt-1 block min-h-[34px] text-[12px] font-medium leading-tight lg:mt-2 lg:min-h-0 lg:text-[19px]">{c ? `${NOMS[r]} est relié.` : AIDE[r]}</span>
+                </span>
+                {c ? <Coche className="absolute -right-2 -top-2 z-30 h-9 w-9 rounded-full border-[3px] border-fond lg:-right-4 lg:-top-4 lg:h-16 lg:w-16" /> : <span className="pastille absolute right-2.5 top-2.5 z-20 bg-turquoise lg:right-5 lg:top-5 lg:min-h-12 lg:px-5 lg:text-[19px]">{attente === r ? "Un instant…" : "Relier"}</span>}
               </button>
             );
           })}

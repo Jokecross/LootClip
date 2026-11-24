@@ -4,7 +4,9 @@
  * Démo du studio : rien n'est envoyé. Le vrai écran est src/app/app/video/[id]/poster.
  */
 import { useState } from "react";
-import { Duo } from "@/components/ui/Duo";
+import { Ancre } from "@/components/monde/Ancre";
+import { useLecteur } from "@/components/studio/lecteur";
+import { Duo, Mots } from "@/components/ui/Duo";
 import { Coche } from "@/components/ui/Parcours";
 import { Roulette } from "@/components/ui/Roulette";
 import { pop } from "@/lib/sons";
@@ -37,7 +39,8 @@ export function nomsReseaux(l: Reseau[]) {
   return l.map((r) => NOMS[r]).join(" et ");
 }
 
-export function Publier({ entete, pseudo, partir }: { entete: React.ReactNode; pseudo: string; partir: (d: Depart) => void }) {
+export function Publier({ entete, pseudo, url, titre, partir }: { url: string; titre: string; entete: React.ReactNode; pseudo: string; partir: (d: Depart) => void }) {
+  const { video } = useLecteur(url);
   const [reseaux, setReseaux] = useState<Reseau[]>([]);
   const [plus, setPlus] = useState(true);
   const [jour, setJour] = useState(0);
@@ -60,11 +63,11 @@ export function Publier({ entete, pseudo, partir }: { entete: React.ReactNode; p
       cle="publier"
       entete={entete}
       action={envoyer}
-      fond={plus ? "" : "lg:bg-jaune"}
+      fond={plus ? "orange" : "jaune"}
       gauche={
         <>
           <div className="flex items-start justify-between gap-3 lg:flex-col-reverse lg:gap-3">
-            <h1 className="titre text-[30px] lg:text-[clamp(44px,4.5vw,84px)]">Tu postes où ?</h1>
+            <h1 className="titre text-[34px] lg:text-[clamp(48px,5.2vw,108px)]"><Mots>Tu postes où ?</Mots></h1>
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-2.5 lg:mt-[min(32px,3vh)] lg:gap-4">
@@ -107,12 +110,14 @@ export function Publier({ entete, pseudo, partir }: { entete: React.ReactNode; p
         plus ? (
           <>
             <p className="titre my-3 text-center text-[44px] tabular-nums lg:hidden">{heure(minutes)}</p>
-            <Roulette label="Heure de publication" valeurs={HEURES} valeur={minutes} libelle={heure} changer={setMinutes} centre={<p className="titre text-[clamp(60px,6.4vw,120px)] tabular-nums">{heure(minutes)}</p>} />
+            <Roulette nu label="Heure de publication" valeurs={HEURES} valeur={minutes} libelle={heure} changer={setMinutes} centre={<p className="titre pb-[18%] text-[clamp(64px,7vw,140px)] tabular-nums">{heure(minutes)}</p>} />
+            <Ancre nom="chrono" className="absolute bottom-[4%] left-[24%] right-[30%] hidden h-[34%] lg:block" pose={{ rx: -0.15, ry: -0.2, flotte: 6, z: 80 }} donnees={{ valeur: (minutes - 480) / 960 }} />
           </>
         ) : (
-          <div className="surgit flex flex-1 flex-col items-center justify-center py-8 text-center">
-            <p className="titre text-[34px] lg:text-[clamp(52px,5.4vw,100px)]">Ça part tout de suite.</p>
-            <p className="mt-2 text-[15px] text-encre2 lg:mt-6 lg:text-[24px] lg:text-encre">Une vidéo, {reseaux.length > 1 ? "deux comptes" : "un compte"}, un bouton.</p>
+          <div className="relative flex min-h-[260px] flex-1 flex-col items-center justify-end text-center">
+            <Ancre nom="telephone" className="absolute inset-x-0 bottom-[88px] top-2 lg:bottom-[17%] lg:top-0" pose={{ ry: -0.22, rz: 0.05, flotte: 8, z: 60 }} donnees={{ source: video, titre }} />
+            <p className="titre relative z-20 text-[30px] lg:text-[clamp(44px,4.2vw,84px)]">Ça part tout de suite.</p>
+            <p className="relative z-20 mt-2 text-[15px] font-medium lg:mt-3 lg:text-[22px]">Une vidéo, {reseaux.length > 1 ? "deux comptes" : "un compte"}, un bouton.</p>
           </div>
         )
       }

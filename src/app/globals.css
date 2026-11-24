@@ -323,3 +323,75 @@ body {
 .au-dessus-onglets {
   bottom: calc(62px + max(8px, env(safe-area-inset-bottom)));
 }
+
+/* ---------- V2 : le monde en 3D ---------- */
+.rayons {
+  position: absolute;
+  width: 260vmax;
+  height: 260vmax;
+  margin: -130vmax 0 0 -130vmax;
+  border-radius: 50%;
+  background: repeating-conic-gradient(var(--r) 0 7.5deg, transparent 7.5deg 15deg);
+  animation: tourne 90s linear infinite;
+  will-change: transform;
+}
+.trame {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 34%;
+  background: radial-gradient(circle, var(--p) 1.7px, transparent 2.3px) 0 0 / 15px 15px;
+  mask-image: linear-gradient(to top, #000, transparent);
+  opacity: 0.55;
+}
+/* Titres : les mots jaillissent un par un */
+.mot {
+  display: inline-block;
+  animation: mot 560ms cubic-bezier(0.2, 1.25, 0.35, 1) both;
+  animation-delay: calc(var(--i) * 55ms + 120ms);
+  transform-origin: 0 100%;
+}
+@keyframes mot {
+  from { opacity: 0; transform: translateY(0.65em) rotate(7deg) scale(0.86); }
+  60% { opacity: 1; }
+  to { opacity: 1; transform: none; }
+}
+/* Boutons plus lourds : 3 px, ombre de 7 px, et ils se soulèvent */
+.v2 .bouton { border-width: 3px; transition: transform 110ms cubic-bezier(0.3, 1.6, 0.6, 1), box-shadow 110ms ease-out, opacity 150ms; }
+.v2 .bouton-rose { box-shadow: 0 6px 0 var(--color-encre); }
+.v2[data-fond="rose"] .bouton-rose { background: var(--color-jaune); }
+.v2[data-fond="rose"] .bouton-rose .eclair { background: var(--color-blanc); }
+.v2 .bouton-rose:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 9px 0 var(--color-encre); }
+.v2 .bouton-rose:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 0 0 var(--color-encre); }
+.v2 .bouton-rose:not(:disabled) { position: relative; overflow: hidden; }
+.v2 .bouton-rose:not(:disabled)::after {
+  content: "";
+  position: absolute;
+  inset: -20% auto -20% -40%;
+  width: 26%;
+  background: rgb(255 255 255 / 0.55);
+  transform: skewX(-20deg);
+  animation: reflet 3.4s ease-in-out infinite;
+}
+@keyframes reflet { 0%, 55% { left: -40%; } 85%, 100% { left: 130%; } }
+.v2 .bouton:disabled { opacity: 1; background: color-mix(in srgb, var(--color-fond), transparent 45%); color: rgb(26 11 46 / 0.5); box-shadow: none; border-color: rgb(26 11 46 / 0.35); }
+.v2 .text-encre2 { color: color-mix(in srgb, var(--color-encre), transparent 22%); }
+.v2 .carte-forte { border-width: 3px; box-shadow: 0 6px 0 var(--color-encre); }
+.v2 .carte { border-width: 3px; }
+.v2 .pastille { border-width: 2.5px; }
+/* Barre d'XP */
+.xp > span {
+  display: block;
+  height: 100%;
+  border-right: 3px solid var(--color-encre);
+  background: repeating-linear-gradient(115deg, var(--color-jaune) 0 14px, #f7c24e 14px 28px);
+  background-size: 200% 100%;
+  animation: xp 12s linear infinite;
+  transition: width 700ms cubic-bezier(0.3, 1.5, 0.5, 1);
+}
+@keyframes xp { to { background-position: -200px 0; } }
+@keyframes gain { 0% { opacity: 0; transform: translateY(10px) scale(0.6); } 18% { opacity: 1; transform: translateY(-4px) scale(1.15); } 30%, 70% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-16px); } }
+.gain { animation: gain 1900ms cubic-bezier(0.2, 0.8, 0.2, 1) 350ms both; }
+@keyframes secoue { 0%, 100% { transform: none; } 25% { transform: rotate(-1.6deg); } 75% { transform: rotate(1.6deg); } }
+/* Ruban qui défile */
+.ruban { display: flex; width: max-content; animation: ruban 26s linear infinite; }
+@keyframes ruban { to { transform: translateX(-50%); } }
