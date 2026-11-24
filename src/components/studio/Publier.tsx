@@ -1,13 +1,12 @@
 "use client";
 /*
  * Écran « Publier » : comptes, jour et heure à la roue, puis départ.
- * C'est l'écran prévu pour le vrai produit. Tant que PUBLICATION_AUTO est false, rien n'est envoyé et « Bientôt » s'affiche.
+ * C'est l'écran prévu pour le vrai produit. Démo du studio uniquement : rien n'est envoyé tant que la publication n'est pas branchée.
  */
 import { useState } from "react";
 import { Duo } from "@/components/ui/Duo";
 import { Coche } from "@/components/ui/Parcours";
 import { Roulette } from "@/components/ui/Roulette";
-import { PUBLICATION_AUTO } from "@/lib/config";
 import { pop } from "@/lib/sons";
 
 export type Reseau = "tiktok" | "instagram";
@@ -38,10 +37,6 @@ export function nomsReseaux(l: Reseau[]) {
   return l.map((r) => NOMS[r]).join(" et ");
 }
 
-export function Bientot() {
-  return PUBLICATION_AUTO ? null : <span className="pastille bg-orange">Bientôt sur XPclip</span>;
-}
-
 export function Publier({ entete, pseudo, partir }: { entete: React.ReactNode; pseudo: string; partir: (d: Depart) => void }) {
   const [reseaux, setReseaux] = useState<Reseau[]>([]);
   const [plus, setPlus] = useState(true);
@@ -70,7 +65,6 @@ export function Publier({ entete, pseudo, partir }: { entete: React.ReactNode; p
         <>
           <div className="flex items-start justify-between gap-3 lg:flex-col-reverse lg:gap-3">
             <h1 className="titre text-[30px] lg:text-[clamp(44px,4.5vw,84px)]">Tu postes où ?</h1>
-            <Bientot />
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-2.5 lg:mt-[min(32px,3vh)] lg:gap-4">

@@ -10,7 +10,7 @@ import { ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranTiktok, REPER
 import { PanneauHero } from "@/components/onboarding/PanneauHero";
 import { Confettis } from "@/components/studio/Confettis";
 import { Montage } from "@/components/studio/Montage";
-import { Bientot, nomsReseaux, PictoReseau, Publier, type Depart } from "@/components/studio/Publier";
+import { nomsReseaux, PictoReseau, Publier, type Depart } from "@/components/studio/Publier";
 import { VideoPortrait } from "@/components/studio/VideoPortrait";
 import { Duo } from "@/components/ui/Duo";
 import { Coche, Entete } from "@/components/ui/Parcours";
@@ -605,9 +605,6 @@ function Fin({ entete, depart, url, titre, pseudo, fini, action }: { entete: Rea
                 </div>
               </div>
             ))}
-          </div>
-          <div className={`mt-5 flex justify-center lg:justify-start ${t >= 4 ? "surgit" : "invisible"}`}>
-            <Bientot />
           </div>
         </div>
       }

@@ -147,4 +147,3 @@ export const DEFI_JOURS = 7;
  * Publication automatique sur TikTok et Instagram : pas encore branchée.
  * Tant que c'est false, les écrans « Publier » n'existent que dans /studio, avec la mention « Bientôt ».
  */
-export const PUBLICATION_AUTO = false;
