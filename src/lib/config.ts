@@ -138,6 +138,9 @@ export const EMAILS_ACTIFS = false;
 /** Connexion Google : identifiant client OAuth (public). Vide : le bouton Google n'est pas affiché. */
 export const GOOGLE_CLIENT_ID = "56060509244-4c5vom7pe93ib3ankloi8uhbfvjqs703.apps.googleusercontent.com";
 
+/** Bouton Google montré à tous. Sinon, seulement avec « ?google=test » dans l'adresse, pour l'essayer. */
+export const GOOGLE_OUVERT = false;
+
 export const PURGE_CLIPS_JOURS = 14;
 
 /** Titre écrit par le joueur : affiché en accroche au début de la vidéo, et repris pour TikTok. */

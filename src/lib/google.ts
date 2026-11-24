@@ -1,7 +1,7 @@
 "use client";
 /*
  * Connexion et inscription avec Google, sans passer par l'adresse de Supabase : le joueur voit « xpclip.com ».
- * 1. allerChezGoogle() envoie chez Google, qui renvoie sur /google avec un jeton d'identité signé.
+ * 1. allerChezGoogle() envoie chez Google, qui renvoie un jeton d'identité signé à /api/connexion/retour, puis /connexion.
  * 2. finirGoogle() donne ce jeton à Supabase, qui le vérifie et ouvre le compte (créé s'il n'existe pas).
  * Aucun secret : l'identifiant client est public (config.ts), et doit aussi être déclaré dans Supabase.
  */
@@ -27,14 +27,15 @@ export async function allerChezGoogle(retour: string) {
   // Google reçoit l'empreinte du nonce, Supabase le nonce : un jeton volé ne peut pas resservir.
   const empreinte = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(a.nonce));
   const nonce = Array.from(new Uint8Array(empreinte), (o) => o.toString(16).padStart(2, "0")).join("");
-  const p = new URLSearchParams({ client_id: GOOGLE_CLIENT_ID, redirect_uri: `${location.origin}/google`, response_type: "id_token", scope: "openid email", nonce, state: a.etat, prompt: "select_account" });
+  const p = new URLSearchParams({ client_id: GOOGLE_CLIENT_ID, redirect_uri: `${location.origin}/api/connexion/retour`, response_type: "id_token", response_mode: "form_post", scope: "openid email", nonce, state: a.etat, prompt: "select_account" });
   location.assign(`https://accounts.google.com/o/oauth2/v2/auth?${p}`);
 }
 
 /** Retour de Google : renvoie la page où aller, ou l'erreur à afficher. */
 export async function finirGoogle(): Promise<{ vers: string; nouveau: boolean } | { erreur: string; depart: string }> {
-  const p = new URLSearchParams(location.hash.slice(1));
-  history.replaceState(null, "", location.pathname); // le jeton ne reste pas dans l'adresse
+  const cookie = document.cookie.split("; ").find((c) => c.startsWith("xpclip_retour="));
+  const p = new URLSearchParams(cookie ? decodeURIComponent(cookie.slice("xpclip_retour=".length)) : "");
+  document.cookie = "xpclip_retour=; path=/connexion; max-age=0";
   let a: Attente | null = null;
   try {
     a = JSON.parse(localStorage.getItem(CLE) || "null");

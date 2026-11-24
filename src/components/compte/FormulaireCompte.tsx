@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { EMAILS_ACTIFS, GOOGLE_CLIENT_ID } from "@/lib/config";
+import { EMAILS_ACTIFS, GOOGLE_CLIENT_ID, GOOGLE_OUVERT } from "@/lib/config";
 import { allerChezGoogle, navigateurIntegre } from "@/lib/google";
 import { messageErreur, SUPABASE_ANON, SUPABASE_URL, supabase } from "@/lib/supabase";
 
@@ -32,7 +32,7 @@ export function FormulaireCompte({
   useEffect(() => {
     const revenu = (e: PageTransitionEvent) => e.persisted && setEnvoi(false); // retour arrière depuis Google
     window.addEventListener("pageshow", revenu);
-    if (GOOGLE_CLIENT_ID)
+    if (GOOGLE_CLIENT_ID && (GOOGLE_OUVERT || new URLSearchParams(location.search).get("google") === "test"))
       fetch(`${SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: SUPABASE_ANON } })
         .then((r) => r.json())
         .then((r) => setGoogle(r?.external?.google ? (navigateurIntegre() ? "ailleurs" : "oui") : "non"))
