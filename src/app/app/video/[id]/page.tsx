@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { DefiSeptJours } from "@/components/app/DefiSeptJours";
 import { Lecteur } from "@/components/app/Lecteur";
 import { Paywall, type MomentPaywall } from "@/components/app/Paywall";
+import { Publications } from "@/components/app/Publications";
 import { Feuille } from "@/components/ui/Feuille";
 import { Coche } from "@/components/ui/Parcours";
 import { afficherToast } from "@/components/ui/Toast";
@@ -14,6 +15,7 @@ import { modifier, useEtat, type Video } from "@/lib/etat";
 import { supabase } from "@/lib/supabase";
 import { chrono } from "@/lib/format";
 import { ETAPES, LIBELLES_STATUT, quota, refaire, retirerFiligrane, sourcesDe, statutDe, useMaintenant } from "@/lib/montage";
+import { usePublicationOuverte } from "@/lib/publication";
 import { suivre } from "@/lib/suivi";
 
 /** Conseils pour poster, affichés pendant le montage. */
@@ -218,6 +220,7 @@ function Resultat({ video }: { video: Video }) {
   }
 
   const gratuit = compte.offre === "gratuit";
+  const publier = usePublicationOuverte();
 
   return (
     <div className="entree lg:grid lg:grid-cols-[280px_1fr] lg:items-start lg:gap-x-8 xl:grid-cols-[380px_1fr] xl:gap-x-12 [&>*]:lg:col-start-2">
@@ -251,8 +254,13 @@ function Resultat({ video }: { video: Video }) {
         </p>
       </div>
 
-      <div className="lg:mt-6 lg:grid lg:gap-3 xl:grid-cols-2">
-        <button type="button" onClick={partager} disabled={enPreparation} className="bouton bouton-rose mt-5 w-full lg:mt-0">
+      {publier && !gratuit && (
+        <Link href={`/app/video/${video.id}/poster`} className="bouton bouton-rose mt-5 w-full lg:mt-6">
+          Poster ma vidéo
+        </Link>
+      )}
+      <div className={publier && !gratuit ? "mt-3 lg:grid lg:gap-3 xl:grid-cols-2" : "lg:mt-6 lg:grid lg:gap-3 xl:grid-cols-2"}>
+        <button type="button" onClick={partager} disabled={enPreparation} className={publier && !gratuit ? "bouton bouton-blanc w-full" : "bouton bouton-rose mt-5 w-full lg:mt-0"}>
           {enPreparation ? "Préparation…" : partageNatif ? "Partager sur TikTok ou Instagram" : "Partager sur TikTok"}
         </button>
         <button type="button" onClick={() => telecharger()} className="bouton bouton-blanc mt-3 w-full lg:mt-0">
@@ -262,6 +270,8 @@ function Resultat({ video }: { video: Video }) {
       <button type="button" onClick={() => setRefaireOuvert(true)} className="lien mx-auto mt-2 flex min-h-11 items-center text-[14px] lg:mx-0 lg:mt-3">
         Refaire avec un autre style
       </button>
+
+      {publier && <Publications video={video.id} titre="Tes publications" />}
 
       {video.partageeLe && (
         <div className="mt-4">

@@ -12,6 +12,7 @@ import { deconnecter, supprimerCompte } from "@/lib/serveur";
 import { date, euros, nombre, videos } from "@/lib/format";
 import { quota } from "@/lib/montage";
 import { objectifBooste } from "@/lib/onboarding";
+import { usePublicationOuverte } from "@/lib/publication";
 import { eur, montant, unite } from "@/lib/prix";
 
 export default function Compte() {
@@ -23,6 +24,7 @@ export default function Compte() {
   const [supprimer, setSupprimer] = useState(false);
   const [effacement, setEffacement] = useState(false);
   const [attente, setAttente] = useState(false);
+  const publier = usePublicationOuverte();
   const estPro = compte.offre !== "gratuit";
   const nomOffre = compte.offre === "gratuit" ? GRATUIT.nom : OFFRES_PAYANTES[compte.offre].nom;
   const periode = compte.periodicite ?? "mensuel";
@@ -112,6 +114,12 @@ export default function Compte() {
             ))}
           </div>
         </div>
+        {publier && (
+          <Link href="/app/comptes" className={ligne}>
+            TikTok et Instagram
+            <span aria-hidden="true">›</span>
+          </Link>
+        )}
         <Link href="/app/demarrage" className={ligne}>
           Revoir le tutoriel
           <span aria-hidden="true">›</span>

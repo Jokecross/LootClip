@@ -263,6 +263,10 @@ export async function deconnecter(seulementIci = false) {
 export async function supprimerCompte() {
   const user = utilisateur;
   if (!user) return;
+  // Comptes TikTok et Instagram d'abord : plus rien ne doit partir après la suppression.
+  const { data: s } = await supabase.auth.getSession();
+  const r = await fetch("/api/publication/oublier", { method: "POST", headers: { authorization: `Bearer ${s.session?.access_token ?? ""}` } });
+  if (!r.ok) throw new Error("comptes reliés");
   for (const bucket of ["clips", "videos"]) {
     const { data } = await supabase.storage.from(bucket).list(user.id, { limit: 1000 });
     if (data?.length) await supabase.storage.from(bucket).remove(data.map((f) => `${user.id}/${f.name}`));

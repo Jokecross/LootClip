@@ -1,7 +1,7 @@
 "use client";
 /*
  * Écran « Publier » : comptes, jour et heure à la roue, puis départ.
- * C'est l'écran prévu pour le vrai produit. Démo du studio uniquement : rien n'est envoyé tant que la publication n'est pas branchée.
+ * Démo du studio : rien n'est envoyé. Le vrai écran est src/app/app/video/[id]/poster.
  */
 import { useState } from "react";
 import { Duo } from "@/components/ui/Duo";
@@ -12,11 +12,11 @@ import { pop } from "@/lib/sons";
 export type Reseau = "tiktok" | "instagram";
 export type Depart = { reseaux: Reseau[]; quand: string | null };
 
-const NOMS: Record<Reseau, string> = { tiktok: "TikTok", instagram: "Instagram" };
-const HEURES = Array.from({ length: 33 }, (_, i) => 480 + i * 30);
-const heure = (m: number) => `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`;
+export const NOMS: Record<Reseau, string> = { tiktok: "TikTok", instagram: "Instagram" };
+export const HEURES = Array.from({ length: 33 }, (_, i) => 480 + i * 30);
+export const heure = (m: number) => `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, "0")}`;
 
-function jours() {
+export function jours() {
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(Date.now() + i * 86_400_000);
     return { court: i === 0 ? "Auj." : d.toLocaleDateString("fr-FR", { weekday: "short" }).replace(".", ""), num: d.getDate(), long: i === 0 ? "aujourd'hui" : d.toLocaleDateString("fr-FR", { weekday: "long" }) };
