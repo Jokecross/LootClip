@@ -3,6 +3,12 @@
 import { useEffect, useRef } from "react";
 import { ancres, surAncre } from "./store";
 
+/** Charge la 3D d'avance, avant la première ancre (régie du studio). */
+let prechauffage = false;
+export let prechauffer = () => {
+  prechauffage = true;
+};
+
 export function Monde() {
   const ref = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
@@ -22,6 +28,8 @@ export function Monde() {
         .catch(() => document.documentElement.classList.add("sans3d"));
     };
     surAncre(lancer);
+    prechauffer = lancer;
+    if (prechauffage) lancer();
     if (ancres.size) lancer();
     return () => {
       ferme = true;

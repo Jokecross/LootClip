@@ -24,7 +24,8 @@ export function reglerSon(oui: boolean) {
   } catch {}
 }
 
-export function reveiller() {
+/** Prépare le son à l'avance (muet) : le premier clic n'a plus à l'attendre. */
+export function preparer() {
   if (typeof window === "undefined" || !window.AudioContext) return;
   if (!ctx) {
     ctx = new AudioContext({ latencyHint: "interactive" });
@@ -37,7 +38,11 @@ export function reveiller() {
     c.connect(ctx.destination);
     sortie = c;
   }
-  if (ctx.state !== "running") ctx.resume().catch(() => {});
+}
+
+export function reveiller() {
+  preparer();
+  if (ctx && ctx.state !== "running") ctx.resume().catch(() => {});
 }
 
 const pret = () => ctx && sortie && ctx.state === "running" && sonActif();

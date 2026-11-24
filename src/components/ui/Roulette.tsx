@@ -232,7 +232,7 @@ export function Roulette({
           moyeu.current.style.height = `${Math.min(r * 1.3, H - 64 - (HAUT + R - r * 0.62))}px`;
         }
       }
-      const d = Math.min(3, devicePixelRatio || 1);
+      const d = Math.min(nu && L > 480 ? 1.5 : 2, devicePixelRatio || 1);
       cv.width = L * d;
       cv.height = H * d;
       g.setTransform(d, 0, 0, d, 0, 0);

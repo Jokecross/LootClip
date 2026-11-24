@@ -8,6 +8,7 @@ import { useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/marque/Logo";
 import { SceneAccroche, ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
 import { Ancre } from "@/components/monde/Ancre";
+import { prechauffer } from "@/components/monde/Monde";
 import { eclats } from "@/components/monde/store";
 import { Confettis } from "@/components/studio/Confettis";
 import { Montage } from "@/components/studio/Montage";
@@ -21,7 +22,7 @@ import { lireDuree } from "@/lib/depot";
 import { useEtat, type Video } from "@/lib/etat";
 import { duree as dureeLisible, videos } from "@/lib/format";
 import { videosPourHeures, type Reponses } from "@/lib/onboarding";
-import { bravo, envol, pop, reveiller, tampon } from "@/lib/sons";
+import { bravo, envol, pop, preparer, reveiller, tampon } from "@/lib/sons";
 import { ecrireReglages, garderVideo, lireReglages, pseudoAuHasard, lireVideo, REGLAGES_DEFAUT, type Reglages } from "@/lib/studio";
 import { supabase } from "@/lib/supabase";
 import { poserTournage } from "@/lib/tournage";
@@ -53,6 +54,8 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
   const appui = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
+    prechauffer();
+    const son = setTimeout(preparer, 900);
     const g = lireReglages();
     setRegl(g);
     setTitre(g.titre);
@@ -64,7 +67,10 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
     });
     const go = () => reveiller();
     window.addEventListener("click", go);
-    return () => window.removeEventListener("click", go);
+    return () => {
+      clearTimeout(son);
+      window.removeEventListener("click", go);
+    };
   }, []);
 
   /** Prend une vidéo déjà créée dans XPclip, et la garde sur ce téléphone. */
@@ -355,7 +361,7 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
               <div className={`relative mt-4 grid gap-3 lg:mt-7 lg:min-h-0 lg:flex-1 lg:auto-rows-fr lg:gap-7 ${clips.length <= 4 ? "grid-cols-2" : "grid-cols-3"} ${clips.length <= 3 ? COLONNES[clips.length] : ""}`}>
                 {clips.map((c, i) => (
                   <div key={c.url} ref={eclater} className={`surgit relative aspect-[4/5] overflow-hidden rounded-[22px] border-[3px] border-encre bg-encre shadow-[0_7px_0_var(--color-encre)] lg:aspect-auto lg:min-h-0 lg:rounded-[34px] lg:shadow-[0_12px_0_var(--color-encre)] ${i % 2 ? "rotate-[1.6deg]" : "-rotate-[1.6deg]"}`}>
-                    <video src={`${c.url}#t=0.5`} muted playsInline autoPlay loop preload="auto" className="h-full w-full object-cover lg:absolute lg:inset-0" />
+                    <video src={`${c.url}#t=0.5`} muted playsInline autoPlay={i === clips.length - 1} loop preload="auto" className="h-full w-full object-cover lg:absolute lg:inset-0" />
                     <span className="pastille absolute bottom-2 left-2 bg-jaune tabular-nums lg:bottom-5 lg:left-5 lg:min-h-10 lg:px-4 lg:text-[18px]">{dureeLisible(c.duree)}</span>
                   </div>
                 ))}

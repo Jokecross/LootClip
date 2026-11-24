@@ -325,23 +325,18 @@ body {
 }
 
 /* ---------- V2 : le monde en 3D ---------- */
+/* Rayons fixes des sections de l'accueil : peints une seule fois. */
 .rayons {
   position: absolute;
-  width: 260vmax;
-  height: 260vmax;
-  margin: -130vmax 0 0 -130vmax;
-  border-radius: 50%;
-  background: repeating-conic-gradient(var(--r) 0 7.5deg, transparent 7.5deg 15deg);
-  animation: tourne 90s linear infinite;
-  will-change: transform;
+  inset: 0;
+  background: repeating-conic-gradient(at var(--x) var(--y), var(--r) 0 7.5deg, transparent 7.5deg 15deg);
 }
 .trame {
   position: absolute;
   inset: auto 0 0 0;
-  height: 34%;
+  height: 30%;
   background: radial-gradient(circle, var(--p) 1.7px, transparent 2.3px) 0 0 / 15px 15px;
-  mask-image: linear-gradient(to top, #000, transparent);
-  opacity: 0.55;
+  opacity: 0.35;
 }
 /* Titres : les mots jaillissent un par un */
 .mot {
@@ -366,13 +361,12 @@ body {
 .v2 .bouton-rose:not(:disabled)::after {
   content: "";
   position: absolute;
-  inset: -20% auto -20% -40%;
+  inset: -20% auto -20% 0;
   width: 26%;
   background: rgb(255 255 255 / 0.55);
-  transform: skewX(-20deg);
   animation: reflet 3.4s ease-in-out infinite;
 }
-@keyframes reflet { 0%, 55% { left: -40%; } 85%, 100% { left: 130%; } }
+@keyframes reflet { 0%, 55% { transform: translateX(-160%) skewX(-20deg); } 85%, 100% { transform: translateX(520%) skewX(-20deg); } }
 .v2 .bouton:disabled { opacity: 1; background: color-mix(in srgb, var(--color-fond), transparent 45%); color: rgb(26 11 46 / 0.5); box-shadow: none; border-color: rgb(26 11 46 / 0.35); }
 .v2 .text-encre2 { color: color-mix(in srgb, var(--color-encre), transparent 22%); }
 .v2 .carte-forte { border-width: 3px; box-shadow: 0 6px 0 var(--color-encre); }
@@ -380,15 +374,22 @@ body {
 .v2 .pastille { border-width: 2.5px; }
 /* Barre d'XP */
 .xp > span {
+  position: relative;
   display: block;
   height: 100%;
+  overflow: hidden;
   border-right: 3px solid var(--color-encre);
-  background: repeating-linear-gradient(115deg, var(--color-jaune) 0 14px, #f7c24e 14px 28px);
-  background-size: 200% 100%;
-  animation: xp 12s linear infinite;
+  background: var(--color-jaune);
   transition: width 700ms cubic-bezier(0.3, 1.5, 0.5, 1);
 }
-@keyframes xp { to { background-position: -200px 0; } }
+.xp > span::before {
+  content: "";
+  position: absolute;
+  inset: 0 -60px 0 0;
+  background: repeating-linear-gradient(115deg, transparent 0 14px, #f7c24e 14px 28px);
+  animation: xp 1.6s linear infinite;
+}
+@keyframes xp { to { transform: translateX(-30.9px); } }
 @keyframes gain { 0% { opacity: 0; transform: translateY(10px) scale(0.6); } 18% { opacity: 1; transform: translateY(-4px) scale(1.15); } 30%, 70% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-16px); } }
 .gain { animation: gain 1900ms cubic-bezier(0.2, 0.8, 0.2, 1) 350ms both; }
 @keyframes secoue { 0%, 100% { transform: none; } 25% { transform: rotate(-1.6deg); } 75% { transform: rotate(1.6deg); } }

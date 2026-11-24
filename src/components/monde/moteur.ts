@@ -40,11 +40,14 @@ export function demarrer(toile: HTMLCanvasElement) {
   const calme = matchMedia("(prefers-reduced-motion: reduce)").matches;
   let L = 1;
   let H = 1;
+  // Définition : elle baisse toute seule si l'appareil ne suit pas.
+  let definition = Math.min(1.75, devicePixelRatio || 1);
+  let lentes = 0;
 
   function taille() {
     L = toile.clientWidth || innerWidth;
     H = toile.clientHeight || innerHeight;
-    rendu.setPixelRatio(Math.min(2, devicePixelRatio || 1));
+    rendu.setPixelRatio(definition);
     rendu.setSize(L, H, false);
     cam.aspect = L / H;
     cam.position.z = H / 2 / Math.tan((FOV * Math.PI) / 360);
@@ -55,7 +58,11 @@ export function demarrer(toile: HTMLCanvasElement) {
     uniformes.uOmbre.value.set((ep * 2) / L, (-ep * 6.5) / H);
   }
   taille();
-  addEventListener("resize", taille);
+  const redim = () => {
+    taille();
+    mesurerJusque = performance.now() / 1000 + 0.5;
+  };
+  addEventListener("resize", redim);
 
   const souris = { x: 0, y: 0, sx: 0, sy: 0 };
   const bouge = (e: PointerEvent) => {
@@ -71,7 +78,7 @@ export function demarrer(toile: HTMLCanvasElement) {
   const fabriques: Record<Nom, () => Objet> = {
     manette: () => manette(false),
     manette2: () => manette(true),
-    telephone: () => telephone(C.blanc, innerWidth < 1024 ? 420 : 720),
+    telephone: () => telephone(C.blanc, innerWidth < 1024 ? 400 : 540),
     telephone2: () => telephone(C.blanc, 400),
     telephone3: () => telephone(C.blanc, 400),
     pieces: () => pieces(),
@@ -81,11 +88,32 @@ export function demarrer(toile: HTMLCanvasElement) {
   };
   const acteurs = new Map<Nom, Acteur>();
 
+  // Les objets sont fabriqués d'avance, un par un, pendant que la page ne fait rien : plus d'à-coup au changement d'écran.
+  const reserve = new Map<Nom, Objet>();
+  const ORDRE: Nom[] = ["telephone", "manette", "clip0", "clip1", "clip2", "pieces", "clip3", "manette2", "telephone2", "telephone3", "clip4", "chrono", "cadenas"];
+  function fabriquer(nom: Nom) {
+    let o = reserve.get(nom);
+    if (!o) {
+      o = fabriques[nom]();
+      o.racine.visible = false;
+      monde.add(o.racine);
+      reserve.set(nom, o);
+    }
+    return o;
+  }
+  const attendre: (f: () => void) => void = "requestIdleCallback" in window ? (f) => requestIdleCallback(() => f(), { timeout: 1200 }) : (f) => setTimeout(f, 120);
+  function prevoir() {
+    const nom = ORDRE.find((n) => !reserve.has(n));
+    if (!nom || image === -1) return;
+    const o = fabriquer(nom) as Objet & { texture?: THREE.Texture };
+    if (o.texture) rendu.initTexture(o.texture);
+    setTimeout(() => attendre(prevoir), 60);
+  }
+
   function acteur(nom: Nom, x: number, y: number, e: number): Acteur {
     let a = acteurs.get(nom);
     if (!a) {
-      const o = fabriques[nom]();
-      monde.add(o.racine);
+      const o = fabriquer(nom);
       a = { nom, o, x, y, e: e * 0.2, vx: 0, vy: 0, ve: 0, rx: 0, ry: 0, rz: 0, vrx: 0, vry: 0, vrz: 0, tour: 0, vtour: 0, saut: 0, vsaut: 0, vu: false, t0: 0, envol: 0, phase: acteurs.size * 1.7, donnees: {} };
       acteurs.set(nom, a);
     }
@@ -120,11 +148,18 @@ export function demarrer(toile: HTMLCanvasElement) {
 
   const ecrans = new Map<Nom, number>();
   const peints = new Set<Nom>();
+  const images = new Map<Nom, string>();
   function peindre(a: Acteur, t: number) {
     const o = a.o as ReturnType<typeof telephone>;
     const d = a.donnees;
-    const pas = d.source ? 0 : 1 / 30;
-    if (t - (ecrans.get(a.nom) ?? -1) < pas) return;
+    const dernier = ecrans.get(a.nom) ?? -1;
+    if (t - dernier < (a.nom === "telephone" ? 1 / 31 : 1 / 16)) return;
+    // Vidéo : rien à repeindre tant que l'image n'a pas changé.
+    if (d.source instanceof HTMLVideoElement) {
+      const cle = `${d.source.currentTime}-${d.titre ?? ""}-${d.source.src}`;
+      if (images.get(a.nom) === cle && t - dernier < 0.5) return;
+      images.set(a.nom, cle);
+    }
     ecrans.set(a.nom, t);
     const g = o.toile.getContext("2d")!;
     const k = o.toile.width / 360;
@@ -140,16 +175,31 @@ export function demarrer(toile: HTMLCanvasElement) {
   /* ---------- Boucle ---------- */
 
   let image = 0;
+  let fabrique = false; // un seul objet neuf par image
+  let pret = false;
   let avant = 0;
   let repos = 0;
   let dernierSon = 0;
+  let dernierClip = 0;
+  let mesurerJusque = 0;
+  let compteAncres = -1;
+  let numero = 0;
   let defile = scrollY;
 
   /** L'ancre la plus proche du milieu de l'écran gagne, s'il y en a plusieurs du même nom. */
-  function choisir() {
+  const places = new WeakMap<Entree, DOMRect>();
+  function choisir(t: number) {
     const choix = new Map<Nom, { e: Entree; r: DOMRect; d: number }>();
+    // Les places ne sont relues que pendant une seconde après un changement, puis de temps en temps.
+    if (ancres.size !== compteAncres || ancres.size !== [...ancres].filter((e) => places.has(e)).length) {
+      compteAncres = ancres.size;
+      mesurerJusque = t + 1.2;
+    }
+    numero++;
+    const lire = t < mesurerJusque || numero % 12 === 0;
     for (const e of ancres) {
-      const r = e.el.getBoundingClientRect();
+      let r = places.get(e);
+      if (!r || lire) places.set(e, (r = e.el.getBoundingClientRect()));
       if (r.width < 4 || r.height < 4) continue;
       const d = Math.abs(r.top + r.height / 2 - H / 2);
       const c = choix.get(e.nom);
@@ -160,7 +210,15 @@ export function demarrer(toile: HTMLCanvasElement) {
 
   function tic(ms: number) {
     const t = ms / 1000;
-    const dt = Math.min(0.033, t - avant || 0.016);
+    const brut = t - avant || 0.016;
+    const dt = Math.min(0.033, brut);
+    // Trop d'images lentes d'affilée : on baisse un peu la définition.
+    lentes = brut > 0.021 && brut < 0.2 ? lentes + 1 : Math.max(0, lentes - 0.5);
+    if (lentes > 30 && definition > 1) {
+      lentes = 0;
+      definition = Math.max(1, definition - 0.25);
+      taille();
+    }
     avant = t;
     souris.sx += (souris.x - souris.sx) * Math.min(1, dt * 5);
     souris.sy += (souris.y - souris.sy) * Math.min(1, dt * 5);
@@ -168,9 +226,10 @@ export function demarrer(toile: HTMLCanvasElement) {
     // Page qui défile : les objets suivent leur ancre sans traîner.
     const ds = scrollY - defile;
     defile = scrollY;
+    if (ds) mesurerJusque = t + 0.3;
     if (ds && Math.abs(ds) < H) for (const a of acteurs.values()) a.y += ds;
 
-    const choix = choisir();
+    const choix = choisir(t);
     const cibles = new Map<Nom, { x: number; y: number; e: number }>();
     for (const [nom, { e, r }] of choix) {
       if (e.donnees.flux) continue;
@@ -181,10 +240,17 @@ export function demarrer(toile: HTMLCanvasElement) {
       cibles.set(nom, { x: r.left + r.width / 2 - L / 2, y: H / 2 - (r.top + r.height / 2), e: Math.min(r.width / l, r.height / h) });
     }
 
+    fabrique = false;
     for (const [nom, { e, r }] of choix) {
       const d = e.donnees;
       const p: Pose = e.pose;
       let a = acteurs.get(nom);
+      if (!a && !reserve.has(nom)) {
+        if (fabrique) continue;
+        fabrique = true;
+        fabriquer(nom);
+        continue;
+      }
       if (!a) {
         a = acteur(nom, r.left + r.width / 2 - L / 2, -H * 0.75, Math.min(r.width, r.height));
         a.ry = -1.4;
@@ -336,7 +402,7 @@ export function demarrer(toile: HTMLCanvasElement) {
       m.instanceMatrix.needsUpdate = k.instanceMatrix.needsUpdate = true;
     });
 
-    rendu.render(monde, cam);
+    if (pret) rendu.render(monde, cam);
     const vivant = choix.size || poussieres.length || [...acteurs.values()].some((a) => a.e > 1.5);
     repos = vivant ? 0 : repos + 1;
     image = repos > 3 ? 0 : requestAnimationFrame(tic);
@@ -356,9 +422,10 @@ export function demarrer(toile: HTMLCanvasElement) {
       // Le clip montre la vraie image du joueur quand on la lui donne.
       const o = a.o as ReturnType<typeof clip>;
       const v = d.source;
-      const ok = v && (v instanceof HTMLVideoElement ? v.readyState >= 2 && v.videoWidth : v.width);
-      if (ok && t - (ecrans.get(a.nom) ?? -1) > 1 / 15) {
+      const ok = v && (v instanceof HTMLVideoElement ? v.readyState >= 2 && !v.seeking && v.currentTime > 0 && v.videoWidth : v.width);
+      if (ok && t - (ecrans.get(a.nom) ?? -1) > 0.16 + a.phase * 0.01 && t - dernierClip > 0.03) {
         ecrans.set(a.nom, t);
+        dernierClip = t;
         const lv = v instanceof HTMLVideoElement ? v.videoWidth : v.width;
         const hv = v instanceof HTMLVideoElement ? v.videoHeight : v.height;
         const k = Math.max(480 / lv, 270 / hv);
@@ -409,14 +476,27 @@ export function demarrer(toile: HTMLCanvasElement) {
   };
   document.addEventListener("visibilitychange", visible);
   addEventListener("scroll", reveiller, { passive: true });
-  reveiller();
+  // Les programmes de la carte graphique sont préparés à côté, sans bloquer la page. Puis la scène s'affiche.
+  fabriquer("manette");
+  fabriquer("pieces");
+  fabriquer("clip0");
+  for (const o of reserve.values()) o.racine.visible = true;
+  rendu
+    .compileAsync(monde, cam)
+    .catch(() => {})
+    .finally(() => {
+      for (const [n, o] of reserve) if (!acteurs.has(n)) o.racine.visible = false;
+      pret = true;
+      reveiller();
+      setTimeout(() => attendre(prevoir), 500);
+    });
 
   return {
     reveiller,
     fermer() {
       cancelAnimationFrame(image);
       image = -1;
-      removeEventListener("resize", taille);
+      removeEventListener("resize", redim);
       removeEventListener("pointermove", bouge);
       removeEventListener("scroll", reveiller);
       document.removeEventListener("visibilitychange", visible);

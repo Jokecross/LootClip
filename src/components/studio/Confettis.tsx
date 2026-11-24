@@ -10,7 +10,7 @@ export function Confettis() {
   useEffect(() => {
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const cv = ref.current!;
-    const d = Math.min(2, devicePixelRatio || 1);
+    const d = Math.min(1.25, devicePixelRatio || 1);
     const L = cv.clientWidth;
     const H = cv.clientHeight;
     cv.width = L * d;

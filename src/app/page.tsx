@@ -43,7 +43,7 @@ const TITRE_SECTION = "titre text-[38px] leading-[0.95] sm:text-[48px] lg:text-[
 function Rayons({ couleur, x = "68%", y = "52%" }: { couleur: string; x?: string; y?: string }) {
   return (
     <span className="absolute inset-0 block overflow-hidden" style={{ background: `var(--color-${couleur})` }} aria-hidden="true">
-      <span className="rayons" style={{ left: x, top: y, "--r": `color-mix(in srgb, var(--color-${couleur}), white 24%)` } as React.CSSProperties} />
+      <span className="rayons" style={{ "--x": x, "--y": y, "--r": `color-mix(in srgb, var(--color-${couleur}), white 24%)` } as React.CSSProperties} />
       <span className="trame" style={{ "--p": `color-mix(in srgb, var(--color-${couleur}), var(--color-encre) 16%)` } as React.CSSProperties} />
     </span>
   );

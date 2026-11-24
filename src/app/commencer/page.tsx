@@ -18,7 +18,7 @@ import { MENTION_OBJECTIF, NON_AFFILIATION, ONBOARDING } from "@/lib/config";
 import { aAcces, modifier, sansOnboarding, useEtat } from "@/lib/etat";
 import { rafraichir } from "@/lib/serveur";
 import { ecrireReponses, effacerReponses, lireReponses, mettreEnAttente, videosPourHeures, type Reponses } from "@/lib/onboarding";
-import { reveiller } from "@/lib/sons";
+import { preparer, reveiller } from "@/lib/sons";
 import { suivre } from "@/lib/suivi";
 
 const ECRANS = ["accroche", "principe", "console", "tiktok", "objectif", "heures", "plan", "compte", "reseaux", "clips"] as const;
@@ -87,8 +87,12 @@ function Onboarding() {
   // Le son n'est permis qu'après un toucher : on le réveille dès le premier bouton.
   useEffect(() => {
     const go = () => reveiller();
+    const son = setTimeout(preparer, 900);
     window.addEventListener("click", go);
-    return () => window.removeEventListener("click", go);
+    return () => {
+      clearTimeout(son);
+      window.removeEventListener("click", go);
+    };
   }, []);
 
   const repondre = (x: Reponses) => {

@@ -36,7 +36,14 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
     let dernierK = -1;
     let derniereEtape = 0;
     const n = Math.min(urls.length, 5);
-    clips.current.slice(0, n).forEach((v) => v?.play().catch(() => {}));
+    const caler = (i: number) => {
+      const v = clips.current[i];
+      if (!v || (n > 1 && i === actif)) return;
+      const d = v.duration;
+      if (Number.isFinite(d) && d > 1) v.currentTime = Math.random() * (d - 0.8);
+    };
+    clips.current[0]?.play().catch(() => {});
+    caler(1 % Math.max(1, n));
 
     const tic = (t: number) => {
       if (arrete) return;
@@ -44,13 +51,11 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
       // Les coupes accélèrent vers la fin.
       if (n && t - t0 > prochaine && x < 0.97) {
         prochaine = t - t0 + 620 - x * 430;
+        // Une seule vidéo tourne à la fois. La suivante a déjà été calée au bon endroit, à l'arrêt.
+        clips.current[actif]?.pause();
         actif = (actif + 1) % n;
-        const v = clips.current[actif];
-        if (v) {
-          const d = v.duration;
-          if (Number.isFinite(d) && d > 1) v.currentTime = Math.random() * (d - 0.8);
-          if (v.paused) v.play().catch(() => {});
-        }
+        clips.current[actif]?.play().catch(() => {});
+        caler((actif + 1) % n);
         coupe();
         cadre.current?.animate([{ transform: "scale(1.03) rotate(1.1deg)" }, { transform: "none" }], { duration: 200, easing: "ease-out" });
       }
@@ -104,7 +109,7 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
           {/* Les clips tournent cachés : seul leur dessin est affiché */}
           <div className="pointer-events-none absolute h-px w-px overflow-hidden opacity-[0.01]" aria-hidden="true">
             {urls.slice(0, 5).map((u, i) => (
-              <video key={u} ref={(v) => { clips.current[i] = v; }} src={u} muted playsInline loop autoPlay preload="auto" />
+              <video key={u} ref={(v) => { clips.current[i] = v; }} src={u} muted playsInline loop preload="auto" />
             ))}
           </div>
 

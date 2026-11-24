@@ -21,7 +21,14 @@ const VERT = /* glsl */ `
   }`;
 
 /** Aplat à deux tons, avec un éclat blanc net. */
+const aplats = new Map<string, THREE.ShaderMaterial>();
 export function aplat(couleur: string, brillant = 1) {
+  const cle = `${couleur}-${brillant}`;
+  let m = aplats.get(cle);
+  if (!m) aplats.set(cle, (m = faireAplat(couleur, brillant)));
+  return m;
+}
+function faireAplat(couleur: string, brillant: number) {
   const c = new THREE.Color(couleur);
   return new THREE.ShaderMaterial({
     uniforms: { uC: { value: c }, uB: { value: brillant } },
@@ -109,10 +116,18 @@ export function arrondi(l: number, h: number, r: number) {
 }
 
 function epais(s: THREE.Shape | THREE.Shape[], profondeur: number, biseau: number, segments = 5) {
-  const g = new THREE.ExtrudeGeometry(s, { depth: profondeur, bevelEnabled: biseau > 0, bevelSize: biseau, bevelThickness: biseau, bevelOffset: -biseau, bevelSegments: segments, curveSegments: 18 });
+  const g = new THREE.ExtrudeGeometry(s, { depth: profondeur, bevelEnabled: biseau > 0, bevelSize: biseau, bevelThickness: biseau, bevelOffset: -biseau, bevelSegments: segments, curveSegments: 10 });
   g.translate(0, 0, -profondeur / 2);
   return toCreasedNormals(g, 0.5);
 }
+
+/* Deux objets pareils (clips, téléphones) partagent leurs formes. */
+const formes = new Map<string, THREE.BufferGeometry>();
+const une = <T extends THREE.BufferGeometry>(cle: string, f: () => T) => {
+  let g = formes.get(cle);
+  if (!g) formes.set(cle, (g = f()));
+  return g as T;
+};
 
 /** Une face plate avec des coordonnées d'image propres. */
 function face(l: number, h: number, r: number) {
@@ -132,7 +147,8 @@ export class Objet {
   h = 1;
   pieces: Record<string, THREE.Object3D> = {};
   private formes: THREE.BufferGeometry[] = [];
-  constructor() {
+  /** `famille` : la silhouette est calculée une fois pour tous les objets de la même famille. */
+  constructor(private famille = "") {
     this.racine.add(this.corps);
   }
   /** Ajoute une pièce. `contour` : elle compte dans la silhouette. */
@@ -142,7 +158,7 @@ export class Objet {
     m.rotation.set(o.rx ?? 0, o.ry ?? 0, o.rz ?? 0);
     this.corps.add(m);
     if (o.nom) this.pieces[o.nom] = m;
-    if (o.contour !== false) {
+    if (o.contour !== false && !formes.has(`silhouette-${this.famille}`)) {
       m.updateMatrix();
       const g = (geo.index ? geo.toNonIndexed() : geo.clone()).applyMatrix4(m.matrix);
       for (const k of Object.keys(g.attributes)) if (k !== "position") g.deleteAttribute(k);
@@ -155,7 +171,9 @@ export class Objet {
   finir(l: number, h: number) {
     this.l = l;
     this.h = h;
-    const g = mergeGeometries(this.formes);
+    const cle = `silhouette-${this.famille}`;
+    const g = formes.get(cle) ?? mergeGeometries(this.formes);
+    if (g && this.famille) formes.set(cle, g);
     if (g) {
       this.corps.add(new THREE.Mesh(g, noir));
       const o = new THREE.Mesh(g, ombre);
@@ -238,23 +256,23 @@ export function manette(decale: boolean) {
 
 /** Téléphone dont l'écran est exactement en 9:16 : la vidéo y tient entière. */
 export function telephone(couleur: string, definition: number) {
-  const o = new Objet();
+  const o = new Objet("telephone");
   const H = 16 / 9;
   const toile = Object.assign(document.createElement("canvas"), { width: definition, height: Math.round(definition * H) });
   const t = new THREE.CanvasTexture(toile);
   t.generateMipmaps = false;
   t.minFilter = THREE.LinearFilter;
-  o.poser(epais(arrondi(0.6, 1.03, 0.1), 0.04, 0.026, 6), aplat(couleur));
+  o.poser(une("t1", () => epais(arrondi(0.6, 1.03, 0.1), 0.04, 0.026, 6)), aplat(couleur));
   const z = 0.02 + 0.026;
-  const bord = face(0.548, 0.96, 0.072);
+  const bord = une("t5", () => face(0.548, 0.96, 0.072));
   o.poser(bord, new THREE.MeshBasicMaterial({ color: C.encre }), { z: z + 0.001, contour: false });
-  o.poser(face(0.5265, 0.936, 0.06), texte(t), { z: z + 0.003, contour: false });
+  o.poser(une("t6", () => face(0.5265, 0.936, 0.06)), texte(t), { z: z + 0.003, contour: false });
   const encoche = new THREE.ShapeGeometry(arrondi(0.12, 0.028, 0.014), 8);
   o.poser(encoche, new THREE.MeshBasicMaterial({ color: C.encre }), { y: 0.44, z: z + 0.005, contour: false });
-  o.poser(epais(arrondi(0.02, 0.12, 0.008), 0.02, 0.006), aplat(C.encre, 0.3), { x: 0.302, y: 0.2 });
-  o.poser(epais(arrondi(0.02, 0.07, 0.008), 0.02, 0.006), aplat(C.encre, 0.3), { x: -0.302, y: 0.26 });
+  o.poser(une("t2", () => epais(arrondi(0.02, 0.12, 0.008), 0.02, 0.006)), aplat(C.encre, 0.3), { x: 0.302, y: 0.2 });
+  o.poser(une("t3", () => epais(arrondi(0.02, 0.07, 0.008), 0.02, 0.006)), aplat(C.encre, 0.3), { x: -0.302, y: 0.26 });
   // Dos : appareil photo
-  o.poser(epais(arrondi(0.17, 0.17, 0.05), 0.02, 0.012), aplat(C.encre, 0.4), { x: 0.13, y: 0.37, z: -z - 0.005, contour: false });
+  o.poser(une("t4", () => epais(arrondi(0.17, 0.17, 0.05), 0.02, 0.012)), aplat(C.encre, 0.4), { x: 0.13, y: 0.37, z: -z - 0.005, contour: false });
   for (const [x, y] of [[0.1, 0.4], [0.16, 0.34]]) o.poser(new THREE.CylinderGeometry(0.03, 0.03, 0.02, 20), aplat(C.turquoise), { x, y, z: -z - 0.028, rx: Math.PI / 2, contour: false });
   const fini = o.finir(0.62, 1.05);
   return Object.assign(fini, { toile, texture: t });
@@ -262,20 +280,20 @@ export function telephone(couleur: string, definition: number) {
 
 /** Un clip : une petite image 16:9 épaisse. */
 export function clip(couleur: string, peindre: (g: CanvasRenderingContext2D) => void) {
-  const o = new Objet();
+  const o = new Objet("clip");
   const toile = Object.assign(document.createElement("canvas"), { width: 480, height: 270 });
   peindre(toile.getContext("2d")!);
   const t = new THREE.CanvasTexture(toile);
   t.generateMipmaps = false;
   t.minFilter = THREE.LinearFilter;
-  o.poser(epais(arrondi(1.06, 0.64, 0.1), 0.05, 0.03), aplat(couleur));
-  o.poser(face(0.94, 0.52, 0.06), texte(t), { z: 0.058, contour: false });
-  o.poser(new THREE.CylinderGeometry(0.115, 0.115, 0.03, 32), aplat(C.blanc, 0), { z: 0.07, rx: Math.PI / 2, contour: false });
+  o.poser(une("c7", () => epais(arrondi(1.06, 0.64, 0.1), 0.05, 0.03)), aplat(couleur));
+  o.poser(une("c8", () => face(0.94, 0.52, 0.06)), texte(t), { z: 0.058, contour: false });
+  o.poser(une("c90", () => new THREE.CylinderGeometry(0.115, 0.115, 0.03, 28)), aplat(C.blanc, 0), { z: 0.07, rx: Math.PI / 2, contour: false });
   const tri = new THREE.Shape();
   tri.moveTo(-0.035, 0.055);
   tri.lineTo(0.06, 0);
   tri.lineTo(-0.035, -0.055);
-  o.poser(epais(tri, 0.01, 0.006), aplat(C.encre, 0), { z: 0.095, contour: false });
+  o.poser(une("c91", () => epais(tri, 0.01, 0.006)), aplat(C.encre, 0), { z: 0.095, contour: false });
   const fini = o.finir(1.1, 0.68);
   return Object.assign(fini, { toile, texture: t });
 }
@@ -286,7 +304,7 @@ export function pieces() {
   const o = new Objet();
   const R = 0.1;
   const E = 0.036;
-  const cyl = new THREE.CylinderGeometry(R, R, E, 36);
+  const cyl = new THREE.CylinderGeometry(R, R, E, 26);
   const bord = mergeVertices(
     (() => {
       const g = cyl.toNonIndexed();
@@ -297,7 +315,7 @@ export function pieces() {
     1e-4,
   );
   bord.computeVertexNormals();
-  const disque = new THREE.CylinderGeometry(R * 0.72, R * 0.72, E * 1.12, 36);
+  const disque = new THREE.CylinderGeometry(R * 0.72, R * 0.72, E * 1.12, 22);
   const anneau = new THREE.RingGeometry(R * 0.27, R * 0.4, 24, 1, 0.75, Math.PI * 2 - 1.5);
   const b1 = new THREE.PlaneGeometry(R * 0.42, R * 0.085).translate(-R * 0.22, R * 0.085, 0);
   const b2 = new THREE.PlaneGeometry(R * 0.42, R * 0.085).translate(-R * 0.22, -R * 0.085, 0);
