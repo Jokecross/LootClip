@@ -9,8 +9,8 @@ const bricolage = Bricolage_Grotesque({ subsets: ["latin"], weight: ["700", "800
 const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-dmsans", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "XPclip · Tes clips. Ton loot.",
-  description: "Dépose tes captures PS5. XPclip les assemble en vidéos de plus d'une minute, prêtes pour TikTok.",
+  title: "XPclip · Tes parties de GTA 6 peuvent te payer",
+  description: "Joue à GTA 6 sur ta PS5 ou ta Xbox. XPclip transforme tes propres clips en vidéos prêtes à poster.",
   applicationName: "XPclip",
   appleWebApp: { capable: true, title: "XPclip", statusBarStyle: "default" },
   formatDetection: { telephone: false },

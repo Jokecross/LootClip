@@ -30,6 +30,77 @@ function palier(objectif: number) {
  */
 type Parties = { gauche: React.ReactNode; droite: React.ReactNode; fond?: string };
 
+export const MENTION_PRINCIPE = "Tout dépend de tes vues. Aucun revenu n'est garanti.";
+
+/** Le principe, avant les questions : ce sont ses parties à lui, pas les vidéos des autres. */
+export function ecranPrincipe(): Parties {
+  const etapes = [
+    { titre: "Tu joues à GTA 6", texte: "Sur ta PS5 ou ta Xbox.", fond: "bg-turquoise", image: <Manette sticks="bas" /> },
+    { titre: "Tu gardes tes meilleurs moments", texte: "Un bouton sur ta manette.", fond: "bg-jaune", image: <Dessin nom="capture" /> },
+    { titre: "XPclip monte tes vidéos", texte: "Prêtes en une minute environ.", fond: "bg-orange", image: <Dessin nom="montage" /> },
+    { titre: "Tu postes, tes vues peuvent payer", texte: "Sur TikTok et Instagram.", fond: "bg-rose", image: <Dessin nom="vues" /> },
+  ];
+  return {
+    gauche: (
+      <>
+        <span className="pastille w-fit bg-turquoise lg:min-h-9 lg:px-4 lg:text-[16px]">100 % tes propres clips</span>
+        <div className="mt-3 lg:mt-6">
+          <Titre sous="Pas de vidéo YouTube reprise. Que tes parties à toi.">
+            Ton jeu. <br className="hidden lg:block" />
+            Tes clips. <br className="hidden lg:block" />
+            Ton argent.
+          </Titre>
+        </div>
+      </>
+    ),
+    droite: (
+      <ol className="flex flex-col gap-2.5 lg:min-h-0 lg:flex-1 lg:gap-5">
+        {etapes.map((e, i) => (
+          <li key={e.titre} className={`surgit carte-forte flex items-center gap-3.5 bg-blanc p-3 max-lg:[@media(max-height:720px)]:py-1.5 lg:min-h-0 lg:flex-1 lg:gap-7 lg:rounded-3xl lg:px-7 lg:py-3 lg:shadow-[0_6px_0_var(--color-encre)]`} style={{ "--d": `${250 + i * 420}ms` } as React.CSSProperties}>
+            <span className={`grid h-16 w-16 shrink-0 place-items-center rounded-2xl border-2 border-encre p-2 max-lg:[@media(max-height:720px)]:h-12 max-lg:[@media(max-height:720px)]:w-12 max-lg:[@media(max-height:720px)]:rounded-xl max-lg:[@media(max-height:720px)]:p-1.5 lg:h-[min(13vh,128px)] lg:w-[min(13vh,128px)] lg:rounded-3xl lg:p-3 ${e.fond}`}>{e.image}</span>
+            <span className="min-w-0">
+              <span className="titre block text-[19px] lg:text-[clamp(26px,2.5vw,46px)]">
+                {i + 1}. {e.titre}
+              </span>
+              <span className="mt-1 block text-[13px] text-encre2 lg:mt-2 lg:text-[clamp(16px,1.3vw,22px)]">{e.texte}</span>
+            </span>
+          </li>
+        ))}
+      </ol>
+    ),
+    fond: "lg:bg-nuit2",
+  };
+}
+
+function Dessin({ nom }: { nom: "capture" | "montage" | "vues" }) {
+  const t = { stroke: "var(--color-encre)", strokeWidth: 5, strokeLinejoin: "round" as const, strokeLinecap: "round" as const };
+  return (
+    <svg viewBox="0 0 100 100" className="block h-full w-full" aria-hidden="true">
+      {nom === "capture" && (
+        <>
+          <path d="M12 30V12h18M70 12h18v18M88 70v18H70M30 88H12V70" fill="none" {...t} strokeWidth={7} />
+          <circle cx="50" cy="50" r="21" fill="var(--color-rose)" {...t} />
+        </>
+      )}
+      {nom === "montage" && (
+        <>
+          <rect x="28" y="6" width="44" height="88" rx="10" fill="var(--color-blanc)" {...t} />
+          <path d="M42 36l20 14-20 14z" fill="var(--color-rose)" {...t} />
+          <path d="M8 38v24M92 38v24" {...t} strokeWidth={8} />
+        </>
+      )}
+      {nom === "vues" && (
+        <>
+          <rect x="10" y="60" width="20" height="30" rx="5" fill="var(--color-turquoise)" {...t} />
+          <rect x="40" y="42" width="20" height="48" rx="5" fill="var(--color-jaune)" {...t} />
+          <rect x="70" y="18" width="20" height="72" rx="5" fill="var(--color-blanc)" {...t} />
+          <path d="M12 38L46 10M46 10H30M46 10v15" fill="none" {...t} strokeWidth={6} />
+        </>
+      )}
+    </svg>
+  );
+}
+
 export function ecranConsole({ r, repondre }: Props): Parties {
   return {
     gauche: <Titre sous="Le tutoriel s'adapte à ta console.">Tu joues sur quoi ?</Titre>,
@@ -153,7 +224,7 @@ export function ecranPlan({ objectif, frequence }: { objectif: number; frequence
     droite: (
       <div className="mt-5 flex flex-col gap-3.5 max-lg:[@media(max-height:720px)]:mt-3 lg:mt-0 lg:min-h-0 lg:flex-1 lg:gap-6">
         <div className={`${carte} bg-turquoise lg:flex-1`} style={apparait(250)}>
-          <p className={petit}>Tu postes</p>
+          <p className={petit}>Tu postes tes clips</p>
           <p className={gros}>{videos(p.parMois)}</p>
           <p className={note}>par mois, {frequence} par semaine</p>
         </div>

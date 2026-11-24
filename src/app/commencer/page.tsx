@@ -1,12 +1,12 @@
 "use client";
 /*
- * Onboarding en 8 écrans. L'écran des offres s'affiche après la création du compte, avant le dépôt des clips.
+ * Onboarding en 9 écrans. L'écran des offres s'affiche après la création du compte, avant le dépôt des clips.
  * Une action par écran, bouton principal en bas, barre de progression en haut, retour possible.
  * L'étape est dans l'adresse (?e=3) : le bouton retour du téléphone marche aussi.
  */
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
-import { ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranTiktok, REPERE_HEURES } from "@/components/onboarding/Ecrans";
+import { ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
 import { PanneauHero } from "@/components/onboarding/PanneauHero";
 import { FormulaireCompte } from "@/components/compte/FormulaireCompte";
 import { Paywall } from "@/components/app/Paywall";
@@ -20,14 +20,16 @@ import { ecrireReponses, effacerReponses, lireReponses, mettreEnAttente, videosP
 import { reveiller } from "@/lib/sons";
 import { suivre } from "@/lib/suivi";
 
-const ECRANS = ["accroche", "console", "tiktok", "objectif", "heures", "plan", "compte", "clips"] as const;
+const ECRANS = ["accroche", "principe", "console", "tiktok", "objectif", "heures", "plan", "compte", "clips"] as const;
 const TOTAL = ECRANS.length;
+const COMPTE = ECRANS.indexOf("compte") + 1;
+const CLIPS = ECRANS.indexOf("clips") + 1;
 
 function premiereManquante(r: Reponses) {
-  if (!r.plateforme) return 2;
-  if (!r.tiktok) return 3;
-  if (!r.objectif) return 4;
-  if (!r.frequence) return 5;
+  if (!r.plateforme) return ECRANS.indexOf("console") + 1;
+  if (!r.tiktok) return ECRANS.indexOf("tiktok") + 1;
+  if (!r.objectif) return ECRANS.indexOf("objectif") + 1;
+  if (!r.frequence) return ECRANS.indexOf("heures") + 1;
   return null;
 }
 
@@ -50,16 +52,16 @@ function Onboarding() {
   useEffect(() => {
     if (!pret || !etat.charge) return;
     if (etat.compte && !aRepondre) {
-      if (n < 7) router.replace("/app/creer");
-      if (n === 7) router.replace("/commencer?e=8");
+      if (n < COMPTE) router.replace("/app/creer");
+      if (n === COMPTE) router.replace(`/commencer?e=${CLIPS}`);
       return;
     }
     const lu = lireReponses();
     const manque = premiereManquante(lu);
     if (manque && n > manque) return router.replace(`/commencer?e=${manque}`);
-    if (!etat.compte && n === 8) return router.replace("/commencer?e=7");
+    if (!etat.compte && n === CLIPS) return router.replace(`/commencer?e=${COMPTE}`);
     // Déjà connecté (Google) : pas de compte à créer, les réponses vont dans le profil, puis les offres.
-    if (etat.compte && n >= 7) {
+    if (etat.compte && n >= COMPTE) {
       const profil = { plateforme: lu.plateforme!, objectif: lu.objectif!, tiktok: lu.tiktok!, frequence: lu.frequence! };
       modifier((e) => ({ ...e, compte: e.compte ? { ...e.compte, plateforme: profil.plateforme, profil } : e.compte }));
       effacerReponses();
@@ -94,11 +96,11 @@ function Onboarding() {
   const suivant = () => router.push(`/commencer?e=${n + 1}`);
   const retour = () => (window.history.length > 1 ? router.back() : router.replace(n > 1 ? `/commencer?e=${n - 1}` : "/"));
 
-  /** Compte créé : les réponses vont dans le profil (serveur.ts), puis écran 8. */
+  /** Compte créé : les réponses vont dans le profil (serveur.ts), puis les offres. */
   async function creerCompte() {
     await rafraichir();
     suivre("inscription", { methode: "email" });
-    router.replace("/commencer?e=8");
+    router.replace(`/commencer?e=${CLIPS}`);
   }
 
   function aDesClips(fichiers: FileList | null) {
@@ -117,10 +119,10 @@ function Onboarding() {
     router.push("/app/demarrage");
   }
 
-  if (!pret || (etat.compte && (n === 7 || (n === 8 && aRepondre)))) return <div className="min-h-dvh bg-fond" />;
+  if (!pret || (etat.compte && (n === COMPTE || (n === CLIPS && aRepondre)))) return <div className="min-h-dvh bg-fond" />;
 
   // Onboarding terminé : l'écran des offres, puis les clips une fois l'abonnement pris.
-  if (n === 8 && etat.compte && !aAcces(etat)) return <Paywall ouvert moment="entree" apresPaiement={() => {}} />;
+  if (n === CLIPS && etat.compte && !aAcces(etat)) return <Paywall ouvert moment="entree" apresPaiement={() => {}} />;
 
   const objectif = r.objectif ?? 0;
 
@@ -146,8 +148,8 @@ function Onboarding() {
                 className="block h-auto w-full"
               />
             </div>
-            <h1 className="titre mt-7 text-[40px] lg:mt-0 lg:text-[clamp(52px,5.6vw,104px)]">Ta manette peut devenir un salaire.</h1>
-            <p className="mt-3 text-[16px] leading-snug text-encre2 lg:mt-7 lg:max-w-[28ch] lg:text-[clamp(20px,1.7vw,30px)]">Tes clips GTA 6, montés pour TikTok en quelques minutes.</p>
+            <h1 className="titre mt-7 text-[40px] lg:mt-0 lg:text-[clamp(52px,5.6vw,104px)]">Tes parties de GTA 6 peuvent te payer.</h1>
+            <p className="mt-3 text-[16px] leading-snug text-encre2 lg:mt-7 lg:max-w-[28ch] lg:text-[clamp(20px,1.7vw,30px)]">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
           </>
         ),
         droite: <PanneauHero />,
@@ -160,6 +162,12 @@ function Onboarding() {
           <p className="mt-2 text-center text-[11px] text-encre2">{NON_AFFILIATION}</p>
         </>
       );
+      break;
+
+    case "principe":
+      contenu = ecranPrincipe();
+      action = { libelle: "C'est parti", faire: suivant, actif: true };
+      pied = <p className="mt-3 text-center text-[11px] text-encre2">{MENTION_PRINCIPE}</p>;
       break;
 
     case "console":
@@ -194,7 +202,7 @@ function Onboarding() {
         gauche: <Titre sous="Pour garder ton plan et tes vidéos.">Crée ton compte.</Titre>,
         droite: (
           <div className="flex flex-1 flex-col lg:m-auto lg:w-full lg:max-w-[560px] lg:flex-none lg:rounded-3xl lg:border-2 lg:border-encre lg:bg-fond lg:p-10 lg:shadow-[0_6px_0_var(--color-encre)]">
-            <FormulaireCompte mode="inscription" retour="/commencer?e=8" valider={creerCompte} />
+            <FormulaireCompte mode="inscription" retour={`/commencer?e=${CLIPS}`} valider={creerCompte} />
           </div>
         ),
         fond: "lg:bg-rose",
@@ -234,7 +242,7 @@ function Onboarding() {
     <Duo
       cle={n}
       marque={n !== 1}
-      entete={n === 1 ? <Logo taille={30} /> : <Entete n={n} total={TOTAL} retour={n < 8 && !(etat.compte && n === 2) ? retour : undefined} />}
+      entete={n === 1 ? <Logo taille={30} /> : <Entete n={n} total={TOTAL} retour={n < CLIPS && !(etat.compte && n === 2) ? retour : undefined} />}
       {...contenu}
       action={
         action && (

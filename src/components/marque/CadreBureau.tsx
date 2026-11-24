@@ -34,7 +34,7 @@ export function CadreBureau({ children, accroche = true }: { children: React.Rea
               className="block h-auto w-full"
             />
           </div>
-          {accroche && <p className="titre mt-12 max-w-[14ch] text-[52px] text-fond xl:text-[60px]">Ta manette peut devenir un salaire.</p>}
+          {accroche && <p className="titre mt-12 max-w-[14ch] text-[52px] text-fond xl:text-[60px]">Tes parties de GTA 6 peuvent te payer.</p>}
           <ul className={`flex flex-wrap gap-2.5 ${accroche ? "mt-7" : "mt-12"}`} aria-label="En bref">
             {ETIQUETTES.map((e) => (
               <li key={e.texte} className={`pastille px-3.5 py-1.5 text-[14px] text-encre shadow-[0_3px_0_rgb(0_0_0/0.45)] ${e.fond} ${e.angle}`}>

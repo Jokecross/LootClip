@@ -7,7 +7,7 @@ SaaS mobile-first en français : les captures GTA 6 d'un joueur console devienne
 - `npm run typecheck`, `npm run build`.
 
 ## Où sont les choses
-- Landing : `src/app/page.tsx` + `src/components/landing/`. Onboarding 8 écrans : `src/app/commencer/`. Tarifs : `src/app/tarifs/` + `src/components/tarifs/`.
+- Landing : `src/app/page.tsx` + `src/components/landing/`. Onboarding 9 écrans : `src/app/commencer/`. Tarifs : `src/app/tarifs/` + `src/components/tarifs/`.
 - Appli : `src/app/app/` (creer, video/[id], videos, progression, compte, demarrage = tutoriel).
 - Réglages chiffrés (offres, limites, taux, seuils, mentions) : `src/lib/config.ts` uniquement.
 - Illustrations originales en SVG : `src/components/illus/Illus.tsx` (emplacements d'image remplaçables).

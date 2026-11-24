@@ -6,12 +6,14 @@ import { PiedDePage } from "@/components/PiedDePage";
 import { GrilleTarifs } from "@/components/tarifs/GrilleTarifs";
 
 const ETAPES = [
-  { titre: "Joue et capture", texte: "Un appui sur la manette après chaque bon moment.", fond: "bg-jaune" },
-  { titre: "Dépose tes clips", texte: "Depuis la galerie de ton téléphone.", fond: "bg-orange" },
-  { titre: "Poste ta vidéo", texte: "Montée en 9:16, légende et hashtags prêts à coller.", fond: "bg-turquoise" },
+  { titre: "Joue à GTA 6", texte: "Un appui sur ta manette garde chaque bon moment.", fond: "bg-jaune" },
+  { titre: "Dépose tes clips", texte: "Les tiens, ceux de ta console. XPclip les monte.", fond: "bg-orange" },
+  { titre: "Poste ta vidéo", texte: "Plus tu fais de vues, plus ça peut rapporter.", fond: "bg-turquoise" },
 ];
 
 const FAQ = [
+  { q: "Comment mes parties peuvent me payer ?", r: "Tu postes tes vidéos sur tes propres comptes. Plus elles font de vues, plus elles peuvent rapporter. Le montant dépend de tes vues : rien n'est garanti." },
+  { q: "C'est du clipping ?", r: "Non. Le clipping reprend les vidéos des autres. Ici, tu postes tes propres parties, jouées sur ta console." },
   {
     q: "Comment je sors mes clips de la PS5 ?",
     r: "Tu actives l'envoi automatique des captures. Tes clips arrivent dans l'appli PlayStation de ton téléphone. Tu les enregistres dans ta galerie, puis tu les déposes ici. Sur Xbox, c'est pareil avec l'appli Xbox.",
@@ -70,9 +72,9 @@ export default function Accueil() {
           <div className="mt-8 grid items-center gap-8 lg:mt-20 lg:grid-cols-[1fr_1.12fr] lg:gap-16">
             <div className="entree">
               <span className="pastille bg-turquoise lg:text-[14px]">Pour les joueurs PS5 et Xbox</span>
-              <h1 className="titre mt-4 text-[44px] sm:text-[64px] lg:mt-6 lg:text-[76px] xl:text-[84px]">Ta manette peut devenir un salaire.</h1>
+              <h1 className="titre mt-4 text-[44px] sm:text-[64px] lg:mt-6 lg:text-[76px] xl:text-[84px]">Tes parties de GTA 6 peuvent te payer.</h1>
               <p className="mt-4 max-w-[34ch] text-[17px] leading-snug text-encre2 lg:mt-6 lg:text-[21px]">
-                Tes clips GTA 6, montés pour TikTok en quelques minutes.
+                Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.
               </p>
               <div id="cta-hero" className="mt-6 sm:max-w-[380px] lg:mt-9">
                 <Link href="/commencer" className="bouton bouton-rose w-full lg:h-[60px] lg:text-[19px]">
@@ -102,7 +104,7 @@ export default function Accueil() {
         {/* 2. Trois étapes */}
         <Section fond="bg-blanc" id="t-etapes">
           <h2 id="t-etapes" className={TITRE_SECTION}>
-            Trois étapes, cinq minutes.
+            Ton jeu, tes clips, tes vidéos.
           </h2>
           <ol className="mt-6 flex flex-col gap-3 lg:mt-12 lg:grid lg:grid-cols-3 lg:gap-6">
             {ETAPES.map((e, i) => (

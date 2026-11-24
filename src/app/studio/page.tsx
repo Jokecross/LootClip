@@ -6,7 +6,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/marque/Logo";
-import { ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranTiktok, REPERE_HEURES } from "@/components/onboarding/Ecrans";
+import { ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
 import { PanneauHero } from "@/components/onboarding/PanneauHero";
 import { Confettis } from "@/components/studio/Confettis";
 import { Montage } from "@/components/studio/Montage";
@@ -23,7 +23,7 @@ import { bravo, envol, pop, reveiller, tampon } from "@/lib/sons";
 import { ecrireReglages, garderVideo, lireReglages, pseudoAuHasard, lireVideo, REGLAGES_DEFAUT, type Reglages } from "@/lib/studio";
 import { supabase } from "@/lib/supabase";
 
-const SUITE = ["regie", "accroche", "console", "tiktok", "objectif", "heures", "plan", "clips", "style", "montage", "resultat", "publier", "fin"] as const;
+const SUITE = ["regie", "accroche", "principe", "console", "tiktok", "objectif", "heures", "plan", "clips", "style", "montage", "resultat", "publier", "fin"] as const;
 type Etape = (typeof SUITE)[number];
 const QUESTIONS: Etape[] = ["console", "tiktok", "objectif", "heures", "plan"];
 
@@ -281,10 +281,10 @@ function Plateau() {
               <img src="/visuels/hero-900.jpg" width={1672} height={941} alt="" className="block h-auto w-full" />
             </div>
             <h1 className="surgit titre mt-8 text-[46px] lg:mt-0 lg:text-[clamp(52px,5.6vw,104px)]" style={{ "--d": "160ms" } as React.CSSProperties}>
-              Ta manette peut devenir un salaire.
+              Tes parties de GTA 6 peuvent te payer.
             </h1>
             <p className="surgit mt-3 text-[17px] leading-snug text-encre2 lg:mt-7 lg:max-w-[28ch] lg:text-[clamp(20px,1.7vw,30px)]" style={{ "--d": "320ms" } as React.CSSProperties}>
-              Tes clips GTA 6, montés pour TikTok en quelques minutes.
+              Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.
             </p>
           </div>
         ),
@@ -293,6 +293,12 @@ function Plateau() {
       };
       bouton = { libelle: "Commencer", faire: suivant };
       pied = <p className="mt-3 text-center text-[11px] text-encre2">{NON_AFFILIATION}</p>;
+      break;
+
+    case "principe":
+      contenu = ecranPrincipe();
+      bouton = { libelle: "C'est parti", faire: suivant };
+      pied = <p className="mt-3 text-center text-[11px] text-encre2">{MENTION_PRINCIPE}</p>;
       break;
 
     case "console":
@@ -322,8 +328,8 @@ function Plateau() {
       contenu = {
         gauche: (
           <>
-            <h1 className="titre text-[34px] lg:text-[clamp(52px,5.2vw,96px)]">Dépose tes clips.</h1>
-            <p className="mt-2 text-[15px] text-encre2 lg:mt-6 lg:text-[clamp(18px,1.5vw,26px)]">{clips.length ? `${dureeLisible(total)} de jeu.` : <><span className="lg:hidden">Directement depuis ta galerie.</span><span className="hidden lg:inline">Directement depuis ton ordinateur.</span></>}</p>
+            <h1 className="titre text-[34px] lg:text-[clamp(52px,5.2vw,96px)]">Dépose tes clips{r.plateforme ? ` ${r.plateforme === "xbox" ? "Xbox" : "PS5"}` : ""}.</h1>
+            <p className="mt-2 text-[15px] text-encre2 lg:mt-6 lg:text-[clamp(18px,1.5vw,26px)]">{clips.length ? `${dureeLisible(total)} de ton jeu.` : "Tes parties, enregistrées avec ta manette."}</p>
           </>
         ),
         droite: (
@@ -431,8 +437,8 @@ function Plateau() {
             <Confettis />
             <h1 className="surgit titre text-center text-[38px] lg:text-left lg:text-[clamp(60px,6.4vw,120px)]">Ta vidéo est prête.</h1>
             <div className="order-2 mt-5 flex flex-wrap justify-center gap-2 lg:order-none lg:mt-9 lg:justify-start lg:gap-3.5">
-              {["9:16", "1080 × 1920", STYLES[style].nom].map((t, i) => (
-                <span key={t} className={`pastille surgit lg:min-h-11 lg:px-5 lg:text-[18px] ${["bg-turquoise", "bg-jaune", "bg-rose"][i]}`} style={{ "--d": `${400 + i * 120}ms` } as React.CSSProperties}>
+              {["100 % ton jeu", "9:16", "1080 × 1920", STYLES[style].nom].map((t, i) => (
+                <span key={t} className={`pastille surgit lg:min-h-11 lg:px-5 lg:text-[18px] ${["bg-turquoise", "bg-jaune", "bg-rose", "bg-orange"][i]}`} style={{ "--d": `${400 + i * 120}ms` } as React.CSSProperties}>
                   {t}
                 </span>
               ))}
