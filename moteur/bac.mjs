@@ -85,7 +85,7 @@ try {
     accroche: t.accroche,
     filigrane: t.filigrane,
     style: t.style,
-    format: "zoom",
+    format: "flou",
     progres: (etape, a) => {
       const avancement = 0.15 + a * 0.8;
       if (etape === derniereEtape && avancement - dernier < 0.04 && a < 1) return;

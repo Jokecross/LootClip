@@ -105,7 +105,7 @@ async function traiter(m) {
       accroche: m.accroche || m.titre || "",
       filigrane: m.filigrane,
       style: m.style,
-      format: "zoom",
+      format: "flou",
       progres: (etape, a) => {
         const avancement = 0.15 + a * 0.8;
         // Une écriture à chaque nouvelle étape, sinon au plus tous les 4 %

@@ -1,6 +1,6 @@
 "use client";
 /*
- * Le montage mis en scène : les clips du joueur défilent et se coupent dans un cadre 9:16, plein écran comme le vrai rendu.
+ * Le montage mis en scène : les clips du joueur défilent et se coupent dans un cadre 9:16, image entière sur fond flouté comme le vrai rendu.
  * La durée est raccourcie (réglage du studio), d'où la mention « Séquence accélérée ».
  */
 import { useEffect, useRef, useState } from "react";
@@ -15,6 +15,7 @@ const COULEURS = ["bg-rose", "bg-jaune", "bg-turquoise", "bg-orange"];
 export function Montage({ entete, urls, titre, secondes, fini }: { entete: React.ReactNode; urls: string[]; titre: string; secondes: number; fini: () => void }) {
   const clips = useRef<(HTMLVideoElement | null)[]>([]);
   const net = useRef<HTMLCanvasElement>(null);
+  const flou = useRef<HTMLCanvasElement>(null);
   const eclair = useRef<HTMLSpanElement>(null);
   const cadre = useRef<HTMLDivElement>(null);
   const [k, setK] = useState(0);
@@ -51,12 +52,17 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
       }
       const v = clips.current[actif];
       const gn = net.current?.getContext("2d");
-      if (v && v.readyState >= 2 && gn) {
+      const gf = flou.current?.getContext("2d");
+      if (v && v.readyState >= 2 && gn && gf) {
         const L = v.videoWidth;
         const H = v.videoHeight;
         const c = gn.canvas;
-        const e = Math.max(c.width / L, c.height / H);
+        const e = Math.min(c.width / L, c.height / H);
+        gn.clearRect(0, 0, c.width, c.height);
         gn.drawImage(v, (c.width - L * e) / 2, (c.height - H * e) / 2, L * e, H * e);
+        const f = gf.canvas;
+        const b = Math.max(f.width / L, f.height / H);
+        gf.drawImage(v, (f.width - L * b) / 2, (f.height - H * b) / 2, L * b, H * b);
       }
       const m = Math.min(MORCEAUX, Math.floor(x * MORCEAUX * 1.02));
       if (m !== morceau) {
@@ -117,6 +123,7 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
         <>
           <div className="relative my-4 flex min-h-0 w-full flex-1 items-center justify-center lg:my-0">
             <div ref={cadre} className="carte-forte relative aspect-[9/16] h-[60dvh] max-h-[640px] min-h-[280px] overflow-hidden bg-encre shadow-[0_6px_0_var(--color-encre)] lg:h-[min(64dvh,900px)] lg:max-h-none lg:rounded-3xl">
+              <canvas ref={flou} width={18} height={32} className="absolute inset-0 h-full w-full scale-125 opacity-80 blur-md" />
               <canvas ref={net} width={540} height={960} className="absolute inset-0 h-full w-full" />
               {titre && k > 48 && (
                 <span className="surgit absolute inset-x-3 top-[11%] text-center">

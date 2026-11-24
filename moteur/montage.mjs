@@ -5,7 +5,7 @@
  *
  * 1. Analyse   : niveau sonore (toutes les 0,5 s) et mouvement à l'image (4 fois par seconde).
  * 2. Sélection : les passages les plus intenses, au moins un par clip, le plus fort en ouverture.
- * 3. Rendu     : découpe, recadrage 9:16 plein écran (ou image entière sur fond flouté),
+ * 3. Rendu     : découpe, passage en 9:16 (image entière sur fond flouté, ou plein écran),
  *                accroche écrite les 3 premières secondes, filigrane en offre gratuite,
  *                son du jeu remis au niveau TikTok (-14 LUFS), encodage H.264 + AAC.
  */
@@ -54,9 +54,15 @@ export const REGLAGES = {
 /* ---------- 1. Analyse ---------- */
 
 async function sonder(fichier) {
-  const { stdout } = await exec(FFPROBE, ["-v", "error", "-show_entries", "format=duration:stream=codec_type", "-of", "json", fichier]);
+  const { stdout } = await exec(FFPROBE, ["-v", "error", "-show_entries", "format=duration:stream=codec_type,width,height,sample_aspect_ratio:stream_side_data=rotation:stream_tags=rotate", "-of", "json", fichier]);
   const j = JSON.parse(stdout);
-  return { duree: Number(j.format.duration), son: j.streams.some((s) => s.codec_type === "audio") };
+  const v = j.streams.find((s) => s.codec_type === "video" && s.width && s.height);
+  // Proportions telles qu'affichées : pixels non carrés et vidéos tournées compris.
+  const [n, d] = (v?.sample_aspect_ratio ?? "1:1").split(":").map(Number);
+  let ratio = v ? (v.width * (n > 0 && d > 0 ? n / d : 1)) / v.height : 16 / 9;
+  const tour = Math.abs(Number(v?.side_data_list?.find((x) => x.rotation !== undefined)?.rotation ?? v?.tags?.rotate ?? 0)) % 180;
+  if (tour === 90) ratio = 1 / ratio;
+  return { duree: Number(j.format.duration), son: j.streams.some((s) => s.codec_type === "audio"), ratio };
 }
 
 /** Niveau sonore RMS (dB) toutes les 0,5 s. */
@@ -218,7 +224,7 @@ function mouvement(i, s, style) {
   return i % 2 ? `1.08-0.08*on/${n}` : `1+0.08*on/${n}`;
 }
 
-function filtreImage(i, format, s, style) {
+function filtreImage(i, format, s, style, ratio) {
   const { largeur: L, hauteur: H, ips } = REGLAGES;
   const z = mouvement(i, s, style);
   const camera = (l, h) => `zoompan=z='${z}':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=${l}x${h}:fps=${ips}`;
@@ -229,17 +235,20 @@ function filtreImage(i, format, s, style) {
       : i > 0
         ? `,fade=t=in:st=0:d=${style === "drole" ? "0.07" : "0.12"}:color=white`
         : "";
-  // Toujours remplir puis couper ce qui dépasse : l'image n'est jamais étirée, quel que soit le sens du clip.
+  // Remplir puis couper ce qui dépasse : l'image n'est jamais étirée.
   const remplir = (l, h) => `scale=${l}:${h}:force_original_aspect_ratio=increase:flags=lanczos,crop=${l}:${h},setsar=1`;
   const pair = (x) => Math.round(x / 2) * 2;
   const carre = "scale='trunc(iw*sar/2)*2':'trunc(ih/2)*2',setsar=1";
   if (format === "flou") {
-    const h = pair((L * 9) / 16);
+    // L'image entière, dans ses proportions d'origine (horizontale ou verticale), posée au centre du fond flouté.
+    const l = pair(Math.min(L, H * ratio));
+    const h = pair(Math.min(H, L / ratio));
+    const agrandi = h > 1000 ? 1.25 : 1.5;
     return (
       `[${i}:v]fps=${ips},${carre},split=2[f${i}][b${i}];` +
       `[b${i}]scale=270:480:force_original_aspect_ratio=increase,crop=270:480,boxblur=10:2,scale=${L}:${H},eq=brightness=-0.10:saturation=1.15[bb${i}];` +
-      // On travaille 1,5 fois plus grand pour un zoom fluide, puis on revient à 1080 de large.
-      `[f${i}]${remplir(L * 1.5, pair(h * 1.5))},${camera(L, h)}[ff${i}];` +
+      // On travaille plus grand pour un zoom fluide, puis on revient à la taille finale.
+      `[f${i}]${remplir(pair(l * agrandi), pair(h * agrandi))},${camera(l, h)}[ff${i}];` +
       `[bb${i}][ff${i}]overlay=(W-w)/2:(H-h)/2,setsar=1,format=yuv420p${flash}[v${i}];`
     );
   }
@@ -264,7 +273,7 @@ function filtreSon(i, s, son) {
  * @param {"zoom"|"flou"} o.format recadrage vertical
  * @param {(etape:number, avancement:number)=>void} [o.progres]
  */
-export async function monter({ clips, sortie, duree = 60, accroche, filigrane = true, format = "zoom", style: demande = "defi", progres = () => {} }) {
+export async function monter({ clips, sortie, duree = 60, accroche, filigrane = true, format = "flou", style: demande = "defi", progres = () => {} }) {
   const debut = Date.now();
   progres(0, 0.02);
   const analyses = await Promise.all(clips.map(analyser));
@@ -293,7 +302,7 @@ export async function monter({ clips, sortie, duree = 60, accroche, filigrane = 
 
     let graphe = "";
     plan.forEach((s, i) => {
-      graphe += filtreImage(i, format, s, style);
+      graphe += filtreImage(i, format, s, style, analyses[s.k].ratio);
       graphe += filtreSon(i, s, analyses[s.k].son);
     });
     graphe += plan.map((_, i) => `[v${i}][a${i}]`).join("") + `concat=n=${plan.length}:v=1:a=1[vc][ac];`;

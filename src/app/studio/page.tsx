@@ -11,6 +11,7 @@ import { PanneauHero } from "@/components/onboarding/PanneauHero";
 import { Confettis } from "@/components/studio/Confettis";
 import { Montage } from "@/components/studio/Montage";
 import { Bientot, nomsReseaux, PictoReseau, Publier, type Depart } from "@/components/studio/Publier";
+import { VideoPortrait } from "@/components/studio/VideoPortrait";
 import { Duo } from "@/components/ui/Duo";
 import { Coche, Entete } from "@/components/ui/Parcours";
 import { CLIPS, MENTION_OBJECTIF, NON_AFFILIATION, ONBOARDING, PUBLICATION_AUTO, STYLES, TITRE_MAX, type Style } from "@/lib/config";
@@ -192,9 +193,9 @@ function Plateau() {
 
           <p className="mt-6 text-[14px] font-bold">La vidéo montrée à la fin</p>
           <div className="mt-2 flex items-center gap-4">
-            <div className="carte-forte grid aspect-[9/16] w-[96px] lg:hidden shrink-0 place-items-center overflow-hidden bg-encre">
+            <div className="carte-forte relative grid aspect-[9/16] w-[96px] lg:hidden shrink-0 place-items-center overflow-hidden bg-encre">
               {finale ? (
-                <video key={finale.url} src={finale.url} muted playsInline autoPlay loop className="h-full w-full object-cover" />
+                <VideoPortrait key={finale.url} url={finale.url} />
               ) : (
                 <span className="px-2 text-center text-[11px] font-bold text-fond">{cherche ? "Un instant…" : "Aucune vidéo"}</span>
               )}
@@ -252,8 +253,8 @@ function Plateau() {
         ),
         droite: (
           <div className="hidden flex-1 items-center justify-center lg:flex">
-            <div className="carte-forte grid aspect-[9/16] h-[min(76dvh,960px)] place-items-center overflow-hidden rounded-3xl bg-encre">
-              {finale ? <video key={finale.url} src={finale.url} muted playsInline autoPlay loop className="h-full w-full object-cover" /> : <span className="px-4 text-center text-[16px] font-bold text-fond">{cherche ? "Un instant…" : "Aucune vidéo"}</span>}
+            <div className="carte-forte relative grid aspect-[9/16] h-[min(76dvh,960px)] place-items-center overflow-hidden rounded-3xl bg-encre">
+              {finale ? <VideoPortrait key={finale.url} url={finale.url} /> : <span className="px-4 text-center text-[16px] font-bold text-fond">{cherche ? "Un instant…" : "Aucune vidéo"}</span>}
             </div>
           </div>
         ),
@@ -430,7 +431,7 @@ function Plateau() {
         ),
         droite: (
           <div className="order-1 mt-5 flex min-h-0 flex-1 items-center justify-center lg:order-none lg:mt-0">
-            <Finale url={urlFinale} />
+            <Finale url={urlFinale} titre={titre} />
           </div>
         ),
         fond: "lg:bg-rose",
@@ -458,6 +459,7 @@ function Plateau() {
           entete={entete}
           depart={depart}
           url={urlFinale}
+          titre={titre}
           pseudo={regl.pseudo}
           fini={() => setParti(true)}
           action={
@@ -518,7 +520,7 @@ function Champ({ libelle, valeur, changer, numerique }: { libelle: string; valeu
 }
 
 /** La vidéo finale, avec le son si le téléphone l'autorise. */
-function Finale({ url }: { url: string }) {
+function Finale({ url, titre }: { url: string; titre: string }) {
   const ref = useRef<HTMLVideoElement>(null);
   const [muet, setMuet] = useState(false);
   useEffect(() => {
@@ -542,14 +544,14 @@ function Finale({ url }: { url: string }) {
       }}
       aria-label={muet ? "Activer le son" : "Couper le son"}
     >
-      <video ref={ref} src={url} playsInline loop autoPlay className="h-full w-full object-cover" />
+      <VideoPortrait url={url} titre={titre} lecteur={ref} />
       {muet && <span className="pastille absolute bottom-3 left-1/2 -translate-x-1/2 bg-blanc">Toucher pour le son</span>}
     </button>
   );
 }
 
 /** Le départ : la vidéo s'envole, les comptes se cochent, le tampon tombe. */
-function Fin({ entete, depart, url, pseudo, fini, action }: { entete: React.ReactNode; depart: Depart; url: string; pseudo: string; fini: () => void; action: React.ReactNode }) {
+function Fin({ entete, depart, url, titre, pseudo, fini, action }: { entete: React.ReactNode; depart: Depart; url: string; titre: string; pseudo: string; fini: () => void; action: React.ReactNode }) {
   const [t, setT] = useState(0);
   const fin = useRef(fini);
   fin.current = fini;
@@ -599,8 +601,8 @@ function Fin({ entete, depart, url, pseudo, fini, action }: { entete: React.Reac
       droite={
         <div className="relative flex flex-1 items-end justify-center lg:items-center">
           {t < 2 && (
-            <div className={`carte-forte absolute top-1/2 -mt-[210px] h-[380px] w-[214px] overflow-hidden bg-encre lg:static lg:mt-0 lg:aspect-[9/16] lg:h-[min(70dvh,860px)] lg:w-auto lg:rounded-3xl ${t >= 1 ? "envol" : ""}`}>
-              <video src={url} muted playsInline autoPlay loop className="h-full w-full object-cover" />
+            <div className={`carte-forte absolute top-1/2 -mt-[210px] h-[380px] w-[214px] overflow-hidden bg-encre lg:relative lg:top-auto lg:mt-0 lg:aspect-[9/16] lg:h-[min(70dvh,860px)] lg:w-auto lg:rounded-3xl ${t >= 1 ? "envol" : ""}`}>
+              <VideoPortrait url={url} titre={titre} />
             </div>
           )}
           <div className="flex min-h-[110px] items-center justify-center lg:absolute lg:inset-0">
