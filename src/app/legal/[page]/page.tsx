@@ -50,10 +50,10 @@ const PAGES: Record<string, { titre: string; blocs: { h: string; p: string[] }[]
     titre: "Confidentialité",
     blocs: [
       { h: "Qui s'en occupe", p: [`${S.nom}, ${S.adresse}. Contact : ${S.contact}.`] },
-      { h: "Ce qu'on garde", p: ["Ton e-mail, tes réponses à l'inscription, tes clips, tes vidéos, ton abonnement et tes factures.", "Les étapes que tu suis dans l'appli, pour l'améliorer.", "On ne voit jamais ta carte : elle est gérée par Whop."] },
+      { h: "Ce qu'on garde", p: ["Ton e-mail, tes réponses à l'inscription, tes clips, tes vidéos, ton abonnement et tes factures.", "Les étapes que tu suis dans l'appli, pour l'améliorer.", "Avec Google, on reçoit seulement ton e-mail et ton identifiant Google.", "On ne voit jamais ta carte : elle est gérée par Whop."] },
       { h: "Pourquoi", p: ["Pour fournir le service que tu as choisi, gérer ton abonnement et respecter la loi.", "On ne vend pas tes données."] },
       { h: "Combien de temps", p: ["Tant que ton compte existe. Tu peux tout supprimer depuis l'onglet Compte.", "Les factures sont gardées le temps exigé par la loi."] },
-      { h: "Prestataires", p: ["Supabase (comptes et stockage), Vercel (hébergement et montage), Whop (paiement).", "Certains sont aux États-Unis : tes données peuvent y être traitées."] },
+      { h: "Prestataires", p: ["Supabase (comptes et stockage), Vercel (hébergement et montage), Whop (paiement), Google (connexion, si tu la choisis).", "Certains sont aux États-Unis : tes données peuvent y être traitées."] },
       { h: "Tes droits", p: [`Accès, correction, suppression, copie, opposition : écris à ${S.contact}.`, "Tu peux aussi saisir la CNIL, sur cnil.fr."] },
     ],
   },

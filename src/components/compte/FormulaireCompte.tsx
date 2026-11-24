@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { EMAILS_ACTIFS } from "@/lib/config";
-import { afficherToast } from "@/components/ui/Toast";
+import { EMAILS_ACTIFS, GOOGLE_CLIENT_ID } from "@/lib/config";
+import { allerChezGoogle, navigateurIntegre } from "@/lib/google";
 import { messageErreur, SUPABASE_ANON, SUPABASE_URL, supabase } from "@/lib/supabase";
 
 /*
@@ -25,24 +25,29 @@ export function FormulaireCompte({
   const [voir, setVoir] = useState(false);
   const [erreur, setErreur] = useState("");
   const [envoi, setEnvoi] = useState(false);
-  const [google, setGoogle] = useState<boolean | null>(null);
+  const [google, setGoogle] = useState<"oui" | "ailleurs" | "non">("non");
   const inscription = mode === "inscription";
 
-  // Google n'est proposé que s'il est activé dans Supabase.
+  // Google est proposé s'il est activé dans Supabase, et si ce navigateur sait l'ouvrir.
   useEffect(() => {
-    fetch(`${SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: SUPABASE_ANON } })
-      .then((r) => r.json())
-      .then((r) => setGoogle(!!r?.external?.google))
-      .catch(() => setGoogle(false));
+    const revenu = (e: PageTransitionEvent) => e.persisted && setEnvoi(false); // retour arrière depuis Google
+    window.addEventListener("pageshow", revenu);
+    if (GOOGLE_CLIENT_ID)
+      fetch(`${SUPABASE_URL}/auth/v1/settings`, { headers: { apikey: SUPABASE_ANON } })
+        .then((r) => r.json())
+        .then((r) => setGoogle(r?.external?.google ? (navigateurIntegre() ? "ailleurs" : "oui") : "non"))
+        .catch(() => {});
+    return () => window.removeEventListener("pageshow", revenu);
   }, []);
 
   async function parGoogle() {
-    if (!google) return afficherToast("La connexion Google arrive bientôt. Utilise ton e-mail.");
     setEnvoi(true);
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}${retour}` } });
-    if (error) {
+    setErreur("");
+    try {
+      await allerChezGoogle(retour);
+    } catch {
       setEnvoi(false);
-      setErreur(messageErreur(error));
+      setErreur("Google n'a pas pu s'ouvrir. Utilise ton e-mail.");
     }
   }
 
@@ -72,18 +77,23 @@ export function FormulaireCompte({
 
   return (
     <form onSubmit={envoyer} noValidate className="flex flex-1 flex-col">
-      <button type="button" onClick={parGoogle} disabled={envoi} className={`bouton bouton-blanc w-full ${google === false ? "opacity-60" : ""}`}>
-        <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
-          <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-1.6 3.8-5.4 3.8-3.2 0-5.9-2.7-5.9-6s2.7-6 5.9-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.3 14.6 2.3 12 2.3 6.6 2.3 2.3 6.6 2.3 12s4.3 9.7 9.7 9.7c5.6 0 9.3-3.9 9.3-9.5 0-.6-.1-1.1-.2-1.6H12z" />
-        </svg>
-        Continuer avec Google
-      </button>
+      {google === "oui" && (
+        <>
+          <button type="button" onClick={parGoogle} disabled={envoi} className="bouton bouton-blanc w-full">
+            <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
+              <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.3-1.6 3.8-5.4 3.8-3.2 0-5.9-2.7-5.9-6s2.7-6 5.9-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.8 3.3 14.6 2.3 12 2.3 6.6 2.3 2.3 6.6 2.3 12s4.3 9.7 9.7 9.7c5.6 0 9.3-3.9 9.3-9.5 0-.6-.1-1.1-.2-1.6H12z" />
+            </svg>
+            Continuer avec Google
+          </button>
 
-      <div className="my-5 flex items-center gap-3 text-[13px] font-bold text-encre2" aria-hidden="true">
-        <span className="h-0.5 flex-1 bg-beige" />
-        ou
-        <span className="h-0.5 flex-1 bg-beige" />
-      </div>
+          <div className="my-5 flex items-center gap-3 text-[13px] font-bold text-encre2" aria-hidden="true">
+            <span className="h-0.5 flex-1 bg-beige" />
+            ou
+            <span className="h-0.5 flex-1 bg-beige" />
+          </div>
+        </>
+      )}
+      {google === "ailleurs" && <p className="carte mb-5 px-4 py-3 text-[13px] font-bold">Pour Google, ouvre xpclip.com dans Safari ou Chrome.</p>}
 
       <label htmlFor="email" className="text-[14px] font-bold">
         Ton e-mail

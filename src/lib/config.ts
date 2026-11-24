@@ -135,6 +135,9 @@ export const NON_AFFILIATION = "XPclip n'est pas affilié à Rockstar Games ni �
 /** « Mot de passe oublié » : à passer à true quand l'envoi d'e-mails (Resend) est branché dans Supabase. */
 export const EMAILS_ACTIFS = false;
 
+/** Connexion Google : identifiant client OAuth (public). Vide : le bouton Google n'est pas affiché. */
+export const GOOGLE_CLIENT_ID = "";
+
 export const PURGE_CLIPS_JOURS = 14;
 
 /** Titre écrit par le joueur : affiché en accroche au début de la vidéo, et repris pour TikTok. */
