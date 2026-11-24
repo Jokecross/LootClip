@@ -18,6 +18,7 @@ export function Roulette({
   changer,
   label,
   elan = true,
+  centre,
 }: {
   valeurs: number[];
   valeur: number;
@@ -27,7 +28,10 @@ export function Roulette({
   label: string;
   /** La roue se lance toute seule une fois à l'arrivée, pour montrer qu'elle tourne. */
   elan?: boolean;
+  /** Sur ordinateur, affiché en grand au milieu de la roue. */
+  centre?: React.ReactNode;
 }) {
+  const moyeu = useRef<HTMLDivElement>(null);
   const toile = useRef<HTMLCanvasElement>(null);
   const boite = useRef<HTMLDivElement>(null);
   const moteur = useRef<{ aller: (i: number) => void } | null>(null);
@@ -57,6 +61,7 @@ export function Roulette({
     let L = 0;
     let H = 0;
     let R = 0;
+    let e = 1; // échelle des détails : 1 sur téléphone, plus sur ordinateur
     let image = 0;
     let avant = 0;
     let tient = false;
@@ -89,7 +94,7 @@ export function Roulette({
       g.arc(cx, cy + 6, R + 2, 0, Math.PI * 2);
       g.fill();
 
-      const visibles = Math.ceil((Math.PI * 0.62) / PAS);
+      const visibles = Math.ceil((Math.PI * (e > 1 ? 1 : 0.62)) / PAS);
       const base = Math.round(p);
       for (let i = base - visibles; i <= base + visibles; i++) {
         const a = (i - p) * PAS - Math.PI / 2;
@@ -110,27 +115,27 @@ export function Roulette({
           g.rotate(a + Math.PI / 2);
           g.fillStyle = C.encre;
           const texte = rappel.current.libelle(valeurs[i]);
-          g.font = `800 20px ${police}`;
+          g.font = `800 ${20 * e}px ${police}`;
           // Les grands montants rétrécissent pour tenir dans leur case.
-          const place = Math.min(1, (2 * (R - 60) * Math.sin(PAS / 2) - 14) / g.measureText(texte).width);
-          g.font = `800 ${(17.5 + pres * 2.5) * place}px ${police}`;
+          const place = Math.min(1, (2 * (R - 60 * e) * Math.sin(PAS / 2) - 14 * e) / g.measureText(texte).width);
+          g.font = `800 ${(17.5 + pres * 2.5) * e * place}px ${police}`;
           g.textAlign = "center";
           g.textBaseline = "middle";
-          g.fillText(texte, 0, -(R - 48));
+          g.fillText(texte, 0, -(R - 48 * e));
           g.restore();
         }
       }
 
       // Jante
-      g.lineWidth = 14;
+      g.lineWidth = 14 * e;
       g.strokeStyle = C.encre;
       g.beginPath();
-      g.arc(cx, cy, R - 7, 0, Math.PI * 2);
+      g.arc(cx, cy, R - 7 * e, 0, Math.PI * 2);
       g.stroke();
       for (let i = base - visibles; i <= base + visibles; i++) {
         const a = (i + 0.5 - p) * PAS - Math.PI / 2;
         g.beginPath();
-        g.arc(cx + Math.cos(a) * (R - 7), cy + Math.sin(a) * (R - 7), 4, 0, Math.PI * 2);
+        g.arc(cx + Math.cos(a) * (R - 7 * e), cy + Math.sin(a) * (R - 7 * e), 4 * e, 0, Math.PI * 2);
         g.fillStyle = C.creme;
         g.fill();
       }
@@ -149,6 +154,7 @@ export function Roulette({
       g.save();
       g.translate(cx, 8);
       g.rotate(flap);
+      g.scale(e, e);
       g.beginPath();
       g.moveTo(-15, -2);
       g.quadraticCurveTo(0, -14, 15, -2);
@@ -212,6 +218,17 @@ export function Roulette({
       L = bx.clientWidth;
       H = bx.clientHeight;
       R = Math.max(290, Math.min(380, L * 0.9));
+      e = 1;
+      // Ordinateur : la roue remplit le panneau, et le choix s'affiche en son centre.
+      if (H > 420 && L > 480) {
+        R = Math.max(290, Math.min(L * 0.53, H * 0.78));
+        e = Math.min(1.7, Math.max(1.15, R / 340));
+        if (moyeu.current) {
+          const r = R * 0.56;
+          moyeu.current.style.top = `${HAUT + R - r * 0.62}px`;
+          moyeu.current.style.height = `${Math.min(r * 1.3, H - 64 - (HAUT + R - r * 0.62))}px`;
+        }
+      }
       const d = Math.min(3, devicePixelRatio || 1);
       cv.width = L * d;
       cv.height = H * d;
@@ -321,7 +338,7 @@ export function Roulette({
   return (
     <div
       ref={boite}
-      className="carte-forte relative max-h-[320px] min-h-[220px] flex-1 overflow-hidden bg-nuit2 lg:min-h-[300px]"
+      className="carte-forte relative max-h-[320px] min-h-[220px] flex-1 overflow-hidden bg-nuit2 lg:max-h-none lg:min-h-[300px] lg:rounded-[32px] lg:shadow-[0_8px_0_var(--color-encre)]"
     >
       <canvas
         ref={toile}
@@ -333,8 +350,13 @@ export function Roulette({
         aria-valuenow={valeur}
         aria-valuetext={libelle(valeur)}
         onKeyDown={clavier}
-        className="absolute inset-0 h-full w-full cursor-grab touch-none select-none rounded-[14px] focus-visible:-outline-offset-4 active:cursor-grabbing"
+        className="absolute inset-0 h-full w-full cursor-grab touch-none select-none rounded-[14px] lg:rounded-[30px] focus-visible:-outline-offset-4 active:cursor-grabbing"
       />
+      {centre && (
+        <div ref={moyeu} className="pointer-events-none absolute inset-x-0 hidden flex-col items-center justify-center lg:flex">
+          {centre}
+        </div>
+      )}
       <span className={`pastille pointer-events-none absolute bottom-3 left-1/2 -translate-x-1/2 bg-blanc transition-opacity duration-300 ${touchee ? "opacity-0" : "clignote"}`}>
         Fais tourner la roue
       </span>

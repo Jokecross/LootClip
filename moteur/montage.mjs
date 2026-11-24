@@ -1,11 +1,11 @@
 /*
  * Moteur de montage XPclip.
- * Entrée : 3 à 10 clips de jeu (16:9, n'importe quelle taille).
+ * Entrée : 3 à 10 clips de jeu (horizontaux ou verticaux, n'importe quelle taille).
  * Sortie : une vidéo verticale 1080 × 1920, 30 i/s, de la durée choisie par le joueur (30 s à 3 min).
  *
  * 1. Analyse   : niveau sonore (toutes les 0,5 s) et mouvement à l'image (4 fois par seconde).
  * 2. Sélection : les passages les plus intenses, au moins un par clip, le plus fort en ouverture.
- * 3. Rendu     : découpe, recadrage 9:16 (image entière sur fond flouté par défaut, ou zoom au centre),
+ * 3. Rendu     : découpe, recadrage 9:16 plein écran (ou image entière sur fond flouté),
  *                accroche écrite les 3 premières secondes, filigrane en offre gratuite,
  *                son du jeu remis au niveau TikTok (-14 LUFS), encodage H.264 + AAC.
  */
@@ -229,17 +229,22 @@ function filtreImage(i, format, s, style) {
       : i > 0
         ? `,fade=t=in:st=0:d=${style === "drole" ? "0.07" : "0.12"}:color=white`
         : "";
+  // Toujours remplir puis couper ce qui dépasse : l'image n'est jamais étirée, quel que soit le sens du clip.
+  const remplir = (l, h) => `scale=${l}:${h}:force_original_aspect_ratio=increase:flags=lanczos,crop=${l}:${h},setsar=1`;
+  const pair = (x) => Math.round(x / 2) * 2;
+  const carre = "scale='trunc(iw*sar/2)*2':'trunc(ih/2)*2',setsar=1";
   if (format === "flou") {
+    const h = pair((L * 9) / 16);
     return (
-      `[${i}:v]fps=${ips},split=2[f${i}][b${i}];` +
+      `[${i}:v]fps=${ips},${carre},split=2[f${i}][b${i}];` +
       `[b${i}]scale=270:480:force_original_aspect_ratio=increase,crop=270:480,boxblur=10:2,scale=${L}:${H},eq=brightness=-0.10:saturation=1.15[bb${i}];` +
       // On travaille 1,5 fois plus grand pour un zoom fluide, puis on revient à 1080 de large.
-      `[f${i}]scale=${L * 1.5}:-2:flags=lanczos,${camera(L, Math.round((L * 9) / 16 / 2) * 2)}[ff${i}];` +
+      `[f${i}]${remplir(L * 1.5, pair(h * 1.5))},${camera(L, h)}[ff${i}];` +
       `[bb${i}][ff${i}]overlay=(W-w)/2:(H-h)/2,setsar=1,format=yuv420p${flash}[v${i}];`
     );
   }
-  // Zoom : on remplit l'écran en coupant les côtés
-  return `[${i}:v]fps=${ips},scale=-2:${Math.round(H * 1.25)}:flags=lanczos,crop=${Math.round(L * 1.25)}:${Math.round(H * 1.25)},${camera(L, H)},setsar=1,format=yuv420p${flash}[v${i}];`;
+  // Portrait plein écran : on remplit le 9:16 en gardant le centre, là où se tient le personnage.
+  return `[${i}:v]fps=${ips},${carre},${remplir(pair(L * 1.25), pair(H * 1.25))},${camera(L, H)},setsar=1,format=yuv420p${flash}[v${i}];`;
 }
 
 function filtreSon(i, s, son) {
@@ -259,7 +264,7 @@ function filtreSon(i, s, son) {
  * @param {"zoom"|"flou"} o.format recadrage vertical
  * @param {(etape:number, avancement:number)=>void} [o.progres]
  */
-export async function monter({ clips, sortie, duree = 60, accroche, filigrane = true, format = "flou", style: demande = "defi", progres = () => {} }) {
+export async function monter({ clips, sortie, duree = 60, accroche, filigrane = true, format = "zoom", style: demande = "defi", progres = () => {} }) {
   const debut = Date.now();
   progres(0, 0.02);
   const analyses = await Promise.all(clips.map(analyser));

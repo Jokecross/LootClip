@@ -4,6 +4,7 @@
  * C'est l'écran prévu pour le vrai produit. Tant que PUBLICATION_AUTO est false, rien n'est envoyé et « Bientôt » s'affiche.
  */
 import { useState } from "react";
+import { Duo } from "@/components/ui/Duo";
 import { Coche } from "@/components/ui/Parcours";
 import { Roulette } from "@/components/ui/Roulette";
 import { PUBLICATION_AUTO } from "@/lib/config";
@@ -41,7 +42,7 @@ export function Bientot() {
   return PUBLICATION_AUTO ? null : <span className="pastille bg-orange">Bientôt sur XPclip</span>;
 }
 
-export function Publier({ pseudo, partir }: { pseudo: string; partir: (d: Depart) => void }) {
+export function Publier({ entete, pseudo, partir }: { entete: React.ReactNode; pseudo: string; partir: (d: Depart) => void }) {
   const [reseaux, setReseaux] = useState<Reseau[]>(["tiktok", "instagram"]);
   const [plus, setPlus] = useState(true);
   const [jour, setJour] = useState(0);
@@ -53,60 +54,74 @@ export function Publier({ pseudo, partir }: { pseudo: string; partir: (d: Depart
     setReseaux((x) => (x.includes(r) ? x.filter((y) => y !== r) : (["tiktok", "instagram"] as Reseau[]).filter((y) => y === r || x.includes(y))));
   };
 
+  const envoyer = (
+    <button type="button" disabled={!reseaux.length} onClick={() => partir({ reseaux, quand: plus ? `${l[jour].long} à ${heure(minutes)}` : null })} className="bouton bouton-rose w-full">
+      {plus ? "Planifier ma vidéo" : "Envoyer ma vidéo"}
+    </button>
+  );
+
   return (
-    <div className="flex flex-1 flex-col">
-      <div className="flex items-start justify-between gap-3">
-        <h1 className="titre text-[30px]">On publie où ?</h1>
-        <Bientot />
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-2.5">
-        {(["tiktok", "instagram"] as Reseau[]).map((r, i) => {
-          const actif = reseaux.includes(r);
-          return (
-            <button key={r} type="button" aria-pressed={actif} onClick={() => bascule(r)} style={{ "--d": `${i * 90}ms` } as React.CSSProperties} className={`surgit relative flex flex-col items-start gap-2 p-3 text-left ${actif ? "carte-forte bg-jaune" : "carte"}`}>
-              <PictoReseau r={r} />
-              <span className="min-w-0">
-                <span className="titre block text-[17px]">{NOMS[r]}</span>
-                <span className="mt-1 block truncate text-[12px] text-encre2">@{pseudo}</span>
-              </span>
-              {actif && <Coche className="absolute right-3 top-3 h-6 w-6" />}
-            </button>
-          );
-        })}
-      </div>
-
-      <div className="mt-4 grid grid-cols-2 gap-1 rounded-[14px] border-2 border-encre bg-blanc p-1" role="radiogroup" aria-label="Moment de la publication">
-        {[true, false].map((v) => (
-          <button key={String(v)} type="button" role="radio" aria-checked={plus === v} onClick={() => (pop(0.5), setPlus(v))} className={`min-h-12 rounded-[10px] text-[15px] font-bold ${plus === v ? "bg-encre text-fond" : ""}`}>
-            {v ? "Planifier" : "Maintenant"}
-          </button>
-        ))}
-      </div>
-
-      {plus ? (
+    <Duo
+      cle="publier"
+      entete={entete}
+      action={envoyer}
+      fond={plus ? "" : "lg:bg-jaune"}
+      gauche={
         <>
-          <div className="mt-3 grid grid-cols-7 gap-1" role="radiogroup" aria-label="Jour">
-            {l.map((j, i) => (
-              <button key={i} type="button" role="radio" aria-checked={jour === i} onClick={() => (pop(i / 7), setJour(i))} className={`flex min-h-[54px] flex-col items-center justify-center rounded-xl border-2 ${jour === i ? "border-encre bg-rose shadow-[0_3px_0_var(--color-encre)]" : "border-beige bg-blanc"}`}>
-                <span className="text-[11px] font-bold">{j.court}</span>
-                <span className="titre mt-0.5 text-[16px]">{j.num}</span>
+          <div className="flex items-start justify-between gap-3 lg:flex-col-reverse lg:gap-3">
+            <h1 className="titre text-[30px] lg:text-[clamp(44px,4.5vw,84px)]">On publie où ?</h1>
+            <Bientot />
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-2.5 lg:mt-[min(32px,3vh)] lg:gap-4">
+            {(["tiktok", "instagram"] as Reseau[]).map((r, i) => {
+              const actif = reseaux.includes(r);
+              return (
+                <button key={r} type="button" aria-pressed={actif} onClick={() => bascule(r)} style={{ "--d": `${i * 90}ms` } as React.CSSProperties} className={`surgit relative flex min-w-0 flex-col items-start gap-2 p-3 text-left lg:gap-[min(16px,1.6vh)] lg:rounded-3xl lg:p-[min(24px,2.4vh)] ${actif ? "carte-forte bg-jaune" : "carte"}`}>
+                  <PictoReseau r={r} />
+                  <span className="min-w-0 max-w-full">
+                    <span className="titre block text-[17px] lg:text-[clamp(22px,1.9vw,32px)]">{NOMS[r]}</span>
+                    <span className="mt-1 block truncate text-[12px] text-encre2 lg:text-[16px]">@{pseudo}</span>
+                  </span>
+                  {actif && <Coche className="absolute right-3 top-3 h-6 w-6 lg:right-5 lg:top-5 lg:h-8 lg:w-8" />}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 grid grid-cols-2 gap-1 rounded-[14px] border-2 border-encre bg-blanc p-1" role="radiogroup" aria-label="Moment de la publication">
+            {[true, false].map((v) => (
+              <button key={String(v)} type="button" role="radio" aria-checked={plus === v} onClick={() => (pop(0.5), setPlus(v))} className={`min-h-12 rounded-[10px] text-[15px] font-bold lg:min-h-14 lg:text-[18px] ${plus === v ? "bg-encre text-fond" : ""}`}>
+                {v ? "Planifier" : "Maintenant"}
               </button>
             ))}
           </div>
-          <p className="titre my-3 text-center text-[44px] tabular-nums">{heure(minutes)}</p>
-          <Roulette label="Heure de publication" valeurs={HEURES} valeur={minutes} libelle={heure} changer={setMinutes} />
-        </>
-      ) : (
-        <div className="surgit flex flex-1 flex-col items-center justify-center py-8 text-center">
-          <p className="titre text-[34px]">Ça part tout de suite.</p>
-          <p className="mt-2 text-[15px] text-encre2">Une vidéo, {reseaux.length > 1 ? "deux comptes" : "un compte"}, un bouton.</p>
-        </div>
-      )}
 
-      <button type="button" disabled={!reseaux.length} onClick={() => partir({ reseaux, quand: plus ? `${l[jour].long} à ${heure(minutes)}` : null })} className="bouton bouton-rose mt-6 w-full">
-        {plus ? "Planifier ma vidéo" : "Envoyer ma vidéo"}
-      </button>
-    </div>
+          {plus && (
+            <div className="mt-3 grid grid-cols-7 gap-1 lg:mt-4 lg:gap-2" role="radiogroup" aria-label="Jour">
+              {l.map((j, i) => (
+                <button key={i} type="button" role="radio" aria-checked={jour === i} onClick={() => (pop(i / 7), setJour(i))} className={`flex min-h-[54px] flex-col items-center justify-center rounded-xl border-2 lg:min-h-[min(76px,9vh)] lg:rounded-2xl ${jour === i ? "border-encre bg-rose shadow-[0_3px_0_var(--color-encre)]" : "border-beige bg-blanc"}`}>
+                  <span className="text-[11px] font-bold lg:text-[13px]">{j.court}</span>
+                  <span className="titre mt-0.5 text-[16px] lg:text-[22px]">{j.num}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </>
+      }
+      droite={
+        plus ? (
+          <>
+            <p className="titre my-3 text-center text-[44px] tabular-nums lg:hidden">{heure(minutes)}</p>
+            <Roulette label="Heure de publication" valeurs={HEURES} valeur={minutes} libelle={heure} changer={setMinutes} centre={<p className="titre text-[clamp(60px,6.4vw,120px)] tabular-nums">{heure(minutes)}</p>} />
+          </>
+        ) : (
+          <div className="surgit flex flex-1 flex-col items-center justify-center py-8 text-center">
+            <p className="titre text-[34px] lg:text-[clamp(52px,5.4vw,100px)]">Ça part tout de suite.</p>
+            <p className="mt-2 text-[15px] text-encre2 lg:mt-6 lg:text-[24px] lg:text-encre">Une vidéo, {reseaux.length > 1 ? "deux comptes" : "un compte"}, un bouton.</p>
+          </div>
+        )
+      }
+    />
   );
 }

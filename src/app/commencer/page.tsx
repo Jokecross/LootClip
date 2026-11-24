@@ -6,11 +6,12 @@
  */
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
-import { EcranConsole, EcranHeures, EcranObjectif, EcranPlan, EcranTiktok, REPERE_HEURES, Titre } from "@/components/onboarding/Ecrans";
+import { ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranTiktok, REPERE_HEURES } from "@/components/onboarding/Ecrans";
+import { PanneauHero } from "@/components/onboarding/PanneauHero";
 import { FormulaireCompte } from "@/components/compte/FormulaireCompte";
 import { Paywall } from "@/components/app/Paywall";
-import { CadreBureau } from "@/components/marque/CadreBureau";
 import { Logo } from "@/components/marque/Logo";
+import { Duo, Titre } from "@/components/ui/Duo";
 import { Entete } from "@/components/ui/Parcours";
 import { MENTION_OBJECTIF, NON_AFFILIATION, ONBOARDING } from "@/lib/config";
 import { aAcces, modifier, useEtat } from "@/lib/etat";
@@ -113,31 +114,35 @@ function Onboarding() {
 
   const objectif = r.objectif ?? 0;
 
-  let contenu: React.ReactNode = null;
+  let contenu: { gauche: React.ReactNode; droite: React.ReactNode; fond?: string } = { gauche: null, droite: null };
   let action: { libelle: string; faire: () => void; actif: boolean } | null = null;
   let pied: React.ReactNode = null;
 
   switch (ECRANS[n - 1]) {
     case "accroche":
-      contenu = (
-        <>
-          {/* Même image que le hero de l'accueil (public/visuels/hero-*.jpg) */}
-          <div className="carte-forte overflow-hidden lg:hidden">
-            <img
-              src="/visuels/hero-900.jpg"
-              srcSet="/visuels/hero-900.jpg 900w, /visuels/hero-1672.jpg 1672w"
-              sizes="(min-width: 640px) 480px, 100vw"
-              width={1672}
-              height={941}
-              alt="Coucher de soleil néon sur une ville côtière, avec le logo XP et sa barre d'expérience"
-              fetchPriority="high"
-              className="block h-auto w-full"
-            />
-          </div>
-          <h1 className="titre mt-7 text-[40px] lg:mt-0 lg:text-[52px]">Ta manette peut devenir un salaire.</h1>
-          <p className="mt-3 text-[16px] leading-snug text-encre2">Tes clips GTA 6, montés pour TikTok en quelques minutes.</p>
-        </>
-      );
+      contenu = {
+        gauche: (
+          <>
+            {/* Même image que le hero de l'accueil (public/visuels/hero-*.jpg) */}
+            <div className="carte-forte overflow-hidden lg:hidden">
+              <img
+                src="/visuels/hero-900.jpg"
+                srcSet="/visuels/hero-900.jpg 900w, /visuels/hero-1672.jpg 1672w"
+                sizes="(min-width: 640px) 480px, 100vw"
+                width={1672}
+                height={941}
+                alt="Coucher de soleil néon sur une ville côtière, avec le logo XP et sa barre d'expérience"
+                fetchPriority="high"
+                className="block h-auto w-full"
+              />
+            </div>
+            <h1 className="titre mt-7 text-[40px] lg:mt-0 lg:text-[clamp(52px,5.6vw,104px)]">Ta manette peut devenir un salaire.</h1>
+            <p className="mt-3 text-[16px] leading-snug text-encre2 lg:mt-7 lg:max-w-[28ch] lg:text-[clamp(20px,1.7vw,30px)]">Tes clips GTA 6, montés pour TikTok en quelques minutes.</p>
+          </>
+        ),
+        droite: <PanneauHero />,
+        fond: "lg:bg-nuit2",
+      };
       action = { libelle: "Commencer", faire: suivant, actif: true };
       pied = (
         <>
@@ -148,98 +153,94 @@ function Onboarding() {
       break;
 
     case "console":
-      contenu = <EcranConsole r={r} repondre={repondre} />;
+      contenu = ecranConsole({ r, repondre });
       action = { libelle: "Continuer", faire: suivant, actif: !!r.plateforme };
       break;
 
     case "tiktok":
-      contenu = <EcranTiktok r={r} repondre={repondre} />;
+      contenu = ecranTiktok({ r, repondre });
       action = { libelle: "Continuer", faire: suivant, actif: !!r.tiktok };
       break;
 
     case "objectif":
-      contenu = <EcranObjectif r={r} repondre={repondre} />;
+      contenu = ecranObjectif({ r, repondre });
       action = { libelle: "Continuer", faire: suivant, actif: !!r.objectif };
       break;
 
     case "heures":
-      contenu = <EcranHeures r={r} repondre={repondre} />;
+      contenu = ecranHeures({ r, repondre });
       action = { libelle: "Voir mon plan", faire: suivant, actif: !!r.frequence };
       pied = <p className="mt-3 text-center text-[11px] text-encre2">{REPERE_HEURES}</p>;
       break;
 
     case "plan":
-      if (objectif && r.frequence) contenu = <EcranPlan objectif={objectif} frequence={r.frequence} />;
+      if (objectif && r.frequence) contenu = ecranPlan({ objectif, frequence: r.frequence });
       action = { libelle: "Créer mon compte", faire: suivant, actif: !!objectif && !!r.frequence };
       pied = <p className="mt-3 text-center text-[11px] text-encre2">{MENTION_OBJECTIF}</p>;
       break;
 
     case "compte":
-      contenu = (
-        <div className="flex flex-1 flex-col">
-          <Titre sous="Pour garder ton plan et tes vidéos.">Crée ton compte.</Titre>
-          <FormulaireCompte mode="inscription" retour="/commencer?e=8" valider={creerCompte} />
-        </div>
-      );
+      contenu = {
+        gauche: <Titre sous="Pour garder ton plan et tes vidéos.">Crée ton compte.</Titre>,
+        droite: (
+          <div className="flex flex-1 flex-col lg:m-auto lg:w-full lg:max-w-[560px] lg:flex-none lg:rounded-3xl lg:border-2 lg:border-encre lg:bg-fond lg:p-10 lg:shadow-[0_6px_0_var(--color-encre)]">
+            <FormulaireCompte mode="inscription" retour="/commencer?e=8" valider={creerCompte} />
+          </div>
+        ),
+        fond: "lg:bg-rose",
+      };
       break;
 
     case "clips":
-      contenu = (
-        <>
-          <Titre sous="Des captures de ta console, déjà dans ta galerie.">Tu as déjà des clips dans ton téléphone ?</Titre>
+      contenu = {
+        gauche: <Titre sous="Des captures de ta console, déjà dans ta galerie.">Tu as déjà des clips dans ton téléphone ?</Titre>,
+        droite: (
+          <>
           <input ref={galerie} type="file" accept="video/*" multiple className="sr-only" onChange={(e) => aDesClips(e.target.files)} />
-          <div className="flex flex-col gap-3">
-            <button type="button" onClick={() => galerie.current?.click()} className="option min-h-[72px]">
+          <div className="flex flex-col gap-3 lg:flex-1 lg:gap-6">
+            <button type="button" onClick={() => galerie.current?.click()} className="option min-h-[72px] lg:flex-1 lg:rounded-3xl lg:px-10 lg:shadow-[0_6px_0_var(--color-encre)] lg:hover:-translate-y-1">
               <span>
-                <span className="titre block text-[18px] font-bold tracking-[-0.01em]">Oui, je les dépose</span>
-                <span className="mt-0.5 block text-[13px] text-encre2">Ta galerie s&apos;ouvre tout de suite.</span>
+                <span className="titre block text-[18px] font-bold tracking-[-0.01em] lg:text-[clamp(28px,2.6vw,48px)] lg:font-extrabold lg:tracking-[-0.03em]">Oui, je les dépose</span>
+                <span className="mt-0.5 block text-[13px] text-encre2 lg:mt-3 lg:text-[18px]">Ta galerie s&apos;ouvre tout de suite.</span>
               </span>
               <Fleche />
             </button>
-            <button type="button" onClick={pasDeClips} className="option min-h-[72px]">
+            <button type="button" onClick={pasDeClips} className="option min-h-[72px] lg:flex-1 lg:rounded-3xl lg:px-10 lg:shadow-[0_6px_0_var(--color-encre)] lg:hover:-translate-y-1">
               <span>
-                <span className="titre block text-[18px] font-bold tracking-[-0.01em]">Non, montre-moi comment</span>
-                <span className="mt-0.5 block text-[13px] text-encre2">3 étapes, sur ta console puis ton téléphone.</span>
+                <span className="titre block text-[18px] font-bold tracking-[-0.01em] lg:text-[clamp(28px,2.6vw,48px)] lg:font-extrabold lg:tracking-[-0.03em]">Non, montre-moi comment</span>
+                <span className="mt-0.5 block text-[13px] text-encre2 lg:mt-3 lg:text-[18px]">3 étapes, sur ta console puis ton téléphone.</span>
               </span>
               <Fleche />
             </button>
           </div>
-        </>
-      );
+          </>
+        ),
+        fond: "lg:bg-turquoise",
+      };
       break;
   }
 
   return (
-    <CadreBureau accroche={n !== 1}>
-    <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(14px,env(safe-area-inset-top))] lg:min-h-0 lg:w-full lg:max-w-[480px] lg:p-0">
-      {n === 1 ? (
-        <span className="lg:hidden">
-          <Logo taille={30} />
-        </span>
-      ) : (
-        <Entete n={n} total={TOTAL} retour={n < 8 ? retour : undefined} />
-      )}
-
-      <div key={n} className="entree mt-6 flex flex-1 flex-col">
-        {contenu}
-      </div>
-
-      {action && (
-        <div className="pt-6 lg:pt-10">
+    <Duo
+      cle={n}
+      marque={n !== 1}
+      entete={n === 1 ? <Logo taille={30} /> : <Entete n={n} total={TOTAL} retour={n < 8 ? retour : undefined} />}
+      {...contenu}
+      action={
+        action && (
           <button type="button" onClick={action.faire} disabled={!action.actif} className="bouton bouton-rose w-full">
             {action.libelle}
           </button>
-          {pied}
-        </div>
-      )}
-    </main>
-    </CadreBureau>
+        )
+      }
+      pied={pied}
+    />
   );
 }
 
 function Fleche() {
   return (
-    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <svg viewBox="0 0 24 24" className="h-5 w-5 shrink-0 lg:h-9 lg:w-9" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       <path d="M5 12h14M13 6l6 6-6 6" />
     </svg>
   );

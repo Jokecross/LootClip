@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /*
  * Montage en local, pour régler la qualité.
- *   node cli.mjs --accroche "Mon titre" [--duree 30|60|180] [--format flou|zoom] [--style defi|drole|mission] [--pro] [--sortie video.mp4] clip1.mp4 ...
+ *   node cli.mjs --accroche "Mon titre" [--duree 30|60|180] [--format zoom|flou] [--style defi|drole|mission] [--pro] [--sortie video.mp4] clip1.mp4 ...
  * Sans clip donné : prend tous les .mp4 du dossier ../CLIP.
  */
 import { readdir } from "node:fs/promises";
@@ -26,7 +26,7 @@ const drapeau = (nom) => {
 };
 
 const accroche = option("accroche", "J'ai tenté le défi le plus bête de GTA 6.");
-const format = option("format", "flou");
+const format = option("format", "zoom");
 const style = option("style", "defi");
 const duree = Number(option("duree", "60"));
 const sortie = resolve(option("sortie", join(ICI, "sorties", `montage-${format}-${style}-${duree}s.mp4`)));

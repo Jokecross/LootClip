@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 
 const COULEURS = ["#f05fa5", "#f9d477", "#6fe3d6", "#f2934f", "#ffffff"];
 
@@ -61,5 +62,6 @@ export function Confettis() {
     image = requestAnimationFrame(tic);
     return () => cancelAnimationFrame(image);
   }, []);
-  return <canvas ref={ref} className="pointer-events-none fixed inset-0 z-50 h-full w-full" aria-hidden="true" />;
+  // Posés sur la page entière : les confettis passent devant le panneau de droite.
+  return createPortal(<canvas ref={ref} className="pointer-events-none fixed inset-0 z-50 h-full w-full" aria-hidden="true" />, document.body);
 }

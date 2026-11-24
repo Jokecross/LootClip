@@ -6,10 +6,12 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/marque/Logo";
-import { EcranConsole, EcranHeures, EcranObjectif, EcranPlan, EcranTiktok, REPERE_HEURES } from "@/components/onboarding/Ecrans";
+import { ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranTiktok, REPERE_HEURES } from "@/components/onboarding/Ecrans";
+import { PanneauHero } from "@/components/onboarding/PanneauHero";
 import { Confettis } from "@/components/studio/Confettis";
 import { Montage } from "@/components/studio/Montage";
 import { Bientot, nomsReseaux, PictoReseau, Publier, type Depart } from "@/components/studio/Publier";
+import { Duo } from "@/components/ui/Duo";
 import { Coche, Entete } from "@/components/ui/Parcours";
 import { CLIPS, MENTION_OBJECTIF, NON_AFFILIATION, ONBOARDING, PUBLICATION_AUTO, STYLES, TITRE_MAX, type Style } from "@/lib/config";
 import { lireDuree } from "@/lib/depot";
@@ -161,20 +163,36 @@ function Plateau() {
     </button>
   );
 
-  let contenu: React.ReactNode = null;
+  const q = QUESTIONS.indexOf(etape);
+  const entete =
+    q >= 0 ? (
+      <Entete n={q + 1} total={QUESTIONS.length} retour={retour} />
+    ) : (
+      <header className="flex items-center justify-between">
+        {logo}
+        {SUITE.indexOf(etape) >= SUITE.indexOf("clips") && (
+          <span key={credits} className="pastille surgit bg-turquoise tabular-nums lg:min-h-9 lg:px-4 lg:text-[16px]">
+            {videos(credits)}
+          </span>
+        )}
+      </header>
+    );
+
+  let contenu: { gauche: React.ReactNode; droite: React.ReactNode; fond?: string } = { gauche: null, droite: null };
   let bouton: { libelle: string; faire: () => void; actif?: boolean } | false | null = null;
   let pied: React.ReactNode = null;
 
   switch (etape) {
     case "regie":
-      contenu = (
+      contenu = {
+        gauche: (
         <>
-          <h1 className="titre text-[34px]">Prêt à filmer ?</h1>
+          <h1 className="titre text-[34px] lg:text-[56px]">Prêt à filmer ?</h1>
           <p className="mt-2 text-[14px] text-encre2">Cette page, personne ne la voit. Le tournage commence après.</p>
 
           <p className="mt-6 text-[14px] font-bold">La vidéo montrée à la fin</p>
           <div className="mt-2 flex items-center gap-4">
-            <div className="carte-forte grid aspect-[9/16] w-[96px] shrink-0 place-items-center overflow-hidden bg-encre">
+            <div className="carte-forte grid aspect-[9/16] w-[96px] lg:hidden shrink-0 place-items-center overflow-hidden bg-encre">
               {finale ? (
                 <video key={finale.url} src={finale.url} muted playsInline autoPlay loop className="h-full w-full object-cover" />
               ) : (
@@ -231,119 +249,160 @@ function Plateau() {
           </details>
           <p className="mt-4 text-[13px] text-encre2">Enlève le mode silencieux. Appui long sur le logo : retour ici.</p>
         </>
-      );
+        ),
+        droite: (
+          <div className="hidden flex-1 items-center justify-center lg:flex">
+            <div className="carte-forte grid aspect-[9/16] h-[min(76dvh,960px)] place-items-center overflow-hidden rounded-3xl bg-encre">
+              {finale ? <video key={finale.url} src={finale.url} muted playsInline autoPlay loop className="h-full w-full object-cover" /> : <span className="px-4 text-center text-[16px] font-bold text-fond">{cherche ? "Un instant…" : "Aucune vidéo"}</span>}
+            </div>
+          </div>
+        ),
+        fond: "lg:bg-turquoise",
+      };
       bouton = { libelle: "Commencer à filmer", faire: () => action(), actif: !!finale };
       break;
 
     case "accroche":
-      contenu = (
-        <div className="flex flex-1 flex-col justify-center">
-          <div className="carte-forte surgit overflow-hidden">
-            <img src="/visuels/hero-900.jpg" width={1672} height={941} alt="" className="block h-auto w-full" />
+      contenu = {
+        gauche: (
+          <div className="flex flex-1 flex-col justify-center lg:block">
+            <div className="carte-forte surgit overflow-hidden lg:hidden">
+              <img src="/visuels/hero-900.jpg" width={1672} height={941} alt="" className="block h-auto w-full" />
+            </div>
+            <h1 className="surgit titre mt-8 text-[46px] lg:mt-0 lg:text-[clamp(52px,5.6vw,104px)]" style={{ "--d": "160ms" } as React.CSSProperties}>
+              Ta manette peut devenir un salaire.
+            </h1>
+            <p className="surgit mt-3 text-[17px] leading-snug text-encre2 lg:mt-7 lg:max-w-[28ch] lg:text-[clamp(20px,1.7vw,30px)]" style={{ "--d": "320ms" } as React.CSSProperties}>
+              Tes clips GTA 6, montés pour TikTok en quelques minutes.
+            </p>
           </div>
-          <h1 className="surgit titre mt-8 text-[46px]" style={{ "--d": "160ms" } as React.CSSProperties}>
-            Ta manette peut devenir un salaire.
-          </h1>
-          <p className="surgit mt-3 text-[17px] leading-snug text-encre2" style={{ "--d": "320ms" } as React.CSSProperties}>
-            Tes clips GTA 6, montés pour TikTok en quelques minutes.
-          </p>
-        </div>
-      );
+        ),
+        droite: <PanneauHero />,
+        fond: "lg:bg-nuit2",
+      };
       bouton = { libelle: "Commencer", faire: suivant };
       pied = <p className="mt-3 text-center text-[11px] text-encre2">{NON_AFFILIATION}</p>;
       break;
 
     case "console":
-      contenu = <EcranConsole r={r} repondre={repondre} />;
+      contenu = ecranConsole({ r, repondre });
       bouton = { libelle: "Continuer", faire: suivant, actif: !!r.plateforme };
       break;
     case "tiktok":
-      contenu = <EcranTiktok r={r} repondre={repondre} />;
+      contenu = ecranTiktok({ r, repondre });
       bouton = { libelle: "Continuer", faire: suivant, actif: !!r.tiktok };
       break;
     case "objectif":
-      contenu = <EcranObjectif r={r} repondre={repondre} />;
+      contenu = ecranObjectif({ r, repondre });
       bouton = { libelle: "Continuer", faire: suivant };
       break;
     case "heures":
-      contenu = <EcranHeures r={r} repondre={repondre} />;
+      contenu = ecranHeures({ r, repondre });
       bouton = { libelle: "Voir mon plan", faire: suivant };
       pied = <p className="mt-3 text-center text-[11px] text-encre2">{REPERE_HEURES}</p>;
       break;
     case "plan":
-      contenu = <EcranPlan objectif={objectif} frequence={frequence} />;
+      contenu = ecranPlan({ objectif, frequence });
       bouton = { libelle: "Créer ma première vidéo", faire: suivant };
       pied = <p className="mt-3 text-center text-[11px] text-encre2">{MENTION_OBJECTIF}</p>;
       break;
 
     case "clips":
-      contenu = (
-        <>
-          <h1 className="titre text-[34px]">Dépose tes clips.</h1>
-          <p className="mt-2 text-[15px] text-encre2">{clips.length ? `${dureeLisible(total)} de jeu.` : "Directement depuis ta galerie."}</p>
-          <input ref={galerie} type="file" accept="video/*" multiple className="sr-only" onChange={(e) => (ajouter(e.target.files), (e.target.value = ""))} />
-          <button type="button" onClick={() => galerie.current?.click()} className={`carte-pointillee mt-5 flex w-full flex-col items-center justify-center gap-3 bg-blanc transition-[padding] duration-300 ${clips.length ? "py-5" : "flex-1 py-12"}`}>
-            <span className={`grid place-items-center rounded-2xl border-2 border-encre bg-rose shadow-[0_4px_0_var(--color-encre)] transition-all ${clips.length ? "h-12 w-12" : "h-20 w-20"}`} aria-hidden="true">
-              <svg viewBox="0 0 24 24" className="h-1/2 w-1/2" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
-                <path d="M12 5v14M5 12h14" />
-              </svg>
-            </span>
-            <span className="titre text-[19px] font-bold">{clips.length ? "Ajouter des clips" : "Choisir dans ma galerie"}</span>
-          </button>
-          {clips.length > 0 && (
-            <div className={`mt-4 grid gap-2.5 ${clips.length <= 4 ? "grid-cols-2" : "grid-cols-3"}`}>
-              {clips.map((c, i) => (
-                <div key={c.url} className={`carte-forte surgit relative aspect-[4/5] overflow-hidden bg-encre ${i % 2 ? "rotate-1" : "-rotate-1"}`}>
-                  <video src={`${c.url}#t=0.5`} muted playsInline autoPlay loop preload="auto" className="h-full w-full object-cover" />
-                  <span className="pastille absolute bottom-1.5 left-1.5 bg-blanc tabular-nums">{dureeLisible(c.duree)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </>
-      );
+      contenu = {
+        gauche: (
+          <>
+            <h1 className="titre text-[34px] lg:text-[clamp(52px,5.2vw,96px)]">Dépose tes clips.</h1>
+            <p className="mt-2 text-[15px] text-encre2 lg:mt-6 lg:text-[clamp(18px,1.5vw,26px)]">{clips.length ? `${dureeLisible(total)} de jeu.` : <><span className="lg:hidden">Directement depuis ta galerie.</span><span className="hidden lg:inline">Directement depuis ton ordinateur.</span></>}</p>
+          </>
+        ),
+        droite: (
+          <div
+            className="contents lg:flex lg:min-h-0 lg:flex-1 lg:flex-col"
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={(e) => {
+              e.preventDefault();
+              ajouter(e.dataTransfer.files);
+            }}
+          >
+            <input ref={galerie} type="file" accept="video/*" multiple className="sr-only" onChange={(e) => (ajouter(e.target.files), (e.target.value = ""))} />
+            <button type="button" onClick={() => galerie.current?.click()} className={`carte-pointillee mt-5 flex w-full flex-col items-center justify-center gap-3 bg-blanc transition-[padding] duration-300 lg:mt-0 lg:rounded-3xl ${clips.length ? "py-5 lg:flex-row lg:gap-5" : "flex-1 py-12 lg:gap-7"}`}>
+              <span className={`grid place-items-center rounded-2xl border-2 border-encre bg-rose shadow-[0_4px_0_var(--color-encre)] transition-all ${clips.length ? "h-12 w-12" : "h-20 w-20 lg:h-32 lg:w-32 lg:rounded-[32px]"}`} aria-hidden="true">
+                <svg viewBox="0 0 24 24" className="h-1/2 w-1/2" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+              </span>
+              <span className={`titre text-[19px] font-bold ${clips.length ? "lg:text-[24px]" : "lg:text-[clamp(28px,2.6vw,46px)]"}`}>{clips.length ? "Ajouter des clips" : <><span className="lg:hidden">Choisir dans ma galerie</span><span className="hidden lg:inline">Glisse tes clips ici</span></>}</span>
+            </button>
+            {clips.length > 0 && (
+              <div className={`mt-4 grid gap-2.5 lg:mt-6 lg:min-h-0 lg:flex-1 lg:auto-rows-fr lg:gap-5 ${clips.length <= 4 ? "grid-cols-2" : "grid-cols-3"} ${clips.length <= 3 ? COLONNES[clips.length] : ""}`}>
+                {clips.map((c, i) => (
+                  <div key={c.url} className={`carte-forte surgit relative aspect-[4/5] overflow-hidden bg-encre lg:aspect-auto lg:min-h-0 lg:rounded-3xl ${i % 2 ? "rotate-1" : "-rotate-1"}`}>
+                    <video src={`${c.url}#t=0.5`} muted playsInline autoPlay loop preload="auto" className="h-full w-full object-cover lg:absolute lg:inset-0" />
+                    <span className="pastille absolute bottom-1.5 left-1.5 bg-blanc tabular-nums lg:bottom-4 lg:left-4 lg:text-[15px]">{dureeLisible(c.duree)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ),
+        fond: "lg:bg-jaune",
+      };
       bouton = { libelle: clips.length ? `Continuer avec ${clips.length} clip${clips.length > 1 ? "s" : ""}` : "Ajoute au moins un clip", faire: suivant, actif: clips.length > 0 };
       break;
 
     case "style":
-      contenu = (
-        <>
-          <h1 className="titre text-[34px]">Titre et style.</h1>
-          <label htmlFor="titre-studio" className="mt-5 block text-[14px] font-bold">
-            Ton titre
-          </label>
-          <input id="titre-studio" maxLength={TITRE_MAX} placeholder="Ex. Mon chien conduit mieux que moi" className="champ mt-2" value={titre} onChange={(e) => setTitre(e.target.value)} />
-          <p className="mt-6 text-[14px] font-bold">Ton style</p>
-          <div className="mt-2 flex flex-col gap-3" role="radiogroup" aria-label="Style">
-            {(Object.keys(STYLES) as Style[]).map((s, i) => (
-              <button
-                key={s}
-                type="button"
-                role="radio"
-                aria-checked={style === s}
-                onClick={() => {
-                  pop(0.3 + i * 0.3);
-                  setStyle(s);
-                }}
-                style={{ "--d": `${i * 90}ms` } as React.CSSProperties}
-                className="option surgit min-h-[84px]"
-              >
-                <span>
-                  <span className="titre block text-[21px]">{STYLES[s].nom}</span>
-                  <span className="mt-1 block text-[13px] text-encre2">{STYLES[s].detail}</span>
-                </span>
-                {style === s && <Coche />}
-              </button>
-            ))}
-          </div>
-        </>
-      );
+      contenu = {
+        gauche: (
+          <>
+            <h1 className="titre text-[34px] lg:text-[clamp(52px,5.2vw,96px)]">Titre et style.</h1>
+            <label htmlFor="titre-studio" className="mt-5 block text-[14px] font-bold lg:mt-9 lg:text-[18px]">
+              Ton titre
+            </label>
+            <input id="titre-studio" maxLength={TITRE_MAX} placeholder="Ex. Mon chien conduit mieux que moi" className="champ mt-2 lg:mt-3 lg:h-[72px] lg:rounded-2xl lg:px-6 lg:text-[22px]" value={titre} onChange={(e) => setTitre(e.target.value)} />
+          </>
+        ),
+        droite: (
+          <>
+            <p className="mt-6 text-[14px] font-bold lg:hidden">Ton style</p>
+            <div className="mt-2 flex flex-col gap-3 lg:mt-0 lg:flex-1 lg:gap-6" role="radiogroup" aria-label="Style">
+              {(Object.keys(STYLES) as Style[]).map((s, i) => (
+                <button
+                  key={s}
+                  type="button"
+                  role="radio"
+                  aria-checked={style === s}
+                  onClick={() => {
+                    pop(0.3 + i * 0.3);
+                    setStyle(s);
+                  }}
+                  style={{ "--d": `${i * 90}ms` } as React.CSSProperties}
+                  className="option surgit min-h-[84px] lg:flex-1 lg:rounded-3xl lg:px-10 lg:shadow-[0_6px_0_var(--color-encre)]"
+                >
+                  <span className="lg:min-w-0 lg:flex-1">
+                    <span className="titre block text-[21px] lg:text-[clamp(30px,2.9vw,54px)]">{STYLES[s].nom}</span>
+                    <span className="mt-1 block text-[13px] text-encre2 lg:mt-2 lg:text-[18px]">{STYLES[s].detail}</span>
+                    {/* Le rythme du style : longueur des plans */}
+                    <span className="mt-6 hidden h-6 gap-1.5 lg:flex" aria-hidden="true">
+                      {RYTHMES[s].map((f, j) => (
+                        <span key={j} className={`rounded-md border-2 border-encre ${["bg-rose", "bg-turquoise", "bg-orange"][j % 3]}`} style={{ flex: f }} />
+                      ))}
+                    </span>
+                  </span>
+                  {style === s && <Coche className="h-6 w-6 shrink-0 lg:h-11 lg:w-11" />}
+                </button>
+              ))}
+            </div>
+          </>
+        ),
+        fond: "lg:bg-turquoise",
+      };
       bouton = { libelle: "Générer ma vidéo", faire: suivant };
       break;
 
     case "montage":
-      contenu = (
+      return (
         <Montage
+          entete={entete}
           urls={urlsDe(clips)}
           titre={titre}
           secondes={regl.secondes}
@@ -353,31 +412,36 @@ function Plateau() {
           }}
         />
       );
-      break;
 
     case "resultat":
-      contenu = (
-        <>
-          <Confettis />
-          <h1 className="surgit titre text-center text-[38px]">Ta vidéo est prête.</h1>
-          <div className="mt-5 flex min-h-0 flex-1 items-center justify-center">
+      contenu = {
+        gauche: (
+          <>
+            <Confettis />
+            <h1 className="surgit titre text-center text-[38px] lg:text-left lg:text-[clamp(60px,6.4vw,120px)]">Ta vidéo est prête.</h1>
+            <div className="order-2 mt-5 flex flex-wrap justify-center gap-2 lg:order-none lg:mt-9 lg:justify-start lg:gap-3.5">
+              {["9:16", "1080 × 1920", STYLES[style].nom].map((t, i) => (
+                <span key={t} className={`pastille surgit lg:min-h-11 lg:px-5 lg:text-[18px] ${["bg-turquoise", "bg-jaune", "bg-rose"][i]}`} style={{ "--d": `${400 + i * 120}ms` } as React.CSSProperties}>
+                  {t}
+                </span>
+              ))}
+            </div>
+          </>
+        ),
+        droite: (
+          <div className="order-1 mt-5 flex min-h-0 flex-1 items-center justify-center lg:order-none lg:mt-0">
             <Finale url={urlFinale} />
           </div>
-          <div className="mt-5 flex flex-wrap justify-center gap-2">
-            {["9:16", "1080 × 1920", STYLES[style].nom].map((t, i) => (
-              <span key={t} className={`pastille surgit ${["bg-turquoise", "bg-jaune", "bg-rose"][i]}`} style={{ "--d": `${400 + i * 120}ms` } as React.CSSProperties}>
-                {t}
-              </span>
-            ))}
-          </div>
-        </>
-      );
+        ),
+        fond: "lg:bg-rose",
+      };
       bouton = { libelle: "Publier ma vidéo", faire: suivant };
       break;
 
     case "publier":
-      contenu = (
+      return (
         <Publier
+          entete={entete}
           pseudo={regl.pseudo}
           partir={(d) => {
             setDepart(d);
@@ -386,51 +450,56 @@ function Plateau() {
           }}
         />
       );
-      break;
 
     case "fin":
-      contenu = depart && <Fin depart={depart} url={urlFinale} pseudo={regl.pseudo} fini={() => setParti(true)} />;
-      bouton = parti && {
-        libelle: "Créer une autre vidéo",
-        faire: () => {
-          const reste = credits;
-          action("clips");
-          setCredits(reste);
-        },
-      };
-      pied = PUBLICATION_AUTO ? null : <p className="mt-3 text-center text-[11px] text-encre2">Publication automatique : bientôt sur XPclip.</p>;
-      break;
+      if (!depart) return null;
+      return (
+        <Fin
+          entete={entete}
+          depart={depart}
+          url={urlFinale}
+          pseudo={regl.pseudo}
+          fini={() => setParti(true)}
+          action={
+            parti && (
+              <button
+                type="button"
+                className="bouton bouton-rose w-full"
+                onClick={() => {
+                  const reste = credits;
+                  action("clips");
+                  setCredits(reste);
+                }}
+              >
+                Créer une autre vidéo
+              </button>
+            )
+          }
+        />
+      );
   }
 
-  const q = QUESTIONS.indexOf(etape);
   return (
-    <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col overflow-x-clip px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(14px,env(safe-area-inset-top))]">
-      {q >= 0 ? (
-        <Entete n={q + 1} total={QUESTIONS.length} retour={retour} />
-      ) : (
-        <header className="flex items-center justify-between">
-          {logo}
-          {SUITE.indexOf(etape) >= SUITE.indexOf("clips") && (
-            <span key={credits} className="pastille surgit bg-turquoise tabular-nums">
-              {videos(credits)}
-            </span>
-          )}
-        </header>
-      )}
-      <div key={etape} className="entree mt-5 flex flex-1 flex-col">
-        {contenu}
-      </div>
-      {bouton && (
-        <div className="pt-6">
+    <Duo
+      cle={etape}
+      entete={entete}
+      marque={q >= 0}
+      {...contenu}
+      action={
+        bouton && (
           <button type="button" onClick={bouton.faire} disabled={bouton.actif === false} className="bouton bouton-rose w-full">
             {bouton.libelle}
           </button>
-          {pied}
-        </div>
-      )}
-    </main>
+        )
+      }
+      pied={pied}
+    />
   );
 }
+
+/* Sur ordinateur : un à trois clips prennent toute la largeur du panneau. */
+const COLONNES = ["", "lg:grid-cols-1", "lg:grid-cols-2", "lg:grid-cols-3"];
+const RYTHMES: Record<Style, number[]> = { defi: [3, 2, 2, 3, 2, 2], drole: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1], mission: [5, 4, 5] };
 
 /* Même tableau tant que les clips ne changent pas : le montage ne repart pas à chaque image. */
 const memo = new WeakMap<Clip[], string[]>();
@@ -464,7 +533,7 @@ function Finale({ url }: { url: string }) {
   return (
     <button
       type="button"
-      className="carte-forte surgit relative aspect-[9/16] h-[52dvh] max-h-[620px] min-h-[300px] -rotate-1 overflow-hidden bg-encre shadow-[0_8px_0_var(--color-encre)]"
+      className="carte-forte surgit relative aspect-[9/16] h-[52dvh] max-h-[620px] min-h-[300px] -rotate-1 lg:h-[min(76dvh,960px)] lg:max-h-none lg:rounded-3xl overflow-hidden bg-encre shadow-[0_8px_0_var(--color-encre)]"
       onClick={() => {
         const v = ref.current!;
         v.muted = !v.muted;
@@ -480,7 +549,7 @@ function Finale({ url }: { url: string }) {
 }
 
 /** Le départ : la vidéo s'envole, les comptes se cochent, le tampon tombe. */
-function Fin({ depart, url, pseudo, fini }: { depart: Depart; url: string; pseudo: string; fini: () => void }) {
+function Fin({ entete, depart, url, pseudo, fini, action }: { entete: React.ReactNode; depart: Depart; url: string; pseudo: string; fini: () => void; action: React.ReactNode }) {
   const [t, setT] = useState(0);
   const fin = useRef(fini);
   fin.current = fini;
@@ -497,39 +566,52 @@ function Fin({ depart, url, pseudo, fini }: { depart: Depart; url: string; pseud
     return () => ids.forEach(clearTimeout);
   }, []);
   return (
-    <div className="relative flex flex-1 flex-col items-center justify-center">
-      {t >= 5 && <Confettis />}
-      {t < 2 && (
-        <div className={`carte-forte absolute top-1/2 -mt-[210px] h-[380px] w-[214px] overflow-hidden bg-encre ${t >= 1 ? "envol" : ""}`}>
-          <video src={url} muted playsInline autoPlay loop className="h-full w-full object-cover" />
-        </div>
-      )}
-      <div className="w-full">
-        <div className="flex min-h-[110px] items-center justify-center">
-          {t >= 4 && <p className="tampon titre rounded-2xl border-4 border-encre bg-rose px-6 py-3 text-[48px] shadow-[0_6px_0_var(--color-encre)]">{depart.quand ? "Planifiée !" : "Envoyée !"}</p>}
-        </div>
-        <div className="mt-6 flex flex-col gap-3">
-          {depart.reseaux.map((r, i) =>
-            t >= 2 + i ? (
-              <div key={r} className="carte-forte surgit flex items-center gap-3 bg-blanc p-3.5">
-                <PictoReseau r={r} />
-                <span className="min-w-0 flex-1">
-                  <span className="titre block text-[19px]">{nomsReseaux([r])}</span>
-                  <span className="mt-1 block truncate text-[13px] text-encre2">
-                    @{pseudo} · {depart.quand ?? "maintenant"}
+    <Duo
+      cle="fin"
+      entete={entete}
+      action={action}
+      fond="lg:bg-turquoise"
+      pied={PUBLICATION_AUTO || !action ? null : <p className="mt-3 text-center text-[11px] text-encre2">Publication automatique : bientôt sur XPclip.</p>}
+      gauche={
+        <div className="order-1 flex flex-1 flex-col lg:order-none lg:flex-none">
+          {t >= 5 && <Confettis />}
+          <div className="mt-6 flex flex-col gap-3 lg:mt-0 lg:gap-5">
+            {depart.reseaux.map((r, i) => (
+              <div key={r} className={t >= 2 + i ? "" : "invisible"}>
+                <div key={String(t >= 2 + i)} className="carte-forte surgit flex items-center gap-3 bg-blanc p-3.5 lg:gap-6 lg:rounded-3xl lg:p-7">
+                  <PictoReseau r={r} />
+                  <span className="min-w-0 flex-1">
+                    <span className="titre block text-[19px] lg:text-[clamp(26px,2.4vw,42px)]">{nomsReseaux([r])}</span>
+                    <span className="mt-1 block truncate text-[13px] text-encre2 lg:mt-2 lg:text-[18px]">
+                      @{pseudo} · {depart.quand ?? "maintenant"}
+                    </span>
                   </span>
-                </span>
-                <Coche className="h-7 w-7 shrink-0" />
+                  <Coche className="h-7 w-7 shrink-0 lg:h-11 lg:w-11" />
+                </div>
               </div>
-            ) : null,
-          )}
-        </div>
-        {t >= 4 && (
-          <div className="surgit mt-5 flex justify-center">
+            ))}
+          </div>
+          <div className={`mt-5 flex justify-center lg:justify-start ${t >= 4 ? "surgit" : "invisible"}`}>
             <Bientot />
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      }
+      droite={
+        <div className="relative flex flex-1 items-end justify-center lg:items-center">
+          {t < 2 && (
+            <div className={`carte-forte absolute top-1/2 -mt-[210px] h-[380px] w-[214px] overflow-hidden bg-encre lg:static lg:mt-0 lg:aspect-[9/16] lg:h-[min(70dvh,860px)] lg:w-auto lg:rounded-3xl ${t >= 1 ? "envol" : ""}`}>
+              <video src={url} muted playsInline autoPlay loop className="h-full w-full object-cover" />
+            </div>
+          )}
+          <div className="flex min-h-[110px] items-center justify-center lg:absolute lg:inset-0">
+            {t >= 4 && (
+              <p className="tampon titre whitespace-nowrap rounded-2xl border-4 border-encre bg-rose px-6 py-3 text-[48px] shadow-[0_6px_0_var(--color-encre)] lg:rounded-[32px] lg:border-[6px] lg:px-10 lg:py-7 lg:text-[clamp(60px,6.6vw,128px)] lg:shadow-[0_12px_0_var(--color-encre)]">
+                {depart.quand ? "Planifiée !" : "Envoyée !"}
+              </p>
+            )}
+          </div>
+        </div>
+      }
+    />
   );
 }
