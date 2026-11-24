@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Le moteur est copié dans la machine de montage au moment du lancement (src/lib/atelier.ts).
   outputFileTracingIncludes: { "/api/montage": ["./moteur/*.mjs", "./moteur/bac.sh", "./moteur/package*.json", "./moteur/polices/*"] },
+  // Retour de TikTok ou d'Instagram, après avoir relié un compte (src/app/relier).
+  redirects: async () => [{ source: "/app/comptes", has: [{ type: "query", key: "isSuccess" }], destination: "/relier", permanent: false }],
   // Appareil de l'équipe prêt à filmer : l'accueil ouvre le tournage, sans changer d'adresse (lib/tournage.ts).
   rewrites: async () => ({
     beforeFiles: [{ source: "/", has: [{ type: "cookie", key: "xp_tournage", value: "1" }], destination: "/tournage" }],

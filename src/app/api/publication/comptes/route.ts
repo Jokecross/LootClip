@@ -6,7 +6,6 @@
  */
 import { admin, adminConfigure, utilisateurDe } from "@/lib/admin";
 import { adresseConnexion, annuler, comptesDe, effacerCompte, lireCompte, publicationOuverte, RESEAUX, type Publication, type Reseau } from "@/lib/postforme";
-import { estTesteur } from "@/lib/whop";
 
 const FRAICHEUR_MS = 10 * 60_000;
 
@@ -53,8 +52,7 @@ export async function POST(req: Request) {
   if (refus) return refus;
   const { reseau } = await req.json().catch(() => ({}));
   if (!RESEAUX.includes(reseau)) return Response.json({ erreur: "reseau" }, { status: 400 });
-  const { data: profil } = await admin().from("profils").select("offre").eq("id", user.id).maybeSingle();
-  if ((!profil || profil.offre === "gratuit") && !estTesteur(user.email)) return Response.json({ erreur: "offre_requise" }, { status: 403 });
+  // Relier est permis avant de payer (onboarding). Publier demande une offre : voir /api/publication.
   try {
     const deja = (await lister(user.id)).find((c) => c.reseau === reseau && c.actif);
     if (deja) return Response.json({ erreur: "deja_relie" }, { status: 409 });

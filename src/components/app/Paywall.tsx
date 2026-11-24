@@ -17,6 +17,9 @@ import { objectifBooste, offreConseillee } from "@/lib/onboarding";
 import { eur, lancementActif, libelleBouton, libelleFacturation, libelleJour, montant, parJour } from "@/lib/prix";
 import { deconnecter } from "@/lib/serveur";
 import { suivre } from "@/lib/suivi";
+import { Photo } from "@/components/onboarding/Reseaux";
+import { PictoReseau } from "@/components/studio/Publier";
+import { useComptes } from "@/lib/publication";
 import { Paiement, type Achat } from "./Paiement";
 
 export type MomentPaywall = "entree" | "telechargement" | "deuxieme_video";
@@ -27,6 +30,8 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
   const objectif = profil?.objectif ?? ONBOARDING.objectifParDefaut;
   const frequence = profil?.frequence ?? ONBOARDING.frequenceParDefaut;
   const conseillee = offreConseillee(frequence);
+  const { comptes } = useComptes();
+  const relies = comptes?.filter((c) => c.actif) ?? [];
   const [choix, setChoix] = useState<OffrePayante>(conseillee);
   const [periode, setPeriode] = useState<Periodicite>("mensuel");
   const [paiement, setPaiement] = useState(false);
@@ -86,6 +91,16 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
               {nombre(objectifBooste(objectif))}&nbsp;€ par mois
             </h1>
             <p className="mt-1.5 text-[14px] text-encre2 lg:mt-3 lg:text-[18px]">Ton plan : {videos(frequence)} par semaine.</p>
+            {relies.length > 0 && (
+              <p className="mt-3 flex items-center gap-2.5 text-[15px] font-bold lg:text-[18px]">
+                <span className="flex -space-x-2">
+                  {relies.map((c) => (
+                    <span key={c.id}>{c.photo ? <Photo url={c.photo} secours={<PictoReseau r={c.reseau} />} /> : <PictoReseau r={c.reseau} />}</span>
+                  ))}
+                </span>
+                <span className="min-w-0 truncate">@{relies[0].pseudo ?? "Ton compte"} est prêt à poster.</span>
+              </p>
+            )}
           </div>
           {fermer && (
             <button type="button" onClick={fermer} className="bouton bouton-carre shrink-0" aria-label="Fermer">

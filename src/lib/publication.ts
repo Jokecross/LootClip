@@ -58,7 +58,7 @@ export function lireRetour(): string | null {
   try {
     const r = JSON.parse(localStorage.getItem(CLE_RETOUR) || "null");
     localStorage.removeItem(CLE_RETOUR);
-    return r && Date.now() - r.le < 3_600_000 && typeof r.retour === "string" && r.retour.startsWith("/app/") ? r.retour : null;
+    return r && Date.now() - r.le < 3_600_000 && typeof r.retour === "string" && /^\/(app\/|commencer\?)/.test(r.retour) ? r.retour : null;
   } catch {
     return null;
   }

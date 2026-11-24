@@ -1,6 +1,6 @@
 "use client";
 /*
- * Onboarding en 9 écrans. L'écran des offres s'affiche après la création du compte, avant le dépôt des clips.
+ * Onboarding en 10 écrans. L'écran des offres s'affiche après les comptes à relier, avant le dépôt des clips.
  * Une action par écran, bouton principal en bas, barre de progression en haut, retour possible.
  * L'étape est dans l'adresse (?e=3) : le bouton retour du téléphone marche aussi.
  */
@@ -8,6 +8,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
 import { PanneauHero } from "@/components/onboarding/PanneauHero";
+import { Reseaux } from "@/components/onboarding/Reseaux";
 import { FormulaireCompte } from "@/components/compte/FormulaireCompte";
 import { Paywall } from "@/components/app/Paywall";
 import { Logo } from "@/components/marque/Logo";
@@ -20,9 +21,10 @@ import { ecrireReponses, effacerReponses, lireReponses, mettreEnAttente, videosP
 import { reveiller } from "@/lib/sons";
 import { suivre } from "@/lib/suivi";
 
-const ECRANS = ["accroche", "principe", "console", "tiktok", "objectif", "heures", "plan", "compte", "clips"] as const;
+const ECRANS = ["accroche", "principe", "console", "tiktok", "objectif", "heures", "plan", "compte", "reseaux", "clips"] as const;
 const TOTAL = ECRANS.length;
 const COMPTE = ECRANS.indexOf("compte") + 1;
+const RESEAUX = ECRANS.indexOf("reseaux") + 1;
 const CLIPS = ECRANS.indexOf("clips") + 1;
 
 function premiereManquante(r: Reponses) {
@@ -53,13 +55,13 @@ function Onboarding() {
     if (!pret || !etat.charge) return;
     if (etat.compte && !aRepondre) {
       if (n < COMPTE) router.replace("/app/creer");
-      if (n === COMPTE) router.replace(`/commencer?e=${CLIPS}`);
+      if (n === COMPTE) router.replace(`/commencer?e=${RESEAUX}`);
       return;
     }
     const lu = lireReponses();
     const manque = premiereManquante(lu);
     if (manque && n > manque) return router.replace(`/commencer?e=${manque}`);
-    if (!etat.compte && n === CLIPS) return router.replace(`/commencer?e=${COMPTE}`);
+    if (!etat.compte && n > COMPTE) return router.replace(`/commencer?e=${COMPTE}`);
     // Déjà connecté (Google) : pas de compte à créer, les réponses vont dans le profil, puis les offres.
     if (etat.compte && n >= COMPTE) {
       const profil = { plateforme: lu.plateforme!, objectif: lu.objectif!, tiktok: lu.tiktok!, frequence: lu.frequence! };
@@ -100,7 +102,7 @@ function Onboarding() {
   async function creerCompte() {
     await rafraichir();
     suivre("inscription", { methode: "email" });
-    router.replace(`/commencer?e=${CLIPS}`);
+    router.replace(`/commencer?e=${RESEAUX}`);
   }
 
   function aDesClips(fichiers: FileList | null) {
@@ -119,7 +121,9 @@ function Onboarding() {
     router.push("/app/demarrage");
   }
 
-  if (!pret || (etat.compte && (n === COMPTE || (n === CLIPS && aRepondre)))) return <div className="min-h-dvh bg-fond" />;
+  if (!pret || (n === RESEAUX && !etat.compte) || (etat.compte && (n === COMPTE || (n > COMPTE && aRepondre)))) return <div className="min-h-dvh bg-fond" />;
+
+  if (n === RESEAUX) return <Reseaux n={n} total={TOTAL} ici={`/commencer?e=${RESEAUX}`} passer={() => router.replace(`/commencer?e=${CLIPS}`)} />;
 
   // Onboarding terminé : l'écran des offres, puis les clips une fois l'abonnement pris.
   if (n === CLIPS && etat.compte && !aAcces(etat)) return <Paywall ouvert moment="entree" apresPaiement={() => {}} />;
@@ -202,7 +206,7 @@ function Onboarding() {
         gauche: <Titre sous="Pour garder ton plan et tes vidéos.">Crée ton compte.</Titre>,
         droite: (
           <div className="flex flex-1 flex-col lg:m-auto lg:w-full lg:max-w-[560px] lg:flex-none lg:rounded-3xl lg:border-2 lg:border-encre lg:bg-fond lg:p-10 lg:shadow-[0_6px_0_var(--color-encre)]">
-            <FormulaireCompte mode="inscription" retour={`/commencer?e=${CLIPS}`} valider={creerCompte} />
+            <FormulaireCompte mode="inscription" retour={`/commencer?e=${RESEAUX}`} valider={creerCompte} />
           </div>
         ),
         fond: "lg:bg-rose",
@@ -242,7 +246,7 @@ function Onboarding() {
     <Duo
       cle={n}
       marque={n !== 1}
-      entete={n === 1 ? <Logo taille={30} /> : <Entete n={n} total={TOTAL} retour={n < CLIPS && !(etat.compte && n === 2) ? retour : undefined} />}
+      entete={n === 1 ? <Logo taille={30} /> : <Entete n={n} total={TOTAL} retour={n <= COMPTE && !(etat.compte && n === 2) ? retour : undefined} />}
       {...contenu}
       action={
         action && (

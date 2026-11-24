@@ -1,48 +1,28 @@
 "use client";
 /*
- * Comptes TikTok et Instagram reliés. C'est aussi la page de retour de Post for Me
- * (Project Redirect URL) : ?provider=&isSuccess=&accountIds=&error=
+ * Comptes TikTok et Instagram reliés. C'est l'adresse de retour donnée à Post for Me (Project Redirect URL) :
+ * avec ?isSuccess=, next.config.ts amène sur /relier.
  */
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Publications } from "@/components/app/Publications";
 import { NOMS, PictoReseau } from "@/components/studio/Publier";
+import { Photo } from "@/components/onboarding/Reseaux";
 import { Feuille } from "@/components/ui/Feuille";
 import { afficherToast } from "@/components/ui/Toast";
-import { confirmerComptes, delier, lireRetour, messageConnexion, relier, useComptes, type CompteSocial, type Reseau } from "@/lib/publication";
+import { delier, relier, useComptes, type CompteSocial, type Reseau } from "@/lib/publication";
 
 export default function Comptes() {
-  const router = useRouter();
   const { comptes, erreur, relire } = useComptes();
   const [attente, setAttente] = useState<Reseau | null>(null);
   const [retrait, setRetrait] = useState<CompteSocial | null>(null);
   const [probleme, setProbleme] = useState<string | null>(null);
 
-  // Retour de TikTok ou d'Instagram
-  useEffect(() => {
-    const p = new URLSearchParams(location.search);
-    if (!p.has("isSuccess")) return;
-    history.replaceState(null, "", "/app/comptes");
-    const reseau: Reseau = p.get("provider") === "instagram" ? "instagram" : "tiktok";
-    const ids = (p.get("accountIds") ?? "").split(",").filter(Boolean).slice(0, 5);
-    const suite = lireRetour();
-    if (p.get("isSuccess") !== "true" || !ids.length) return setProbleme(messageConnexion(reseau, p.get("error") ?? ""));
-    confirmerComptes(ids)
-      .then(() => {
-        afficherToast(`${NOMS[reseau]} est relié.`);
-        if (suite) router.replace(suite);
-        else relire();
-      })
-      .catch((e: Error) => setProbleme(e.message));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   async function connecter(r: Reseau) {
     setAttente(r);
     setProbleme(null);
     try {
-      await relier(r);
+      await relier(r, "/app/comptes");
     } catch (e) {
       setAttente(null);
       setProbleme((e as Error).message);
@@ -78,7 +58,7 @@ export default function Comptes() {
           const c = comptes?.filter((x) => x.reseau === r).at(-1);
           return (
             <div key={r} className={`flex items-center gap-3 p-4 ${c?.actif ? "carte-forte bg-jaune" : "carte"}`}>
-              <PictoReseau r={r} />
+              {c?.actif && c.photo ? <Photo url={c.photo} secours={<PictoReseau r={r} />} /> : <PictoReseau r={r} />}
               <div className="min-w-0 flex-1">
                 <p className="titre text-[20px]">{NOMS[r]}</p>
                 <p className="mt-0.5 truncate text-[13px] text-encre2">{!comptes ? " " : !c ? "Pas encore relié" : c.actif ? `@${c.pseudo ?? "compte relié"}` : "À reconnecter"}</p>
