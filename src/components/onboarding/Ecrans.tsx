@@ -176,7 +176,7 @@ export function ecranObjectif({ r, repondre }: Props): Parties {
           libelle={(v) => `${nombre(v)} €`}
           changer={(v) => repondre({ objectif: v })}
           centre={
-            <div className="flex flex-col items-center pb-[22%]">
+            <div className="flex flex-col items-center pb-[14%]">
               {montant}
               {etiquette}
             </div>
@@ -355,7 +355,7 @@ function Grand({ children, cle }: { children: React.ReactNode; cle: number }) {
     ref.current?.animate([{ transform: "scale(1.09)" }, { transform: "scale(1)" }], { duration: 160, easing: "ease-out" });
   }, [cle]);
   return (
-    <p ref={ref} className="titre whitespace-nowrap text-[64px] tabular-nums [@media(min-height:780px)]:text-[min(84px,21vw)] lg:!text-[clamp(64px,7vw,132px)]" aria-live="off">
+    <p ref={ref} className="titre whitespace-nowrap text-[64px] tabular-nums [@media(min-height:780px)]:text-[min(84px,21vw)] lg:!text-[clamp(52px,min(5.6vw,10vh),112px)]" aria-live="off">
       {children}
     </p>
   );
