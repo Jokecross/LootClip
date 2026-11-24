@@ -139,7 +139,7 @@ export const EMAILS_ACTIFS = false;
 export const GOOGLE_CLIENT_ID = "56060509244-4c5vom7pe93ib3ankloi8uhbfvjqs703.apps.googleusercontent.com";
 
 /** Bouton Google montré à tous. Sinon, seulement avec « ?google=test » dans l'adresse, pour l'essayer. */
-export const GOOGLE_OUVERT = false;
+export const GOOGLE_OUVERT = true;
 
 export const PURGE_CLIPS_JOURS = 14;
 

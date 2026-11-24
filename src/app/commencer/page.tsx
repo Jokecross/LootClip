@@ -14,9 +14,9 @@ import { Logo } from "@/components/marque/Logo";
 import { Duo, Titre } from "@/components/ui/Duo";
 import { Entete } from "@/components/ui/Parcours";
 import { MENTION_OBJECTIF, NON_AFFILIATION, ONBOARDING } from "@/lib/config";
-import { aAcces, modifier, useEtat } from "@/lib/etat";
+import { aAcces, modifier, sansOnboarding, useEtat } from "@/lib/etat";
 import { rafraichir } from "@/lib/serveur";
-import { ecrireReponses, lireReponses, mettreEnAttente, videosPourHeures, type Reponses } from "@/lib/onboarding";
+import { ecrireReponses, effacerReponses, lireReponses, mettreEnAttente, videosPourHeures, type Reponses } from "@/lib/onboarding";
 import { reveiller } from "@/lib/sons";
 import { suivre } from "@/lib/suivi";
 
@@ -39,6 +39,7 @@ function Onboarding() {
   const [r, setR] = useState<Reponses>({});
   const [pret, setPret] = useState(false);
   const galerie = useRef<HTMLInputElement>(null);
+  const aRepondre = sansOnboarding(etat);
 
   useEffect(() => {
     const lu = lireReponses();
@@ -48,13 +49,22 @@ function Onboarding() {
 
   useEffect(() => {
     if (!pret || !etat.charge) return;
-    if (etat.compte && n < 7) return router.replace("/app/creer");
-    if (etat.compte && n === 7) return router.replace("/commencer?e=8");
+    if (etat.compte && !aRepondre) {
+      if (n < 7) router.replace("/app/creer");
+      if (n === 7) router.replace("/commencer?e=8");
+      return;
+    }
+    const lu = lireReponses();
+    const manque = premiereManquante(lu);
+    if (manque && n > manque) return router.replace(`/commencer?e=${manque}`);
     if (!etat.compte && n === 8) return router.replace("/commencer?e=7");
-    if (etat.compte) return;
-    const manque = premiereManquante(lireReponses());
-    if (manque && n > manque) router.replace(`/commencer?e=${manque}`);
-  }, [pret, etat.charge, etat.compte, n, router]);
+    // Déjà connecté (Google) : pas de compte à créer, les réponses vont dans le profil, puis les offres.
+    if (etat.compte && n >= 7) {
+      const profil = { plateforme: lu.plateforme!, objectif: lu.objectif!, tiktok: lu.tiktok!, frequence: lu.frequence! };
+      modifier((e) => ({ ...e, compte: e.compte ? { ...e.compte, plateforme: profil.plateforme, profil } : e.compte }));
+      effacerReponses();
+    }
+  }, [pret, etat.charge, etat.compte, aRepondre, n, router]);
 
   useEffect(() => {
     const ecran = ECRANS[n - 1];
@@ -107,7 +117,7 @@ function Onboarding() {
     router.push("/app/demarrage");
   }
 
-  if (!pret) return <div className="min-h-dvh bg-fond" />;
+  if (!pret || (etat.compte && (n === 7 || (n === 8 && aRepondre)))) return <div className="min-h-dvh bg-fond" />;
 
   // Onboarding terminé : l'écran des offres, puis les clips une fois l'abonnement pris.
   if (n === 8 && etat.compte && !aAcces(etat)) return <Paywall ouvert moment="entree" apresPaiement={() => {}} />;
@@ -175,7 +185,7 @@ function Onboarding() {
 
     case "plan":
       if (objectif && r.frequence) contenu = ecranPlan({ objectif, frequence: r.frequence });
-      action = { libelle: "Créer mon compte", faire: suivant, actif: !!objectif && !!r.frequence };
+      action = { libelle: etat.compte ? "Continuer" : "Créer mon compte", faire: suivant, actif: !!objectif && !!r.frequence };
       pied = <p className="mt-3 text-center text-[11px] text-encre2">{MENTION_OBJECTIF}</p>;
       break;
 
@@ -224,7 +234,7 @@ function Onboarding() {
     <Duo
       cle={n}
       marque={n !== 1}
-      entete={n === 1 ? <Logo taille={30} /> : <Entete n={n} total={TOTAL} retour={n < 8 ? retour : undefined} />}
+      entete={n === 1 ? <Logo taille={30} /> : <Entete n={n} total={TOTAL} retour={n < 8 && !(etat.compte && n === 2) ? retour : undefined} />}
       {...contenu}
       action={
         action && (

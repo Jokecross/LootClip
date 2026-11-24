@@ -99,6 +99,9 @@ export function modifier(f: (e: Etat) => Etat) {
 /** L'appli est réservée aux abonnés. */
 export const aAcces = (e: Etat) => !!e.compte && (e.compte.offre !== "gratuit" || GRATUIT.videos > 0);
 
+/** Compte créé sans passer par l'onboarding (Google depuis la page de connexion, par exemple) : ses réponses manquent. */
+export const sansOnboarding = (e: Etat) => !!e.compte && !e.compte.profil && !aAcces(e) && !e.compte.abonneDepuis && !e.videos.length;
+
 export function lireEtat() {
   return etat;
 }

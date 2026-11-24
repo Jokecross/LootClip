@@ -6,7 +6,7 @@ import { useEffect } from "react";
 import { Logo } from "@/components/marque/Logo";
 import { afficherToast, Toasts } from "@/components/ui/Toast";
 import { Paywall } from "@/components/app/Paywall";
-import { aAcces, modifier, useEtat } from "@/lib/etat";
+import { aAcces, modifier, sansOnboarding, useEtat } from "@/lib/etat";
 import { quota, statutDe, surveillerMontages, useMaintenant } from "@/lib/montage";
 
 const ONGLETS = [
@@ -67,7 +67,13 @@ export default function CoquilleAppli({ children }: { children: React.ReactNode 
     if (etat.charge && !etat.compte) router.replace("/inscription");
   }, [etat.charge, etat.compte, router]);
 
-  if (!etat.charge || !etat.compte) return <div className="min-h-dvh bg-fond" />;
+  // Nouveau compte sans réponses : l'onboarding d'abord, les offres ensuite.
+  const aFaire = !chemin.startsWith("/app/compte") && !chemin.startsWith("/app/merci") && sansOnboarding(etat);
+  useEffect(() => {
+    if (etat.charge && aFaire) router.replace("/commencer?e=2");
+  }, [etat.charge, aFaire, router]);
+
+  if (!etat.charge || !etat.compte || aFaire) return <div className="min-h-dvh bg-fond" />;
 
   // Réservé aux abonnés. Restent ouverts : le compte, le retour de paiement, et les vidéos d'un ancien abonné.
   const libre = chemin.startsWith("/app/compte") || chemin.startsWith("/app/merci") || (etat.videos.length > 0 && chemin.startsWith("/app/video"));
