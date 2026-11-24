@@ -11,6 +11,12 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Le moteur est copié dans la machine de montage au moment du lancement (src/lib/atelier.ts).
   outputFileTracingIncludes: { "/api/montage": ["./moteur/*.mjs", "./moteur/bac.sh", "./moteur/package*.json", "./moteur/polices/*"] },
+  // Appareil de l'équipe prêt à filmer : l'accueil ouvre le tournage, sans changer d'adresse (lib/tournage.ts).
+  rewrites: async () => ({
+    beforeFiles: [{ source: "/", has: [{ type: "cookie", key: "xp_tournage", value: "1" }], destination: "/tournage" }],
+    afterFiles: [],
+    fallback: [],
+  }),
   headers: async () => [
     {
       source: "/:chemin*",

@@ -3,9 +3,9 @@
  * Réglages du studio de tournage, gardés sur ce téléphone : textes dans localStorage, vidéo finale dans IndexedDB.
  * Rien n'est envoyé au serveur, rien n'est écrit dans un vrai compte.
  */
-export type Reglages = { credits: number; pseudo: string; titre: string; secondes: number };
+export type Reglages = { credits: number; pseudo: string; titre: string; secondes: number; /** xpclip.com ouvre le tournage sur cet appareil. */ tournage: boolean };
 
-export const REGLAGES_DEFAUT: Reglages = { credits: 60, pseudo: "", titre: "", secondes: 9 };
+export const REGLAGES_DEFAUT: Reglages = { credits: 60, pseudo: "", titre: "", secondes: 9, tournage: true };
 
 const MOTS = ["vice", "manette", "pixel", "turbo", "neon", "palmier", "ocean", "minuit"];
 const FINS = ["clips", "gaming", "replay", "joue", "ride"];
