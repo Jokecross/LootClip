@@ -14,7 +14,7 @@ import { Bientot, nomsReseaux, PictoReseau, Publier, type Depart } from "@/compo
 import { VideoPortrait } from "@/components/studio/VideoPortrait";
 import { Duo } from "@/components/ui/Duo";
 import { Coche, Entete } from "@/components/ui/Parcours";
-import { CLIPS, MENTION_OBJECTIF, NON_AFFILIATION, ONBOARDING, PUBLICATION_AUTO, STYLES, TITRE_MAX, type Style } from "@/lib/config";
+import { CLIPS, MENTION_OBJECTIF, NON_AFFILIATION, ONBOARDING, STYLES, TITRE_MAX, type Style } from "@/lib/config";
 import { lireDuree } from "@/lib/depot";
 import { useEtat, type Video } from "@/lib/etat";
 import { duree as dureeLisible, videos } from "@/lib/format";
@@ -587,7 +587,6 @@ function Fin({ entete, depart, url, titre, pseudo, fini, action }: { entete: Rea
       entete={entete}
       action={action}
       fond="lg:bg-turquoise"
-      pied={PUBLICATION_AUTO || !action ? null : <p className="mt-3 text-center text-[11px] text-encre2">Publication automatique : bientôt sur XPclip.</p>}
       gauche={
         <div className="order-1 flex flex-1 flex-col lg:order-none lg:flex-none">
           {t >= 5 && <Confettis />}
