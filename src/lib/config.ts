@@ -136,7 +136,7 @@ export const NON_AFFILIATION = "XPclip n'est pas affilié à Rockstar Games ni �
 export const EMAILS_ACTIFS = false;
 
 /** Connexion Google : identifiant client OAuth (public). Vide : le bouton Google n'est pas affiché. */
-export const GOOGLE_CLIENT_ID = "";
+export const GOOGLE_CLIENT_ID = "56060509244-4c5vom7pe93ib3ankloi8uhbfvjqs703.apps.googleusercontent.com";
 
 export const PURGE_CLIPS_JOURS = 14;
 
