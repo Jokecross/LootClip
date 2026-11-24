@@ -9,7 +9,6 @@ import { Logo } from "@/components/marque/Logo";
 import { SceneAccroche, ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
 import { Ancre } from "@/components/monde/Ancre";
 import { prechauffer } from "@/components/monde/Monde";
-import { eclats } from "@/components/monde/store";
 import { Confettis } from "@/components/studio/Confettis";
 import { Montage } from "@/components/studio/Montage";
 import { nomsReseaux, PictoReseau, Publier, type Depart } from "@/components/studio/Publier";
@@ -281,7 +280,7 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
       contenu = {
         gauche: (
           <>
-            <h1 className="titre text-[44px] leading-[0.93] lg:text-[clamp(60px,min(6.9vw,13vh),150px)]">
+            <h1 className="titre text-[38px] lg:text-[clamp(52px,min(5.6vw,10.4vh),112px)]">
               <Mots>Tes parties de GTA 6 peuvent te payer.</Mots>
             </h1>
             <p className="mt-3 text-[16px] font-medium leading-snug text-encre2 lg:mt-7 lg:max-w-[28ch] lg:text-[clamp(20px,1.8vw,32px)]">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
@@ -340,17 +339,15 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
             <button
               type="button"
               onClick={() => galerie.current?.click()}
-              className={`group relative mt-5 flex w-full flex-col items-center justify-center gap-3 rounded-[26px] border-[4px] border-dashed border-encre transition-[padding,background-color] duration-300 lg:mt-0 lg:rounded-[44px] ${clips.length ? "bg-blanc/70 py-5 lg:flex-row lg:gap-5 lg:py-6" : "flex-1 bg-blanc/40 py-12 hover:bg-blanc/60 lg:gap-9"}`}
+              className={`group relative mt-5 flex w-full flex-col items-center justify-center gap-3 rounded-[22px] border-2 border-dashed border-encre transition-[padding,background-color] duration-300 lg:mt-0 lg:rounded-[28px] ${clips.length ? "bg-blanc py-5 lg:flex-row lg:gap-5 lg:py-6" : "flex-1 bg-blanc py-12 lg:gap-9"}`}
             >
               {!clips.length && (
                 <>
-                  <Ancre nom="clip1" className="absolute left-[-3%] top-[5%] h-[24%] w-[36%]" pose={{ ry: 0.5, rz: 0.14, flotte: 14, z: 60 }} />
-                  <Ancre nom="clip0" className="absolute right-[-3%] top-[9%] h-[24%] w-[36%]" pose={{ ry: -0.5, rz: -0.12, flotte: 16, z: 60 }} donnees={{ retard: 0.12 }} />
-                  <Ancre nom="clip3" className="absolute bottom-[5%] right-[0%] h-[22%] w-[34%]" pose={{ ry: -0.4, rz: 0.12, flotte: 12, z: 90 }} donnees={{ retard: 0.24 }} />
-                  <Ancre nom="manette" className="absolute bottom-[-4%] left-[-5%] h-[38%] w-[48%]" pose={{ ry: 0.35, rx: -0.4, rz: 0.14, z: 160 }} donnees={{ retard: 0.3, valeur: 0.7 }} />
+                  <Ancre nom="clip0" className="absolute right-[5%] top-[7%] h-[21%] w-[32%]" pose={{ ry: -0.4, rz: -0.08, flotte: 8, z: 40 }} />
+                  <Ancre nom="manette" className="absolute bottom-[5%] left-[4%] h-[29%] w-[40%]" pose={{ ry: 0.3, rx: -0.34, rz: 0.08, z: 60 }} donnees={{ retard: 0.15 }} />
                 </>
               )}
-              <span className={`relative z-20 grid place-items-center border-[3px] border-encre bg-rose shadow-[0_5px_0_var(--color-encre)] transition-all group-hover:-translate-y-1 ${clips.length ? "h-12 w-12 rounded-2xl" : "h-24 w-24 rounded-[30px] lg:h-40 lg:w-40 lg:rounded-[48px] lg:shadow-[0_10px_0_var(--color-encre)]"}`} aria-hidden="true">
+              <span className={`relative z-20 grid place-items-center border-2 border-encre bg-rose shadow-[0_4px_0_var(--color-encre)] transition-all ${clips.length ? "h-12 w-12 rounded-2xl" : "h-20 w-20 rounded-[24px] lg:h-32 lg:w-32 lg:rounded-[36px]"}`} aria-hidden="true">
                 <svg viewBox="0 0 24 24" className="h-1/2 w-1/2" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round">
                   <path d="M12 5v14M5 12h14" />
                 </svg>
@@ -360,7 +357,7 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
             {clips.length > 0 && (
               <div className={`relative mt-4 grid gap-3 lg:mt-7 lg:min-h-0 lg:flex-1 lg:auto-rows-fr lg:gap-7 ${clips.length <= 4 ? "grid-cols-2" : "grid-cols-3"} ${clips.length <= 3 ? COLONNES[clips.length] : ""}`}>
                 {clips.map((c, i) => (
-                  <div key={c.url} ref={eclater} className={`surgit relative aspect-[4/5] overflow-hidden rounded-[22px] border-[3px] border-encre bg-encre shadow-[0_7px_0_var(--color-encre)] lg:aspect-auto lg:min-h-0 lg:rounded-[34px] lg:shadow-[0_12px_0_var(--color-encre)] ${i % 2 ? "rotate-[1.6deg]" : "-rotate-[1.6deg]"}`}>
+                  <div key={c.url} className="surgit relative aspect-[4/5] overflow-hidden rounded-[18px] border-2 border-encre bg-encre shadow-[0_4px_0_var(--color-encre)] lg:aspect-auto lg:min-h-0 lg:rounded-[28px]">
                     <video src={`${c.url}#t=0.5`} muted playsInline autoPlay={i === clips.length - 1} loop preload="auto" className="h-full w-full object-cover lg:absolute lg:inset-0" />
                     <span className="pastille absolute bottom-2 left-2 bg-jaune tabular-nums lg:bottom-5 lg:left-5 lg:min-h-10 lg:px-4 lg:text-[18px]">{dureeLisible(c.duree)}</span>
                   </div>
@@ -383,7 +380,7 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
             <label htmlFor="titre-studio" className="mt-1 block text-[14px] font-bold lg:mt-9 lg:text-[20px]">
               Ton titre
             </label>
-            <input id="titre-studio" maxLength={TITRE_MAX} placeholder="Ex. Mon chien conduit mieux que moi" className="champ mt-2 !border-[3px] lg:mt-3 lg:h-[80px] lg:rounded-[22px] lg:px-7 lg:text-[24px]" value={titre} onChange={(e) => setTitre(e.target.value)} />
+            <input id="titre-studio" maxLength={TITRE_MAX} placeholder="Ex. Mon chien conduit mieux que moi" className="champ mt-2 lg:mt-3 lg:h-[72px] lg:rounded-2xl lg:px-6 lg:text-[22px]" value={titre} onChange={(e) => setTitre(e.target.value)} />
           </>
         ),
         droite: (
@@ -400,14 +397,14 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
                     setStyle(s);
                   }}
                   style={{ "--d": `${i * 90}ms` } as React.CSSProperties}
-                  className={`surgit relative flex min-h-[92px] flex-1 flex-col justify-center rounded-[22px] border-[3px] border-encre px-4 py-3 text-left transition-[transform,box-shadow,background-color] duration-200 ease-[cubic-bezier(.3,1.6,.6,1)] lg:rounded-[34px] lg:px-9 ${style === s ? "bg-jaune shadow-[0_10px_0_var(--color-encre)] lg:translate-x-3" : "bg-blanc shadow-[0_5px_0_var(--color-encre)] hover:-translate-y-1"}`}
+                  className={`surgit relative flex min-h-[92px] flex-1 flex-col justify-center rounded-[20px] border-2 border-encre px-4 py-3 text-left transition-[transform,box-shadow,background-color] duration-200 ease-out lg:rounded-[28px] lg:px-8 ${style === s ? "bg-jaune shadow-[0_5px_0_var(--color-encre)] lg:shadow-[0_8px_0_var(--color-encre)]" : "bg-blanc hover:-translate-y-1"}`}
                 >
                   <span className="titre block text-[20px] lg:text-[clamp(30px,2.9vw,58px)]">{STYLES[s].nom}</span>
                   <span className="mt-1 block text-[12px] font-medium leading-tight lg:mt-2 lg:text-[18px]">{STYLES[s].detail}</span>
                   {/* Le rythme du style : longueur des plans */}
                   <span className="mt-3 flex h-4 gap-1 lg:mt-6 lg:h-8 lg:gap-1.5" aria-hidden="true">
                     {RYTHMES[s].map((f, j) => (
-                      <span key={j} className={`rounded-md border-2 border-encre lg:rounded-lg lg:border-[2.5px] ${["bg-rose", "bg-turquoise", "bg-orange"][j % 3]}`} style={{ flex: f }} />
+                      <span key={j} className={`rounded-md border-2 border-encre lg:rounded-lg  ${["bg-rose", "bg-blanc", "bg-turquoise"][j % 3]}`} style={{ flex: f }} />
                     ))}
                   </span>
                   {style === s && <Coche className="absolute right-3 top-3 h-6 w-6 lg:right-6 lg:top-6 lg:h-11 lg:w-11" />}
@@ -442,12 +439,12 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
         gauche: (
           <>
             <Confettis />
-            <h1 className="titre text-center text-[44px] leading-[0.93] lg:text-left lg:text-[clamp(64px,min(7.4vw,14vh),160px)]">
+            <h1 className="titre text-center text-[38px] lg:text-left lg:text-[clamp(56px,min(6vw,11.4vh),120px)]">
               <Mots>Ta vidéo est prête.</Mots>
             </h1>
             <div className="order-2 mt-4 flex flex-wrap justify-center gap-2 lg:order-none lg:mt-9 lg:justify-start lg:gap-3.5">
               {["100 % ton jeu", "9:16", "1080 × 1920", STYLES[style].nom].map((t, i) => (
-                <span key={t} className={`pastille surgit lg:min-h-12 lg:px-5 lg:text-[19px] ${["bg-turquoise", "bg-jaune", "bg-blanc", "bg-orange"][i]}`} style={{ "--d": `${700 + i * 130}ms` } as React.CSSProperties}>
+                <span key={t} className={`pastille surgit lg:min-h-12 lg:px-5 lg:text-[19px] ${["bg-turquoise", "bg-blanc", "bg-blanc", "bg-jaune"][i]}`} style={{ "--d": `${700 + i * 130}ms` } as React.CSSProperties}>
                   {t}
                 </span>
               ))}
@@ -568,30 +565,13 @@ function Essai({ url, titre, style }: { url: string; titre: string; style: Style
 /** La vidéo finale dans le téléphone, avec le son si l'appareil l'autorise. */
 function Finale({ url, titre }: { url: string; titre: string }) {
   const { video, muet, basculer } = useLecteur(url, true);
-  const zone = useRef<HTMLButtonElement>(null);
-  useEffect(() => {
-    const id = setTimeout(() => {
-      const r = zone.current?.getBoundingClientRect();
-      if (r) eclats(r.left + r.width / 2, r.top + r.height * 0.42, 44);
-    }, 520);
-    return () => clearTimeout(id);
-  }, []);
   return (
-    <button ref={zone} type="button" onClick={basculer} aria-label={muet ? "Activer le son" : "Couper le son"} className="relative order-1 mt-4 min-h-[320px] flex-1 lg:order-none lg:mt-0 lg:min-h-0">
+    <button type="button" onClick={basculer} aria-label={muet ? "Activer le son" : "Couper le son"} className="relative order-1 mt-4 min-h-[320px] flex-1 lg:order-none lg:mt-0 lg:min-h-0">
       <Ancre nom="telephone" className="absolute inset-x-0 inset-y-0 lg:inset-y-[1%]" pose={{ ry: -0.2, rz: 0.035, flotte: 9, z: 80 }} donnees={{ source: video, titre, tour: 1 }} />
       {muet && <span className="pastille absolute bottom-[12%] left-1/2 z-20 -translate-x-1/2 bg-blanc lg:min-h-11 lg:px-5 lg:text-[16px]">Toucher pour le son</span>}
     </button>
   );
 }
-
-const eclater = (el: HTMLElement | null) => {
-  if (!el || el.dataset.vu) return;
-  el.dataset.vu = "1";
-  setTimeout(() => {
-    const r = el.getBoundingClientRect();
-    eclats(r.left + r.width / 2, r.top + r.height / 2, 12);
-  }, 120);
-};
 
 /** Le départ : la vidéo s'envole, les comptes se cochent, le tampon tombe. */
 function Fin({ entete, depart, url, titre, pseudo, fini, action }: { entete: React.ReactNode; depart: Depart; url: string; titre: string; pseudo: string; fini: () => void; action: React.ReactNode }) {
@@ -643,10 +623,7 @@ function Fin({ entete, depart, url, titre, pseudo, fini, action }: { entete: Rea
           {t < 4 && <Ancre nom="telephone" className="absolute inset-x-0 inset-y-[6%]" pose={{ ry: -0.15, flotte: 6, z: 120 }} donnees={{ source: video, titre, envol: t >= 1 }} />}
           {t >= 4 && (
             <>
-              <p className="tampon titre relative z-30 whitespace-nowrap rounded-[22px] border-[5px] border-encre bg-rose px-5 py-3 text-[42px] shadow-[0_8px_0_var(--color-encre)] lg:rounded-[40px] lg:border-[8px] lg:px-12 lg:py-10 lg:text-[clamp(60px,6.8vw,140px)] lg:shadow-[0_18px_0_var(--color-encre)]">{depart.quand ? "Programmée !" : "Publiée !"}</p>
-              <Ancre nom="clip0" className="absolute left-[2%] top-[4%] h-[24%] w-[38%]" pose={{ ry: 0.4, rz: 0.2, flotte: 16 }} />
-              <Ancre nom="clip2" className="absolute bottom-[6%] right-[0%] h-[24%] w-[38%]" pose={{ ry: -0.4, rz: -0.18, flotte: 14 }} donnees={{ retard: 0.15 }} />
-              <Ancre nom="manette" className="absolute bottom-[-2%] left-[-4%] h-[36%] w-[46%]" pose={{ ry: 0.3, rx: -0.35, rz: 0.12, z: 120 }} donnees={{ retard: 0.1, valeur: 1 }} />
+              <p className="tampon titre relative z-30 whitespace-nowrap rounded-[22px] border-4 border-encre bg-rose px-5 py-3 text-[42px] shadow-[0_6px_0_var(--color-encre)] lg:rounded-[32px] lg:border-[6px] lg:px-9 lg:py-7 lg:text-[clamp(52px,5.8vw,112px)] lg:shadow-[0_12px_0_var(--color-encre)]">{depart.quand ? "Programmée !" : "Publiée !"}</p>
             </>
           )}
         </div>

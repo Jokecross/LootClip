@@ -23,30 +23,21 @@ export function BoutonRetour({ onClick }: { onClick: () => void }) {
 
 let dernierN = 0;
 
-/** V2 : la barre d'XP. Chaque écran passé rapporte 100 XP (pour le plaisir, sans valeur). */
+/** La barre d'XP : chaque écran passé rapporte 100 XP (pour le plaisir, sans valeur). */
 export function Entete({ n, total, retour }: { n: number; total: number; retour?: () => void }) {
-  const [gagne, setGagne] = useState(false);
   const [large, setLarge] = useState(((Math.min(dernierN, n) || n) / total) * 100);
   useEffect(() => {
-    setGagne(dernierN > 0 && n > dernierN);
     dernierN = n;
-    const id = setTimeout(() => setLarge((n / total) * 100), 120);
+    const id = setTimeout(() => setLarge((n / total) * 100), 60);
     return () => clearTimeout(id);
   }, [n, total]);
   return (
     <div className="flex items-center gap-3">
       {retour ? <BoutonRetour onClick={retour} /> : null}
-      <div className="relative min-w-0 flex-1">
-        <div className="xp h-[26px] overflow-hidden rounded-full border-[3px] border-encre bg-fond lg:h-8" role="progressbar" aria-valuenow={n} aria-valuemin={1} aria-valuemax={total} aria-label={`Étape ${n} sur ${total}`}>
-          <span style={{ width: `${large}%` }} />
-        </div>
-        <span className="titre pointer-events-none absolute inset-y-0 left-3.5 flex items-center text-[13px] font-extrabold tabular-nums tracking-normal lg:left-4 lg:text-[15px]">{n * 100} XP</span>
-        {gagne && (
-          <span key={n} className="gain titre pointer-events-none absolute -bottom-9 rounded-lg border-[2.5px] border-encre bg-rose px-2 py-1 text-[14px] lg:text-[16px]" style={{ left: `calc(${(n / total) * 100}% - 66px)` }}>
-            +100 XP
-          </span>
-        )}
+      <div className="xp h-[14px] min-w-0 flex-1 overflow-hidden rounded-full border-2 border-encre bg-blanc" role="progressbar" aria-valuenow={n} aria-valuemin={1} aria-valuemax={total} aria-label={`Étape ${n} sur ${total}`}>
+        <span style={{ width: `${large}%` }} />
       </div>
+      <span className="titre w-[62px] text-right text-[14px] font-bold tabular-nums tracking-normal">{n * 100} XP</span>
     </div>
   );
 }

@@ -12,8 +12,8 @@ export function Pieces() {
     return () => o.disconnect();
   }, []);
   return (
-    <span ref={ref} className="absolute inset-x-[4%] bottom-0 block h-[58%]">
-      <Ancre nom="pieces" className="h-full w-full" pose={{ rx: 0.34, flotte: 0, suit: 0.6, z: 120 }} donnees={{ valeur: vu ? 1 : 0 }} />
+    <span ref={ref} className="absolute inset-x-[4%] bottom-0 block h-full">
+      <Ancre nom="pieces" className="h-full w-full" pose={{ rx: 0.34, flotte: 0, suit: 0.6, z: 120 }} donnees={{ valeur: vu ? 0.85 : 0 }} />
     </span>
   );
 }

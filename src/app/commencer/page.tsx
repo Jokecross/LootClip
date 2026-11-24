@@ -143,7 +143,7 @@ function Onboarding() {
       contenu = {
         gauche: (
           <>
-            <h1 className="titre text-[44px] leading-[0.93] lg:text-[clamp(60px,min(6.9vw,13vh),150px)]">
+            <h1 className="titre text-[38px] lg:text-[clamp(52px,min(5.6vw,10.4vh),112px)]">
               <Mots>Tes parties de GTA 6 peuvent te payer.</Mots>
             </h1>
             <p className="mt-3 text-[16px] font-medium leading-snug text-encre2 lg:mt-7 lg:max-w-[28ch] lg:text-[clamp(20px,1.8vw,32px)]">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
@@ -199,8 +199,8 @@ function Onboarding() {
       contenu = {
         gauche: <Titre sous="Pour garder ton plan et tes vidéos.">Crée ton compte.</Titre>,
         droite: (
-          <div className="relative flex flex-none flex-col rounded-3xl border-[3px] border-encre bg-fond p-4 shadow-[0_7px_0_var(--color-encre)] lg:m-auto lg:w-full lg:max-w-[600px] lg:flex-none lg:rounded-[36px] lg:p-12 lg:pt-16 lg:shadow-[0_14px_0_var(--color-encre)]">
-            <Ancre nom="cadenas" className="absolute -top-[86px] right-1 h-[96px] w-[84px] lg:-right-[96px] lg:-top-[190px] lg:h-[250px] lg:w-[200px]" pose={{ ry: -0.4, rz: 0.12, z: 200 }} />
+          <div className="relative flex flex-1 flex-col lg:m-auto lg:w-full lg:max-w-[560px] lg:flex-none lg:rounded-3xl lg:border-2 lg:border-encre lg:bg-fond lg:p-10">
+            <Ancre nom="cadenas" className="absolute -top-[84px] right-1 h-[84px] w-[70px] lg:-right-[70px] lg:-top-[96px] lg:h-[150px] lg:w-[120px]" pose={{ ry: -0.3, rz: 0.08, z: 60, flotte: 4 }} />
             <FormulaireCompte mode="inscription" retour={`/commencer?e=${RESEAUX}`} valider={creerCompte} />
           </div>
         ),

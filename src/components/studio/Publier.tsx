@@ -63,11 +63,11 @@ export function Publier({ entete, pseudo, url, titre, partir }: { url: string; t
       cle="publier"
       entete={entete}
       action={envoyer}
-      fond={plus ? "orange" : "jaune"}
+      fond={plus ? "turquoise" : "jaune"}
       gauche={
         <>
           <div className="flex items-start justify-between gap-3 lg:flex-col-reverse lg:gap-3">
-            <h1 className="titre text-[34px] lg:text-[clamp(48px,5.2vw,108px)]"><Mots>Tu postes où ?</Mots></h1>
+            <h1 className="titre text-[32px] lg:text-[clamp(44px,4.6vw,88px)]"><Mots>Tu postes où ?</Mots></h1>
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-2.5 lg:mt-[min(32px,3vh)] lg:gap-4">
@@ -110,8 +110,7 @@ export function Publier({ entete, pseudo, url, titre, partir }: { url: string; t
         plus ? (
           <>
             <p className="titre my-3 text-center text-[44px] tabular-nums lg:hidden">{heure(minutes)}</p>
-            <Roulette nu label="Heure de publication" valeurs={HEURES} valeur={minutes} libelle={heure} changer={setMinutes} centre={<p className="titre pb-[18%] text-[clamp(64px,7vw,140px)] tabular-nums">{heure(minutes)}</p>} />
-            <Ancre nom="chrono" className="absolute bottom-[4%] left-[24%] right-[30%] hidden h-[34%] lg:block" pose={{ rx: -0.15, ry: -0.2, flotte: 6, z: 80 }} donnees={{ valeur: (minutes - 480) / 960 }} />
+            <Roulette nu label="Heure de publication" valeurs={HEURES} valeur={minutes} libelle={heure} changer={setMinutes} centre={<p className="titre pb-[8%] text-[clamp(60px,6.4vw,120px)] tabular-nums">{heure(minutes)}</p>} />
           </>
         ) : (
           <div className="relative flex min-h-[260px] flex-1 flex-col items-center justify-end text-center">

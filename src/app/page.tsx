@@ -12,7 +12,7 @@ import { GrilleTarifs } from "@/components/tarifs/GrilleTarifs";
 const ETAPES = [
   { titre: "Joue à GTA 6", texte: "Un appui sur ta manette garde chaque bon moment.", fond: "bg-jaune", couleur: "turquoise" },
   { titre: "Dépose tes clips", texte: "Les tiens, ceux de ta console. XPclip les monte.", fond: "bg-orange", couleur: "orange" },
-  { titre: "Poste ta vidéo", texte: "Plus tu fais de vues, plus ça peut rapporter.", fond: "bg-turquoise", couleur: "rose" },
+  { titre: "Poste ta vidéo", texte: "Plus tu fais de vues, plus ça peut rapporter.", fond: "bg-turquoise", couleur: "jaune" },
 ];
 
 const FAQ = [
@@ -31,46 +31,13 @@ const FAQ = [
 /** Une section : colonne de 560 px sur téléphone, 1120 px sur ordinateur. */
 function Section({ fond, children, id, sombre = false }: { fond: string; children: React.ReactNode; id?: string; sombre?: boolean }) {
   return (
-    <section id={id ? `s-${id}` : undefined} aria-labelledby={id} className={`relative scroll-mt-4 border-t-[4px] border-encre px-4 py-12 sm:py-16 lg:px-8 lg:py-24 ${fond} ${sombre ? "text-fond" : ""}`}>
-      <div className="relative z-20 mx-auto max-w-[560px] lg:max-w-[1240px]">{children}</div>
+    <section id={id ? `s-${id}` : undefined} aria-labelledby={id} className={`relative scroll-mt-4 border-t-2 border-encre px-4 py-12 sm:py-16 lg:px-8 lg:py-24 ${fond} ${sombre ? "text-fond" : ""}`}>
+      <div className="relative mx-auto max-w-[560px] lg:max-w-[1240px]">{children}</div>
     </section>
   );
 }
 
-const TITRE_SECTION = "titre text-[38px] leading-[0.95] sm:text-[48px] lg:text-[clamp(56px,5.4vw,100px)]";
-
-/** Fond rayonnant d'une section. */
-function Rayons({ couleur, x = "68%", y = "52%" }: { couleur: string; x?: string; y?: string }) {
-  return (
-    <span className="absolute inset-0 block overflow-hidden" style={{ background: `var(--color-${couleur})` }} aria-hidden="true">
-      <span className="rayons" style={{ "--x": x, "--y": y, "--r": `color-mix(in srgb, var(--color-${couleur}), white 24%)` } as React.CSSProperties} />
-      <span className="trame" style={{ "--p": `color-mix(in srgb, var(--color-${couleur}), var(--color-encre) 16%)` } as React.CSSProperties} />
-    </span>
-  );
-}
-
-const RUBAN = ["Ton jeu", "Tes clips", "Tes vidéos", "PS5 et Xbox", "TikTok et Instagram"];
-
-function Ruban() {
-  return (
-    <div className="relative z-20 -rotate-[1.2deg] overflow-hidden border-y-[4px] border-encre bg-encre py-3.5 lg:py-6" aria-hidden="true" style={{ width: "104%", marginLeft: "-2%" }}>
-      <div className="ruban">
-        {[0, 1].map((k) => (
-          <span key={k} className="flex">
-            {[...RUBAN, ...RUBAN].map((t, i) => (
-              <span key={i} className={`titre flex items-center whitespace-nowrap text-[26px] lg:text-[54px] ${["text-jaune", "text-rose", "text-turquoise", "text-orange", "text-fond"][i % 5]}`}>
-                {t}
-                <svg viewBox="0 0 24 24" className="mx-5 h-5 w-5 fill-fond lg:mx-10 lg:h-9 lg:w-9">
-                  <path d="M12 1l3.1 7.4 8 .7-6.1 5.2 1.9 7.8L12 17.9 5.1 22.1 7 14.3.9 9.1l8-.7z" />
-                </svg>
-              </span>
-            ))}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
+const TITRE_SECTION = "titre text-[32px] sm:text-[40px] lg:text-[60px]";
 
 const LIENS = [
   { href: "#s-t-etapes", nom: "Comment ça marche" },
@@ -81,11 +48,10 @@ const LIENS = [
 
 export default function Accueil() {
   return (
-    <div className="v2 overflow-x-clip">
+    <div className="v3 overflow-x-clip">
       {/* 1. Hero */}
-      <header className="relative px-4 pb-6 pt-4 lg:flex lg:min-h-[max(94dvh,640px)] lg:flex-col lg:px-[4.5vw] lg:pb-10 lg:pt-7">
-        <Rayons couleur="jaune" />
-        <div className="relative lg:flex lg:flex-1 lg:flex-col">
+      <header className="relative px-4 pb-6 pt-4 lg:flex lg:min-h-[max(94dvh,640px)] lg:flex-col lg:px-8 lg:pb-8 lg:pt-6">
+        <div className="relative mx-auto lg:flex lg:w-full lg:max-w-[1500px] lg:flex-1 lg:flex-col">
           <nav className="relative z-20 flex items-center justify-between gap-6">
             <Logo />
             <ul className="hidden items-center gap-1 lg:flex">
@@ -107,59 +73,55 @@ export default function Accueil() {
             </div>
           </nav>
 
-          <div className="mt-7 lg:grid lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)] lg:items-center lg:gap-[2vw]">
+          <div className="mt-7 lg:grid lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-center lg:gap-[4vw] lg:pl-[2vw]">
             <div className="relative z-20">
-              <span className="pastille bg-turquoise lg:min-h-10 lg:px-5 lg:text-[17px]">Pour les joueurs PS5 et Xbox</span>
-              <h1 className="titre mt-4 text-[50px] leading-[0.92] sm:text-[68px] lg:mt-7 lg:text-[clamp(64px,min(7.2vw,13.4vh),160px)]">
+              <span className="pastille bg-turquoise lg:text-[14px]">Pour les joueurs PS5 et Xbox</span>
+              <h1 className="titre mt-4 text-[44px] sm:text-[64px] lg:mt-6 lg:text-[clamp(56px,min(6vw,11.4vh),112px)]">
                 <Mots>Tes parties de GTA 6 peuvent te payer.</Mots>
               </h1>
-              <p className="mt-4 max-w-[34ch] text-[17px] font-medium leading-snug lg:mt-7 lg:text-[clamp(20px,1.7vw,30px)]">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
+              <p className="mt-4 max-w-[34ch] text-[17px] leading-snug text-encre2 lg:mt-6 lg:text-[clamp(19px,1.5vw,26px)]">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
               <div id="cta-hero" className="mt-6 sm:max-w-[400px] lg:mt-9">
-                <Link href="/commencer" className="bouton bouton-rose w-full lg:h-[80px] lg:rounded-[22px] lg:text-[24px] lg:font-extrabold">
+                <Link href="/commencer" className="bouton bouton-rose w-full lg:h-[64px] lg:text-[20px]">
                   Créer ma première vidéo
                 </Link>
-                <p className="mt-3 text-center text-[13px] font-bold lg:mt-4 lg:text-left lg:text-[15px]">Sans engagement. Résiliation en deux clics.</p>
+                <p className="mt-3 text-center text-[13px] text-encre2 lg:text-left lg:text-[14px]">Sans engagement. Résiliation en deux clics.</p>
               </div>
             </div>
-            <div className="mt-6 flex h-[420px] lg:mt-0 lg:h-full">
+            <div className="mt-2 flex h-[420px] lg:mt-6 lg:h-[calc(100%-24px)] lg:rounded-[36px] lg:bg-(--p-jaune) lg:p-8">
               <SceneAccroche />
             </div>
           </div>
         </div>
       </header>
 
-      <Ruban />
-
       <main>
         {/* 2. Trois étapes : les objets descendent avec la page */}
-        <section id="s-t-etapes" aria-labelledby="t-etapes" className="relative scroll-mt-4 px-4 py-14 lg:px-[4.5vw] lg:py-28">
-          <h2 id="t-etapes" className="titre relative z-20 text-center text-[40px] leading-[0.95] sm:text-[52px] lg:text-[clamp(64px,6.4vw,120px)]">
+        <Section fond="bg-blanc" id="t-etapes">
+          <h2 id="t-etapes" className={TITRE_SECTION}>
             Ton jeu, tes clips, tes vidéos.
           </h2>
-          <ol className="mx-auto mt-8 flex max-w-[560px] flex-col gap-6 lg:mt-16 lg:max-w-[1500px] lg:gap-10">
+          <ol className="mt-6 flex flex-col gap-4 lg:mt-12 lg:grid lg:grid-cols-3 lg:gap-7">
             {ETAPES.map((e, i) => (
-              <li key={e.titre} className={`relative overflow-clip rounded-[30px] border-[4px] border-encre shadow-[0_10px_0_var(--color-encre)] lg:grid lg:min-h-[min(74vh,640px)] lg:items-center lg:rounded-[56px] lg:shadow-[0_18px_0_var(--color-encre)] ${i % 2 ? "lg:grid-cols-[1.15fr_1fr]" : "lg:grid-cols-[1fr_1.15fr]"}`}>
-                <Rayons couleur={e.couleur} x={i % 2 ? "30%" : "72%"} />
-                <div className={`relative z-20 p-6 lg:p-16 ${i % 2 ? "lg:order-2" : ""}`}>
-                  <span className="titre block text-[92px] leading-[0.8] lg:text-[clamp(140px,15vw,280px)]">{i + 1}</span>
-                  <h3 className="titre mt-4 text-[34px] lg:mt-8 lg:text-[clamp(48px,4.8vw,92px)]">{e.titre}</h3>
-                  <p className="mt-2 text-[16px] font-medium leading-snug lg:mt-5 lg:text-[clamp(20px,1.6vw,28px)]">{e.texte}</p>
-                </div>
-                <div className={`relative h-[300px] lg:h-full ${i % 2 ? "lg:order-1" : ""}`}>
-                  {i === 0 && <Ancre nom="manette" className="absolute inset-[4%]" pose={{ ry: -0.3, rx: -0.35, rz: -0.08, z: 120 }} donnees={{ valeur: 1 }} />}
+              <li key={e.titre} className="carte flex flex-col overflow-hidden rounded-[24px] bg-blanc lg:rounded-[28px]">
+                <div className="relative h-[210px] lg:h-[300px]" style={{ background: `var(--p-${e.couleur})` }}>
+                  {i === 0 && <Ancre nom="manette" className="absolute inset-x-[12%] inset-y-[12%]" pose={{ ry: -0.25, rx: -0.3, rz: -0.05 }} />}
                   {i === 1 && (
                     <>
-                      <Ancre nom="clip1" className="absolute left-[4%] top-[6%] h-[46%] w-[58%]" pose={{ ry: 0.4, rz: 0.12, flotte: 12, z: 40 }} />
-                      <Ancre nom="clip0" className="absolute right-[4%] top-[24%] h-[46%] w-[58%]" pose={{ ry: -0.35, rz: -0.1, flotte: 14, z: 120 }} />
-                      <Ancre nom="clip2" className="absolute bottom-[4%] left-[14%] h-[46%] w-[58%]" pose={{ ry: 0.2, rz: 0.06, flotte: 10, z: 180 }} />
+                      <Ancre nom="clip1" className="absolute left-[9%] top-[12%] h-[50%] w-[56%]" pose={{ ry: 0.25, rz: 0.07 }} />
+                      <Ancre nom="clip0" className="absolute bottom-[12%] right-[9%] h-[50%] w-[56%]" pose={{ ry: -0.25, rz: -0.06, z: 60 }} />
                     </>
                   )}
-                  {i === 2 && <Ancre nom="telephone" className="absolute inset-x-0 inset-y-[3%]" pose={{ ry: -0.3, rz: 0.06, flotte: 8, z: 100 }} donnees={{ ecran: "jeu", tour: 1 }} />}
+                  {i === 2 && <Ancre nom="telephone" className="absolute inset-x-0 inset-y-[7%]" pose={{ ry: -0.25, rz: 0.03 }} donnees={{ ecran: "jeu", coupe: 2.2 }} />}
+                </div>
+                <div className="relative z-20 border-t-2 border-encre p-5 lg:p-7">
+                  <p className="text-[13px] font-bold text-encre2 lg:text-[15px]">Étape {i + 1}</p>
+                  <h3 className="titre mt-1 text-[24px] lg:text-[32px]">{e.titre}</h3>
+                  <p className="mt-1.5 text-[14px] leading-snug text-encre2 lg:mt-2.5 lg:text-[17px]">{e.texte}</p>
                 </div>
               </li>
             ))}
           </ol>
-        </section>
+        </Section>
 
         {/* 4. Avant / après */}
         <Section fond="bg-encre" id="t-avap" sombre>
@@ -210,23 +172,22 @@ export default function Accueil() {
         </Section>
 
         {/* 7. Rappel final */}
-        <section id="s-t-fin" aria-labelledby="t-fin" className="relative border-t-[4px] border-encre px-4 pb-10 pt-14 lg:grid lg:min-h-[86vh] lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-[3vw] lg:px-[4.5vw]">
-          <Rayons couleur="rose" x="72%" y="60%" />
-          <div className="relative z-20">
-            <h2 id="t-fin" className="titre text-[48px] leading-[0.92] sm:text-[64px] lg:text-[clamp(64px,7vw,150px)]">
-              Ta prochaine session peut payer.
-            </h2>
-            <div id="cta-fin" className="mt-7 sm:max-w-[420px] lg:mt-12">
-              <Link href="/commencer" className="bouton w-full bg-jaune shadow-[0_7px_0_var(--color-encre)] lg:h-[84px] lg:rounded-[22px] lg:text-[24px] lg:font-extrabold">
-                Créer ma première vidéo
-              </Link>
-              <p className="mt-4 text-center text-[14px] font-bold lg:text-left lg:text-[16px]">Sans engagement. Résiliation en deux clics.</p>
+        <section id="s-t-fin" aria-labelledby="t-fin" className="relative border-t-2 border-encre bg-(--p-jaune) px-4 pb-8 pt-12 lg:px-8 lg:py-20">
+          <div className="mx-auto max-w-[560px] lg:grid lg:max-w-[1240px] lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-16">
+            <div className="relative z-20">
+              <h2 id="t-fin" className="titre text-[38px] sm:text-[48px] lg:text-[72px]">
+                Ta prochaine session peut payer.
+              </h2>
+              <div id="cta-fin" className="mt-6 sm:max-w-[380px] lg:mt-10">
+                <Link href="/commencer" className="bouton bouton-rose w-full lg:h-[64px] lg:text-[20px]">
+                  Créer ma première vidéo
+                </Link>
+                <p className="mt-3 text-center text-[13px] font-bold lg:text-left lg:text-[14px]">Sans engagement. Résiliation en deux clics.</p>
+              </div>
             </div>
-          </div>
-          <div className="relative mt-6 h-[340px] lg:mt-0 lg:h-[76vh]">
-            <Pieces />
-            <Ancre nom="telephone" className="absolute right-[2%] top-0 h-[66%] w-[46%]" pose={{ ry: -0.35, rz: 0.1, flotte: 10, z: -60 }} donnees={{ ecran: "jeu" }} />
-            <Ancre nom="manette" className="absolute left-[-2%] top-[4%] h-[46%] w-[64%]" pose={{ ry: 0.35, rx: -0.35, rz: 0.12, flotte: 12, z: 60 }} donnees={{ valeur: 0.8 }} />
+            <div className="relative mt-6 h-[260px] lg:mt-0 lg:h-[400px]">
+              <Pieces />
+            </div>
           </div>
         </section>
       </main>

@@ -324,75 +324,21 @@ body {
   bottom: calc(62px + max(8px, env(safe-area-inset-bottom)));
 }
 
-/* ---------- V2 : le monde en 3D ---------- */
-/* Rayons fixes des sections de l'accueil : peints une seule fois. */
-.rayons {
-  position: absolute;
-  inset: 0;
-  background: repeating-conic-gradient(at var(--x) var(--y), var(--r) 0 7.5deg, transparent 7.5deg 15deg);
+/* ---------- V3 : objets 3D, mais au calme ---------- */
+:root {
+  --p-jaune: color-mix(in srgb, var(--color-jaune), var(--color-fond) 45%);
+  --p-rose: color-mix(in srgb, var(--color-rose), var(--color-fond) 62%);
+  --p-turquoise: color-mix(in srgb, var(--color-turquoise), var(--color-fond) 52%);
+  --p-orange: color-mix(in srgb, var(--color-orange), var(--color-fond) 55%);
 }
-.trame {
-  position: absolute;
-  inset: auto 0 0 0;
-  height: 30%;
-  background: radial-gradient(circle, var(--p) 1.7px, transparent 2.3px) 0 0 / 15px 15px;
-  opacity: 0.35;
-}
-/* Titres : les mots jaillissent un par un */
+/* Titres : les mots montent doucement, l'un après l'autre. */
 .mot {
   display: inline-block;
-  animation: mot 560ms cubic-bezier(0.2, 1.25, 0.35, 1) both;
-  animation-delay: calc(var(--i) * 55ms + 120ms);
-  transform-origin: 0 100%;
+  animation: mot 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 32ms);
 }
-@keyframes mot {
-  from { opacity: 0; transform: translateY(0.65em) rotate(7deg) scale(0.86); }
-  60% { opacity: 1; }
-  to { opacity: 1; transform: none; }
-}
-/* Boutons plus lourds : 3 px, ombre de 7 px, et ils se soulèvent */
-.v2 .bouton { border-width: 3px; transition: transform 110ms cubic-bezier(0.3, 1.6, 0.6, 1), box-shadow 110ms ease-out, opacity 150ms; }
-.v2 .bouton-rose { box-shadow: 0 6px 0 var(--color-encre); }
-.v2[data-fond="rose"] .bouton-rose { background: var(--color-jaune); }
-.v2[data-fond="rose"] .bouton-rose .eclair { background: var(--color-blanc); }
-.v2 .bouton-rose:hover:not(:disabled) { transform: translateY(-3px); box-shadow: 0 9px 0 var(--color-encre); }
-.v2 .bouton-rose:active:not(:disabled) { transform: translateY(6px); box-shadow: 0 0 0 var(--color-encre); }
-.v2 .bouton-rose:not(:disabled) { position: relative; overflow: hidden; }
-.v2 .bouton-rose:not(:disabled)::after {
-  content: "";
-  position: absolute;
-  inset: -20% auto -20% 0;
-  width: 26%;
-  background: rgb(255 255 255 / 0.55);
-  animation: reflet 3.4s ease-in-out infinite;
-}
-@keyframes reflet { 0%, 55% { transform: translateX(-160%) skewX(-20deg); } 85%, 100% { transform: translateX(520%) skewX(-20deg); } }
-.v2 .bouton:disabled { opacity: 1; background: color-mix(in srgb, var(--color-fond), transparent 45%); color: rgb(26 11 46 / 0.5); box-shadow: none; border-color: rgb(26 11 46 / 0.35); }
-.v2 .text-encre2 { color: color-mix(in srgb, var(--color-encre), transparent 22%); }
-.v2 .carte-forte { border-width: 3px; box-shadow: 0 6px 0 var(--color-encre); }
-.v2 .carte { border-width: 3px; }
-.v2 .pastille { border-width: 2.5px; }
+@keyframes mot { from { opacity: 0; transform: translateY(0.35em); } to { opacity: 1; transform: none; } }
+.v3 .bouton-rose:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 0 var(--color-encre); }
+.v3 .bouton-rose:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 0 0 var(--color-encre); }
 /* Barre d'XP */
-.xp > span {
-  position: relative;
-  display: block;
-  height: 100%;
-  overflow: hidden;
-  border-right: 3px solid var(--color-encre);
-  background: var(--color-jaune);
-  transition: width 700ms cubic-bezier(0.3, 1.5, 0.5, 1);
-}
-.xp > span::before {
-  content: "";
-  position: absolute;
-  inset: 0 -60px 0 0;
-  background: repeating-linear-gradient(115deg, transparent 0 14px, #f7c24e 14px 28px);
-  animation: xp 1.6s linear infinite;
-}
-@keyframes xp { to { transform: translateX(-30.9px); } }
-@keyframes gain { 0% { opacity: 0; transform: translateY(10px) scale(0.6); } 18% { opacity: 1; transform: translateY(-4px) scale(1.15); } 30%, 70% { opacity: 1; transform: none; } 100% { opacity: 0; transform: translateY(-16px); } }
-.gain { animation: gain 1900ms cubic-bezier(0.2, 0.8, 0.2, 1) 350ms both; }
-@keyframes secoue { 0%, 100% { transform: none; } 25% { transform: rotate(-1.6deg); } 75% { transform: rotate(1.6deg); } }
-/* Ruban qui défile */
-.ruban { display: flex; width: max-content; animation: ruban 26s linear infinite; }
-@keyframes ruban { to { transform: translateX(-50%); } }
+.xp > span { display: block; height: 100%; border-radius: 999px; background: var(--color-jaune); border-right: 2px solid var(--color-encre); transition: width 600ms cubic-bezier(0.2, 0.8, 0.2, 1); }

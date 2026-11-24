@@ -5,7 +5,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Ancre } from "@/components/monde/Ancre";
-import { eclats, type Donnees } from "@/components/monde/store";
+import { type Donnees } from "@/components/monde/store";
 import { Duo } from "@/components/ui/Duo";
 import { Coche } from "@/components/ui/Parcours";
 import { ETAPES } from "@/lib/montage";
@@ -18,7 +18,7 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
   const clips = useRef<(HTMLVideoElement | null)[]>([]);
   // Lus par le moteur 3D à chaque image : l'écran du téléphone et les clips qui y volent.
   const [ecran] = useState<Donnees>({ source: null, titre: "" });
-  const [cartes] = useState<Donnees[]>(() => [0, 1, 2].map((i) => ({ flux: { de: "clip3", vers: "telephone", delai: i * 0.5, duree: 1.5 } })));
+  const [cartes] = useState<Donnees[]>(() => [0].map(() => ({ flux: { de: "clip3", vers: "telephone", delai: 0, duree: 1.7 } })));
   const titreRef = useRef(titre);
   titreRef.current = titre;
   const cadre = useRef<HTMLDivElement>(null);
@@ -34,7 +34,6 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
     let prochaine = 0;
     let morceau = 0;
     let dernierK = -1;
-    let derniereEtape = 0;
     const n = Math.min(urls.length, 5);
     const caler = (i: number) => {
       const v = clips.current[i];
@@ -57,7 +56,6 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
         clips.current[actif]?.play().catch(() => {});
         caler((actif + 1) % n);
         coupe();
-        cadre.current?.animate([{ transform: "scale(1.03) rotate(1.1deg)" }, { transform: "none" }], { duration: 200, easing: "ease-out" });
       }
       const v = clips.current[actif];
       if (v && v.readyState >= 2) ecran.source = v;
@@ -69,12 +67,6 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
       if (m !== morceau) {
         morceau = m;
         pop(m / MORCEAUX);
-      }
-      const etapeIci = Math.floor(x * ETAPES.length);
-      if (etapeIci !== derniereEtape) {
-        derniereEtape = etapeIci;
-        const r = cadre.current?.getBoundingClientRect();
-        if (r && x > 0.05) eclats(r.left + r.width / 2, r.top + r.height / 2, 16);
       }
       const p = Math.round(x * 100);
       if (p !== dernierK) {
@@ -115,7 +107,7 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
 
           <div className="flex w-full items-end justify-between gap-3">
             <p key={etape} className="surgit titre text-[22px] leading-[1.05] lg:hidden">{ETAPES[etape]}</p>
-            <p className="titre shrink-0 text-[46px] tabular-nums lg:text-[clamp(110px,min(12vw,24vh),260px)] lg:leading-[0.8]">{k}&nbsp;%</p>
+            <p className="titre shrink-0 text-[46px] tabular-nums lg:text-[clamp(96px,10vw,190px)]">{k}&nbsp;%</p>
           </div>
           <ol className="mt-8 hidden flex-col gap-4 lg:flex">
             {ETAPES.map((e, i) => (
@@ -130,7 +122,6 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
       droite={
         <>
           <div ref={cadre} className="relative min-h-[260px] w-full flex-1 lg:min-h-0">
-            <Ancre nom="clip4" className="absolute left-[-2%] top-[40%] h-[22%] w-[32%]" pose={{ ry: 0.5, rz: 0.12, flotte: 5, z: -60 }} donnees={ecran} />
             <Ancre nom="clip3" className="absolute left-[2%] top-[30%] h-[22%] w-[32%]" pose={{ ry: 0.45, rz: 0.05, flotte: 6, z: -20 }} donnees={ecran} />
             {cartes.map((c, i) => (
               <Ancre key={i} nom={`clip${i}` as "clip0"} className="absolute left-[2%] top-[34%] h-[20%] w-[30%]" pose={{ z: 240 }} donnees={c} />

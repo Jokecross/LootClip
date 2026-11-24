@@ -76,10 +76,10 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
                 disabled={!!c || attente !== null}
                 onClick={() => choisir(r)}
                 style={{ "--d": `${i * 110}ms` } as React.CSSProperties}
-                className={`surgit relative flex min-w-0 flex-col rounded-[22px] border-[3px] border-encre text-left transition-[transform,box-shadow] duration-200 ease-[cubic-bezier(.3,1.6,.6,1)] lg:rounded-[36px] ${c ? "bg-jaune shadow-[0_10px_0_var(--color-encre)]" : `${r === "tiktok" ? "bg-blanc" : "bg-rose"} shadow-[0_5px_0_var(--color-encre)] hover:-translate-y-1.5 hover:shadow-[0_10px_0_var(--color-encre)]`}`}
+                className={`surgit relative flex min-w-0 flex-col overflow-hidden rounded-[20px] border-2 border-encre text-left transition-[transform,box-shadow] duration-200 ease-out lg:rounded-[28px] ${c ? "bg-jaune shadow-[0_5px_0_var(--color-encre)] lg:shadow-[0_8px_0_var(--color-encre)]" : "bg-blanc hover:-translate-y-1"}`}
               >
                 <span className="relative block min-h-0 flex-1">
-                  <Ancre nom={i ? "telephone2" : "telephone"} className="absolute inset-x-[4%] -top-[4%] bottom-[2%]" pose={{ ry: 0.22 - i * 0.44, rz: 0.06 - i * 0.12, z: 80 }} donnees={{ ecran: c ? "relie" : "relier", etat: c ? "oui" : undefined, retard: i * 0.12 }} />
+                  <Ancre nom={i ? "telephone2" : "telephone"} className="absolute inset-x-[10%] top-[6%] bottom-[4%]" pose={{ ry: 0.14 - i * 0.28, rz: 0, z: 30, flotte: 5 }} donnees={{ ecran: c ? "relie" : "relier", etat: c ? "oui" : undefined, retard: i * 0.12 }} />
                 </span>
                 <span className="relative z-20 block min-w-0 px-3 pb-3.5 lg:px-7 lg:pb-7">
                   <span className="flex min-w-0 items-center gap-2 lg:gap-3">
@@ -87,9 +87,9 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
                     <span className={`titre block min-w-0 truncate pb-0.5 ${c ? "text-[15px] lg:text-[clamp(24px,2vw,38px)]" : "text-[19px] lg:text-[clamp(34px,3.2vw,60px)]"}`}>{c ? `@${c.pseudo ?? NOMS[r]}` : NOMS[r]}</span>
                   </span>
                   <span className="mt-1 block min-h-[34px] text-[12px] font-medium leading-tight lg:mt-2 lg:min-h-0 lg:text-[19px]">{c ? `${NOMS[r]} est relié.` : AIDE[r]}</span>
-                  {!c && <span className="pastille mt-2 w-full justify-center bg-turquoise py-2 text-[14px] lg:mt-4 lg:min-h-12 lg:text-[19px]">{attente === r ? "Un instant…" : "Relier"}</span>}
+                  {!c && <span className="pastille mt-2 w-full justify-center bg-rose py-2 text-[14px] lg:mt-4 lg:min-h-12 lg:text-[19px]">{attente === r ? "Un instant…" : "Relier"}</span>}
                 </span>
-                {c && <Coche className="absolute -right-2 -top-2 z-30 h-9 w-9 rounded-full border-[3px] border-fond lg:-right-4 lg:-top-4 lg:h-16 lg:w-16" />}
+                {c && <Coche className="absolute right-3 top-3 z-30 h-7 w-7 lg:right-5 lg:top-5 lg:h-11 lg:w-11" />}
               </button>
             );
           })}

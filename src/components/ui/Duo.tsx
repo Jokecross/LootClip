@@ -1,13 +1,12 @@
 "use client";
 /*
- * V2. Les écrans de l'onboarding et du studio : toute la page prend la couleur de l'écran, les objets 3D se posent dessus.
- * Téléphone : une colonne, bouton en bas. Ordinateur : grand titre et bouton à gauche, la scène à droite.
+ * V3. Les écrans de l'onboarding et du studio.
+ * Téléphone : une colonne crème, bouton en bas. Ordinateur : la question à gauche, la scène dans un panneau de couleur douce à droite.
  */
 import { Fragment, isValidElement, type ReactElement, type ReactNode } from "react";
 import { Logo } from "@/components/marque/Logo";
-import { Decor, type Couleur } from "@/components/monde/Decor";
 
-const COULEURS: Couleur[] = ["jaune", "rose", "turquoise", "orange", "fond", "nuit2"];
+const COULEURS = ["jaune", "rose", "turquoise", "orange"] as const;
 
 export function Duo({
   cle,
@@ -34,30 +33,32 @@ export function Duo({
   /** La scène prend plus de place. */
   large?: boolean;
 }) {
-  const couleur = COULEURS.find((c) => fond.includes(c)) ?? "orange";
+  const couleur = COULEURS.find((c) => fond.includes(c));
   return (
-    <main data-fond={couleur} className="v2 relative min-h-dvh">
-      <Decor couleur={couleur} />
-      <div
-        className={`relative mx-auto flex min-h-dvh max-w-[480px] flex-col overflow-x-clip px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(14px,env(safe-area-inset-top))] lg:grid lg:min-h-[max(100dvh,620px)] lg:max-w-[1920px] lg:grid-rows-[auto_minmax(16px,1fr)_auto_auto_minmax(32px,1fr)] lg:gap-x-[3vw] lg:py-[min(30px,3.4vh)] lg:pl-[4.5vw] lg:pr-[3vw] ${
-          large ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]" : "lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]"
-        }`}
-      >
-        <div className="relative z-20 lg:col-start-1 lg:row-start-1 lg:flex lg:items-center lg:gap-6">
-          {marque && (
-            <span className="hidden lg:block">
-              <Logo taille={36} />
-            </span>
-          )}
-          <div className="lg:min-w-0 lg:flex-1">{entete}</div>
-        </div>
-        <div key={cle} className="mt-5 flex flex-1 flex-col lg:contents">
-          <div className="contents lg:relative lg:z-20 lg:col-start-1 lg:row-start-3 lg:flex lg:min-w-0 lg:flex-col [&>*]:max-lg:relative [&>*]:max-lg:z-20">{gauche}</div>
-          <div className="contents lg:relative lg:col-start-2 lg:row-span-full lg:row-start-1 lg:flex lg:min-h-0 lg:min-w-0 lg:flex-col">{droite}</div>
-        </div>
-        {action && <div className="relative z-20 pt-6 lg:col-start-1 lg:row-start-4 lg:pt-[min(48px,5vh)] lg:[&_.bouton]:h-[min(84px,9.6vh)] lg:[&_.bouton]:max-w-[480px] lg:[&_.bouton]:rounded-[22px] lg:[&_.bouton]:text-[clamp(20px,1.7vw,28px)] lg:[&_.bouton]:font-extrabold">{action}</div>}
-        {pied && <div className="relative z-20 lg:col-start-1 lg:row-start-5 lg:self-end [&_p]:lg:text-left [&_p]:lg:text-[14px]">{pied}</div>}
+    <main
+      className={`v3 relative mx-auto flex min-h-dvh max-w-[480px] flex-col overflow-x-clip px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(14px,env(safe-area-inset-top))] lg:grid lg:min-h-[max(100dvh,620px)] lg:max-w-[1800px] lg:grid-rows-[auto_minmax(16px,1fr)_auto_auto_minmax(32px,1fr)] lg:gap-x-[4vw] lg:py-[min(28px,3vh)] lg:pl-[4vw] lg:pr-7 ${
+        large ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1.45fr)]" : "lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]"
+      }`}
+    >
+      <div className="relative z-20 lg:col-start-1 lg:row-start-1 lg:flex lg:items-center lg:gap-6">
+        {marque && (
+          <span className="hidden lg:block">
+            <Logo taille={34} />
+          </span>
+        )}
+        <div className="lg:min-w-0 lg:flex-1">{entete}</div>
       </div>
+      <div key={cle} className="mt-5 flex flex-1 flex-col lg:contents">
+        <div className="contents lg:relative lg:z-20 lg:col-start-1 lg:row-start-3 lg:flex lg:min-w-0 lg:flex-col [&>*]:max-lg:relative [&>*]:max-lg:z-20">{gauche}</div>
+        <div
+          className={`contents lg:relative lg:col-start-2 lg:row-span-full lg:row-start-1 lg:mb-2 lg:flex lg:min-h-0 lg:min-w-0 lg:flex-col ${couleur ? "lg:rounded-[36px] lg:bg-(--panneau) lg:p-[clamp(24px,2.6vw,48px)]" : ""}`}
+          style={{ "--panneau": couleur ? `var(--p-${couleur})` : undefined } as React.CSSProperties}
+        >
+          {droite}
+        </div>
+      </div>
+      {action && <div className="relative z-20 pt-6 lg:col-start-1 lg:row-start-4 lg:pt-[min(40px,4.4vh)] lg:[&_.bouton]:h-[min(68px,8.4vh)] lg:[&_.bouton]:max-w-[420px] lg:[&_.bouton]:rounded-[18px] lg:[&_.bouton]:text-[21px]">{action}</div>}
+      {pied && <div className="relative z-20 lg:col-start-1 lg:row-start-5 lg:self-end [&_p]:lg:text-left [&_p]:lg:text-[13px]">{pied}</div>}
     </main>
   );
 }
@@ -92,10 +93,10 @@ export function Mots({ children }: { children: ReactNode }) {
 export function Titre({ children, sous }: { children: React.ReactNode; sous?: string }) {
   return (
     <div className="mb-5 lg:mb-0">
-      <h1 className="titre text-[36px] leading-[0.95] lg:text-[clamp(48px,min(5.7vw,10vh),124px)]">
+      <h1 className="titre text-[32px] lg:text-[clamp(42px,min(4.8vw,8.4vh),96px)]">
         <Mots>{children}</Mots>
       </h1>
-      {sous && <p className="mt-2.5 text-[15px] font-medium text-encre2 lg:mt-[min(26px,3vh)] lg:text-[clamp(19px,1.6vw,28px)] lg:leading-snug">{sous}</p>}
+      {sous && <p className="mt-2 text-[14px] text-encre2 lg:mt-[min(24px,2.8vh)] lg:text-[clamp(18px,1.5vw,26px)] lg:leading-snug">{sous}</p>}
     </div>
   );
 }

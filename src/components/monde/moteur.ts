@@ -53,9 +53,9 @@ export function demarrer(toile: HTMLCanvasElement) {
     cam.position.z = H / 2 / Math.tan((FOV * Math.PI) / 360);
     cam.far = cam.position.z + 4000;
     cam.updateProjectionMatrix();
-    const ep = L < 1024 ? 2 : 3;
+    const ep = 2;
     uniformes.uEp.value = ep;
-    uniformes.uOmbre.value.set((ep * 2) / L, (-ep * 6.5) / H);
+    uniformes.uOmbre.value.set((ep * 2) / L, (-ep * 4) / H);
   }
   taille();
   const redim = () => {
@@ -263,7 +263,7 @@ export function demarrer(toile: HTMLCanvasElement) {
         if (a.e < 2) {
           a.x = r.left + r.width / 2 - L / 2;
           a.y = H / 2 - r.bottom - H * 0.28;
-          a.ry = (p.ry ?? 0) - 2.2;
+          a.ry = (p.ry ?? 0) - 1.1;
           a.vx = a.vy = 0;
         }
       }
@@ -275,12 +275,12 @@ export function demarrer(toile: HTMLCanvasElement) {
       let cx = r.left + r.width / 2 - L / 2;
       let cy = H / 2 - (r.top + r.height / 2);
       let ce = Math.min(r.width / l, r.height / h);
-      let crx = (p.rx ?? 0) + souris.sy * 0.16 * (p.suit ?? 1);
-      let cry = (p.ry ?? 0) + souris.sx * 0.28 * (p.suit ?? 1);
+      let crx = (p.rx ?? 0) + souris.sy * 0.08 * (p.suit ?? 1);
+      let cry = (p.ry ?? 0) + souris.sx * 0.15 * (p.suit ?? 1);
       let crz = p.rz ?? 0;
       const osc = calme ? 0 : 1;
-      cy += Math.sin(t * 1.5 + a.phase) * (p.flotte ?? 8) * osc;
-      crz += Math.sin(t * 1.1 + a.phase * 2) * 0.025 * osc;
+      cy += Math.sin(t * 1.5 + a.phase) * (p.flotte ?? 6) * 0.55 * osc;
+      crz += Math.sin(t * 1.1 + a.phase * 2) * 0.01 * osc;
 
       if (d.flux) {
         const de = cibles.get(d.flux.de);
@@ -301,27 +301,25 @@ export function demarrer(toile: HTMLCanvasElement) {
           a.e = ce;
           a.ry = cry;
           a.rz = crz;
-          const recu = acteurs.get(d.flux.vers);
+          const recu = d.flux.duree ? undefined : acteurs.get(d.flux.vers);
           if (recu && k > 0.6 && k < 0.6 + dt / duree + 0.004 && a.dernierEtat !== "recu") {
             a.dernierEtat = "recu";
-            recu.vsaut += 3.2;
+            recu.vsaut += 1.2;
           } else if (k < 0.5) a.dernierEtat = "vol";
           const don = acteurs.get(d.flux.de);
           if (don && k < 0.02) don.vsaut = Math.max(don.vsaut, 1.1);
         }
       }
 
-      if (d.etat === "oui") ce *= 1.13;
+      if (d.etat === "oui") ce *= 1.06;
       if (d.etat === "non") {
-        ce *= 0.86;
-        crz += 0.14;
-        crx += 0.35;
+        ce *= 0.92;
+        crx += 0.12;
       }
       if (d.etat !== a.dernierEtat && !d.flux) {
         if (d.etat === "oui" && a.dernierEtat !== undefined) {
           a.tour = -Math.PI * 2;
-          a.vsaut = 4.6;
-          semer(r.left + r.width / 2, r.top + r.height / 2, 18);
+          a.vsaut = 2.2;
         }
         a.dernierEtat = d.etat ?? "rien";
       }
@@ -335,14 +333,14 @@ export function demarrer(toile: HTMLCanvasElement) {
         const k = a.envol;
         a.y += k < 0.35 ? -70 * dt : (k - 0.35) * 9000 * dt;
         a.rz += (k < 0.35 ? 0 : 0.25) * dt;
-        if (k > 0.35 && Math.random() < 0.7) semer(a.x + L / 2, H / 2 - a.y + a.e * 0.5, 1);
+        
       } else if (!d.flux) {
         if (a.envol) {
           a.envol = 0;
           a.e = 0.5;
         }
-        const K = 62;
-        const A = 10.5;
+        const K = 58;
+        const A = 13;
         [a.x, a.vx] = ressort(a.x, a.vx, cx, K, A, dt);
         [a.y, a.vy] = ressort(a.y, a.vy, cy, K, A, dt);
         [a.e, a.ve] = ressort(a.e, a.ve, ce, 90, 12, dt);
@@ -439,7 +437,7 @@ export function demarrer(toile: HTMLCanvasElement) {
       }
     }
     if (a.nom === "manette" || a.nom === "manette2") {
-      const v = d.valeur ?? 0.35;
+      const v = (d.valeur ?? 0.35) * 0.6;
       const w = calme ? 0 : 1 + v * 3;
       for (const i of [0, 1]) p[`stick${i}`].rotation.set(Math.PI / 2 + Math.sin(t * w + i * 2) * 0.22, 0, Math.cos(t * w * 1.3 + i) * 0.22);
       for (let i = 0; i < 4; i++) p[`bouton${i}`].scale.z = Math.sin(t * (2 + v * 7) + i * 1.9) > 0.75 ? 0.45 : 1;
