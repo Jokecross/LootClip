@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
 import { EnregistrerSW } from "@/components/EnregistrerSW";
 import { Session } from "@/components/Session";
+import { Statistiques } from "@/components/Statistiques";
 import "./globals.css";
 
 // next/font héberge les polices sur notre domaine et les précharge.
@@ -30,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Session />
         {children}
         <EnregistrerSW />
+        <Statistiques />
       </body>
     </html>
   );

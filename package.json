@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.2",
+    "@vercel/analytics": "^2.0.1",
     "@vercel/sandbox": "^4.1.0",
     "@whop/elements": "^1.10.0",
     "@whop/elements-react": "^1.10.0",
