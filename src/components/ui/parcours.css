@@ -9,7 +9,7 @@
 .saute { transform-origin: 50% 100%; animation: robot-saute 520ms 60ms cubic-bezier(0.3, 0.9, 0.4, 1) backwards; }
 @keyframes robot-saute { 0% { transform: scale(1.1, 0.86); } 35% { transform: translateY(-16px) scale(0.95, 1.06); } 70% { transform: scale(1.05, 0.95); } 100% { transform: none; } }
 
-.etape.v4 { display: flex; min-height: 100dvh; flex-direction: column; overflow: hidden; background: var(--page); }
+.etape.v4 { display: flex; min-height: 100dvh; flex-direction: column; overflow: clip; background: var(--page); }
 .etape-tete { position: relative; z-index: 5; display: flex; align-items: center; margin: max(10px, env(safe-area-inset-top)) 10px 0; padding: 9px 12px; border: var(--ep) solid var(--color-encre); border-radius: 18px; background: var(--color-blanc); box-shadow: 0 4px 0 var(--color-encre); }
 .etape .xp { height: 20px !important; }
 .etape .xp > span { background: var(--color-rose); }

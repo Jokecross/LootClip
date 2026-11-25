@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { FormulaireCompte } from "@/components/compte/FormulaireCompte";
-import { CadreBureau } from "@/components/marque/CadreBureau";
-import { Logo } from "@/components/marque/Logo";
+import { LienAccueil } from "@/components/marque/Logo";
+import { Duo, Titre } from "@/components/ui/Duo";
 import { useEtat } from "@/lib/etat";
 import { rafraichir } from "@/lib/serveur";
 
@@ -27,18 +27,19 @@ export default function Connexion() {
   }
 
   return (
-    <CadreBureau>
-    <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(14px,env(safe-area-inset-top))] lg:min-h-0 lg:w-full lg:p-0">
-      <Link href="/" className="flex min-h-11 w-fit items-center lg:hidden" aria-label="Retour à l'accueil">
-        <Logo taille={30} />
-      </Link>
-      <h1 className="titre mt-8 text-[32px] lg:mt-0 lg:text-[44px]">Content de te revoir.</h1>
-      <p className="mb-6 mt-2 text-[15px] text-encre2">Reprends là où tu t&apos;étais arrêté.</p>
-      <FormulaireCompte mode="connexion" retour="/app/creer" valider={valider} />
-      <Link href="/commencer" className="mt-4 flex min-h-11 items-center justify-center text-[14px]">
-        Pas encore de compte ?&nbsp;<span className="lien">Commencer</span>
-      </Link>
-    </main>
-    </CadreBureau>
+    <Duo
+      cle="connexion"
+      fond="turquoise"
+      entete={<LienAccueil />}
+      gauche={<Titre sous="Reprends là où tu t'étais arrêté.">Content de te revoir.</Titre>}
+      droite={
+        <div className="bloc relative mt-5 flex flex-col bg-blanc p-5 lg:m-auto lg:w-full lg:max-w-[600px] lg:p-10">
+          <FormulaireCompte mode="connexion" retour="/app/creer" valider={valider} />
+          <Link href="/commencer" className="mt-3 flex min-h-11 items-center justify-center text-[15px]">
+            Pas encore de compte ?&nbsp;<span className="lien">Commencer</span>
+          </Link>
+        </div>
+      }
+    />
   );
 }

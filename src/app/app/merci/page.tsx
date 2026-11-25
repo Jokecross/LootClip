@@ -2,6 +2,7 @@
 /* Retour d'une vérification bancaire faite hors du site. Whop ajoute ?payment=pay_…&status=… à l'adresse. */
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Message } from "@/components/app/Ecran";
 import { confirmer } from "@/lib/abonnement";
 import { OFFRES_PAYANTES } from "@/lib/config";
 import { useEtat } from "@/lib/etat";
@@ -31,14 +32,12 @@ export default function Merci() {
         : "Ça prend quelques secondes.";
 
   return (
-    <div className="entree lg:mx-auto lg:max-w-[720px]">
-      <h1 className="titre text-[32px] lg:text-[48px]">{titre}</h1>
-      <p className="mt-2 text-[15px] text-encre2">{texte}</p>
+    <Message titre={titre} sous={texte} travaille={vue === "attente"}>
       {vue !== "attente" && (
-        <Link href={vue === "echec" ? "/app/creer" : etat.videos.length ? "/app/creer" : "/commencer?e=10"} className="bouton bouton-rose mt-6 w-full lg:max-w-[320px]">
+        <Link href={vue === "echec" ? "/app/creer" : etat.videos.length ? "/app/creer" : "/commencer?e=10"} className="bouton bouton-rose w-full">
           {vue === "echec" ? "Revoir les offres" : etat.videos.length ? "Créer une vidéo" : "Déposer mes clips"}
         </Link>
       )}
-    </div>
+    </Message>
   );
 }

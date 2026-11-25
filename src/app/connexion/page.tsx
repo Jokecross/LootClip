@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Logo } from "@/components/marque/Logo";
+import { Seul } from "@/components/ui/Seul";
 import { finirGoogle } from "@/lib/google";
 import { rafraichir } from "@/lib/serveur";
 import { suivre } from "@/lib/suivi";
@@ -25,21 +25,13 @@ export default function RetourGoogle() {
     })().catch(() => setRate({ erreur: "Une erreur est survenue. Réessaie.", depart: "/inscription" }));
   }, [router]);
 
-  return (
-    <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col items-center justify-center px-4 text-center">
-      <Logo taille={36} />
-      {rate ? (
-        <>
-          <h1 className="titre mt-8 text-[30px]">{rate.erreur}</h1>
-          <Link href={rate.depart} className="bouton bouton-rose mt-7 w-full">
-            Revenir
-          </Link>
-        </>
-      ) : (
-        <p className="clignote mt-8 text-[16px] font-bold" role="status">
-          Connexion en cours…
-        </p>
-      )}
-    </main>
+  return rate ? (
+    <Seul couleur="rose" titre={rate.erreur}>
+      <Link href={rate.depart} className="bouton bouton-rose w-full">
+        Revenir
+      </Link>
+    </Seul>
+  ) : (
+    <Seul couleur="turquoise" titre="Connexion en cours…" travaille />
   );
 }

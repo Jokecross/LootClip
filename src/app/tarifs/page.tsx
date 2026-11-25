@@ -1,27 +1,34 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
+import "@/app/accueil.css";
+import "@/app/app/appli.css";
 import Link from "next/link";
-import { Logo } from "@/components/marque/Logo";
+import { LogoIcone } from "@/components/marque/Logo";
 import { PiedDePage } from "@/components/PiedDePage";
 import { GrilleTarifs } from "@/components/tarifs/GrilleTarifs";
 import { Toasts } from "@/components/ui/Toast";
 
 export const metadata: Metadata = { title: "Tarifs · XPclip" };
+export const viewport: Viewport = { themeColor: "#F2934F", width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function Tarifs() {
   return (
-    <>
-      <main className="mx-auto max-w-[560px] px-4 pb-14 pt-4 lg:max-w-[1120px] lg:px-8 lg:pb-24 lg:pt-6">
-        <Link href="/" className="flex min-h-11 w-fit items-center" aria-label="Retour à l'accueil">
-          <Logo taille={30} />
+    <div className="v4 appli" style={{ "--page": "var(--color-orange)" } as React.CSSProperties}>
+      <nav className="nav" aria-label="Menu">
+        <Link href="/" className="flex items-center gap-2.5" aria-label="Retour à l'accueil">
+          <LogoIcone taille={38} className="rounded-[24%] ring-2 ring-encre" />
+          <span className="titre text-[22px]">XPclip</span>
         </Link>
-        <h1 className="titre mt-8 text-[36px] lg:mt-16 lg:text-[64px]">Moins d&apos;un euro par jour.</h1>
-        <p className="mb-6 mt-2 text-[15px] text-encre2 lg:mb-12 lg:mt-4 lg:text-[19px]">Choisis ton offre. Tu changes quand tu veux.</p>
-        <div className="lg:mx-auto">
-          <GrilleTarifs />
-        </div>
+        <Link href="/inscription?mode=connexion" className="nav-lien">
+          Se connecter
+        </Link>
+      </nav>
+      <main className="sect !pb-20 !pt-12 lg:!pb-32 lg:!pt-20">
+        <h1 className="titre titre-v4 text-center">Choisis ton offre.</h1>
+        <p className="mb-7 mt-3 text-center text-[18px] font-medium lg:mb-12 lg:mt-5 lg:text-[22px]">Tu changes quand tu veux.</p>
+        <GrilleTarifs />
       </main>
       <PiedDePage />
       <Toasts />
-    </>
+    </div>
   );
 }

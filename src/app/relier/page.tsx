@@ -5,7 +5,7 @@
  */
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { Logo } from "@/components/marque/Logo";
+import { Seul } from "@/components/ui/Seul";
 import { useEtat } from "@/lib/etat";
 import { confirmerComptes, lireRetour, messageConnexion, type Reseau } from "@/lib/publication";
 import { suivre } from "@/lib/suivi";
@@ -39,22 +39,13 @@ export default function Relier() {
       .catch((e: Error) => rate(e.message));
   }, [etat.charge, etat.compte, router]);
 
-  return (
-    <main className="mx-auto flex min-h-dvh max-w-[480px] flex-col justify-center px-4">
-      <Logo taille={34} />
-      {probleme ? (
-        <>
-          <h1 className="titre mt-6 text-[34px]">Pas encore relié.</h1>
-          <p role="alert" className="mt-2 text-[16px] text-encre2">
-            {probleme}
-          </p>
-          <button type="button" onClick={() => router.replace(suite.current)} className="bouton bouton-rose mt-6 w-full">
-            Continuer
-          </button>
-        </>
-      ) : (
-        <p className="clignote mt-6 text-[16px] font-bold">Un instant…</p>
-      )}
-    </main>
+  return probleme ? (
+    <Seul couleur="rose" titre="Pas encore relié." sous={probleme}>
+      <button type="button" onClick={() => router.replace(suite.current)} className="bouton bouton-rose w-full">
+        Continuer
+      </button>
+    </Seul>
+  ) : (
+    <Seul couleur="turquoise" titre="Un instant…" travaille />
   );
 }

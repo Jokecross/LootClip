@@ -43,16 +43,16 @@ export function Publications({ video, titre, vide }: { video?: string; titre: st
   }
 
   return (
-    <section className="mt-6" aria-labelledby="t-pubs">
-      <h2 id="t-pubs" className="titre text-[22px] lg:text-[26px]">
+    <section aria-labelledby="t-pubs">
+      <h2 id="t-pubs" className="titre text-[26px] lg:text-[36px]">
         {titre}
       </h2>
-      {!liste.length && <p className="mt-2 text-[14px] text-encre2">{vide}</p>}
-      <ul className="mt-3 flex flex-col gap-2.5">
+      {!liste.length && <p className="mt-2 text-[15px] font-medium">{vide}</p>}
+      <ul className="mt-3 flex flex-col gap-3.5">
         {liste.map((p) => {
           const nomVideo = video ? null : etat.videos.find((v) => v.id === p.video)?.titre;
           return (
-            <li key={p.id} className="carte p-3">
+            <li key={p.id} className="bloc bg-blanc p-4">
               <div className="flex items-center gap-3">
                 <PictoReseau r={p.reseau} />
                 <div className="min-w-0 flex-1">

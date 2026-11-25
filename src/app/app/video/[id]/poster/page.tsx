@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Ecran, Message } from "@/components/app/Ecran";
 import { Publications } from "@/components/app/Publications";
 import { Confettis } from "@/components/studio/Confettis";
 import { HEURES, heure, jours, NOMS, PictoReseau } from "@/components/studio/Publier";
@@ -49,13 +50,11 @@ export default function Poster() {
 
   if (!video || video.statut !== "termine" || video.filigrane)
     return (
-      <div className="entree lg:mx-auto lg:max-w-[720px]">
-        <h1 className="titre text-[32px]">Pas encore prête.</h1>
-        <p className="mt-2 text-[15px] text-encre2">{video?.filigrane ? "Refais d'abord ta vidéo sans filigrane." : "Ta vidéo doit être terminée pour partir."}</p>
-        <Link href={video ? `/app/video/${id}` : "/app/videos"} className="bouton bouton-blanc mt-6 w-full">
+      <Message titre="Pas encore prête." sous={video?.filigrane ? "Refais d'abord ta vidéo sans filigrane." : "Ta vidéo doit être terminée pour partir."}>
+        <Link href={video ? `/app/video/${id}` : "/app/videos"} className="bouton bouton-blanc w-full">
           Retour
         </Link>
-      </div>
+      </Message>
     );
 
   const legende = texte ?? `${video.legende} ${video.hashtags.join(" ")}`.trim();
@@ -124,148 +123,165 @@ export default function Poster() {
 
   if (fini)
     return (
-      <div className="entree lg:mx-auto lg:max-w-[720px]">
+      <div className="mx-auto flex max-w-[720px] flex-col gap-6 pt-6 lg:pt-12">
         <Confettis />
-        <p className="tampon titre mx-auto mt-6 w-fit rounded-2xl border-4 border-encre bg-rose px-5 py-3 text-[38px] shadow-[0_6px_0_var(--color-encre)] lg:text-[60px]">{fini === "programmee" ? "Programmée !" : "C'est parti !"}</p>
-        <p className="mt-6 text-center text-[15px] text-encre2">{fini === "programmee" ? "Tu peux fermer XPclip. Elle partira toute seule." : "L'envoi prend souvent une à deux minutes."}</p>
+        <p className="tampon titre mx-auto w-fit rounded-[24px] border-4 border-encre bg-rose px-6 py-4 text-[42px] shadow-[0_8px_0_var(--color-encre)] lg:rounded-[36px] lg:px-10 lg:py-7 lg:text-[84px]">{fini === "programmee" ? "Programmée !" : "C'est parti !"}</p>
+        <p className="mt-2 text-center text-[17px] font-medium lg:mt-6 lg:text-[21px]">{fini === "programmee" ? "Tu peux fermer XPclip. Elle partira toute seule." : "L'envoi prend souvent une à deux minutes."}</p>
         <Publications video={id} titre="Tes publications" />
-        <Link href="/app/creer" className="bouton bouton-rose mt-6 w-full">
+        <Link href="/app/creer" className="bouton bouton-rose w-full">
           Créer une autre vidéo
         </Link>
       </div>
     );
 
-  const puce = (actif: boolean) => `min-h-12 rounded-[14px] border-2 border-encre px-1 text-[14px] font-bold ${actif ? "bg-jaune" : "bg-blanc"}`;
-
   return (
-    <div className="entree">
-      <Link href={`/app/video/${id}`} className="lien flex min-h-11 w-fit items-center text-[14px]">
-        ‹ Ma vidéo
-      </Link>
-      <h1 className="titre mt-1 text-[32px] lg:text-[48px]">Tu postes où ?</h1>
-      {erreur && (
-        <p role="alert" className="carte-forte mt-4 bg-rose p-3.5 text-[15px] font-bold">
-          {erreur}
-        </p>
-      )}
-
-      <div className="mt-4 lg:mt-8 lg:grid lg:grid-cols-2 lg:items-start lg:gap-10">
-        <div>
-          <div className="grid grid-cols-2 gap-2.5">
+    <>
+      <Ecran
+        titre="Tu postes où ?"
+        plus={
+          <div className="grid grid-cols-2 gap-2.5 pt-2 lg:gap-4 lg:pt-5">
             {(["tiktok", "instagram"] as Reseau[]).map((r) => {
               const c = comptes?.find((x) => x.reseau === r && x.actif);
               const deja = occupe(r);
               const actif = reseaux.includes(r);
               return (
-                <button key={r} type="button" aria-pressed={actif} disabled={!comptes || !!deja || attente} onClick={() => bascule(r)} className={`relative flex min-w-0 flex-col items-start gap-2 p-3.5 text-left disabled:opacity-60 ${actif ? "carte-forte bg-jaune" : "carte"}`}>
+                <button key={r} type="button" aria-pressed={actif} disabled={!comptes || !!deja || attente} onClick={() => bascule(r)} className="choix !rounded-[20px] items-start gap-2 p-3 disabled:opacity-60 lg:gap-3 lg:p-5">
                   <PictoReseau r={r} />
                   <span className="min-w-0 max-w-full">
-                    <span className="titre block text-[18px] lg:text-[22px]">{NOMS[r]}</span>
-                    <span className={`mt-1 block truncate text-[13px] ${c && !deja ? "text-encre2" : "font-bold"}`}>{!comptes ? "Un instant…" : deja ? (deja.statut === "programmee" ? "Déjà programmée" : "Déjà postée") : c ? `@${c.pseudo ?? "relié"}` : "Relier mon compte"}</span>
+                    <span className="titre block text-[18px] lg:text-[24px]">{NOMS[r]}</span>
+                    <span className={`mt-1 block truncate text-[13px] lg:text-[15px] ${c && !deja ? "" : "font-bold"}`}>{!comptes ? "Un instant…" : deja ? (deja.statut === "programmee" ? "Déjà programmée" : "Déjà postée") : c ? `@${c.pseudo ?? "relié"}` : "Relier mon compte"}</span>
                   </span>
-                  {actif && <Coche className="absolute right-3 top-3 h-6 w-6" />}
+                  {actif && <Coche className="absolute right-3 top-3 h-7 w-7" />}
                 </button>
               );
             })}
           </div>
+        }
+        socle={
+          <Link href={`/app/video/${id}`} className="bloc hidden bg-blanc px-7 py-5 text-[18px] font-bold lg:block">
+            ‹ Ma vidéo
+          </Link>
+        }
+      >
+        <Link href={`/app/video/${id}`} className="lien flex min-h-11 w-fit items-center text-[16px] lg:hidden">
+          ‹ Ma vidéo
+        </Link>
+        {erreur && (
+          <p role="alert" className="bloc bg-rose p-4 text-[16px] font-bold">
+            {erreur}
+          </p>
+        )}
 
-          <label htmlFor="legende" className="mt-5 block text-[14px] font-bold">
-            Ta légende
-          </label>
-          <textarea id="legende" rows={4} maxLength={TEXTE_MAX} value={legende} onChange={(e) => setTexte(e.target.value)} className="champ mt-1.5 h-auto resize-y py-3 leading-snug" />
-
-          {tiktok && (
-            <section className="carte mt-4 p-4" aria-labelledby="t-tk">
-              <h2 id="t-tk" className="titre text-[18px]">
-                Sur TikTok
-              </h2>
-              <p className="mt-3 text-[13px] font-bold">Qui peut la voir ?</p>
-              <div className="mt-1.5 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Qui peut la voir">
-                {VISIBILITES.map(([v, nom]) => (
-                  <button key={v} type="button" role="radio" aria-checked={options.visibilite === v} onClick={() => setOptions((o) => ({ ...o, visibilite: v }))} className={puce(options.visibilite === v)}>
-                    {nom}
+        <div className="bloc overflow-hidden bg-orange">
+          <div className="p-4 lg:p-6">
+            <div className="segment" role="radiogroup" aria-label="Moment de la publication">
+              {[true, false].map((v) => (
+                <button key={String(v)} type="button" role="radio" aria-checked={plus === v} onClick={() => (pop(0.5), setPlus(v))}>
+                  {v ? "Programmer" : "Maintenant"}
+                </button>
+              ))}
+            </div>
+            {plus && (
+              <div className="mt-4 grid grid-cols-7 gap-1.5 lg:gap-2.5" role="radiogroup" aria-label="Jour">
+                {l.map((j, i) => (
+                  <button key={i} type="button" role="radio" aria-checked={jour === i} onClick={() => (pop(i / 7), setJour(i))} className={`flex min-h-[62px] flex-col items-center justify-center rounded-[14px] border-2 border-encre lg:min-h-[78px] lg:rounded-[18px] ${jour === i ? "bg-rose" : "bg-blanc shadow-[0_3px_0_var(--color-encre)]"}`}>
+                    <span className="text-[12px] font-bold lg:text-[14px]">{j.court}</span>
+                    <span className="titre mt-0.5 text-[19px] lg:text-[25px]">{j.num}</span>
                   </button>
                 ))}
               </div>
-              <p className="mt-4 text-[13px] font-bold">Ce que tu autorises</p>
-              <div className="mt-1.5 grid grid-cols-3 gap-2">
-                {(
-                  [
-                    ["commentaires", "Commenter"],
-                    ["duos", "Duo"],
-                    ["collages", "Collage"],
-                  ] as const
-                ).map(([k, nom]) => (
-                  <button key={k} type="button" aria-pressed={options[k]} onClick={() => setOptions((o) => ({ ...o, [k]: !o[k] }))} className={puce(options[k])}>
-                    {nom}
-                  </button>
-                ))}
+            )}
+          </div>
+          {plus ? (
+            <>
+              <p className="titre text-center text-[56px] tabular-nums lg:text-[76px]">{heure(minutes)}</p>
+              <div className="flex h-[230px] px-4 lg:h-[300px] lg:px-[clamp(24px,2.6vw,48px)] lg:pt-[clamp(24px,2.6vw,48px)]">
+                <Roulette nu page label="Heure de publication" valeurs={HEURES} valeur={minutes} libelle={heure} changer={setMinutes} />
               </div>
-              <button type="button" role="switch" aria-checked={sponsor} onClick={() => setSponsor((s) => !s)} className="mt-3 flex min-h-12 w-full items-center justify-between gap-3 text-left text-[14px] font-bold">
-                Vidéo sponsorisée
-                <span className="pastille bg-fond">{sponsor ? "Oui" : "Non"}</span>
-              </button>
-              {sponsor && (
-                <div className="mt-1 grid grid-cols-2 gap-2">
-                  <button type="button" aria-pressed={options.maMarque} onClick={() => setOptions((o) => ({ ...o, maMarque: !o.maMarque }))} className={puce(options.maMarque)}>
-                    Ma marque
-                  </button>
-                  <button type="button" aria-pressed={options.partenaire} onClick={() => setOptions((o) => ({ ...o, partenaire: !o.partenaire }))} className={puce(options.partenaire)}>
-                    Un partenaire
-                  </button>
-                </div>
-              )}
-              <p className="mt-3 text-[12px] leading-snug text-encre2">
-                En publiant, tu acceptes la{" "}
-                <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" rel="noopener noreferrer" className="underline">
-                  confirmation d&apos;utilisation de la musique
-                </a>
-                {sponsor && options.partenaire ? (
-                  <>
-                    {" "}
-                    et la{" "}
-                    <a href="https://www.tiktok.com/legal/page/global/bc-policy/en" target="_blank" rel="noopener noreferrer" className="underline">
-                      politique de contenu de marque
-                    </a>
-                  </>
-                ) : null}{" "}
-                de TikTok.
-              </p>
-            </section>
+            </>
+          ) : (
+            <p className="titre px-5 pb-8 pt-2 text-center text-[30px] lg:pb-12 lg:text-[44px]">Ça part tout de suite.</p>
           )}
         </div>
 
-        <div className="mt-5 lg:mt-0">
-          <div className="grid grid-cols-2 gap-1 rounded-[14px] border-2 border-encre bg-blanc p-1" role="radiogroup" aria-label="Moment de la publication">
-            {[true, false].map((v) => (
-              <button key={String(v)} type="button" role="radio" aria-checked={plus === v} onClick={() => (pop(0.5), setPlus(v))} className={`min-h-12 rounded-[10px] text-[15px] font-bold ${plus === v ? "bg-encre text-fond" : ""}`}>
-                {v ? "Programmer" : "Publier maintenant"}
-              </button>
-            ))}
-          </div>
-          {plus && (
-            <>
-              <div className="mt-3 grid grid-cols-7 gap-1" role="radiogroup" aria-label="Jour">
-                {l.map((j, i) => (
-                  <button key={i} type="button" role="radio" aria-checked={jour === i} onClick={() => (pop(i / 7), setJour(i))} className={`flex min-h-[54px] flex-col items-center justify-center rounded-xl border-2 ${jour === i ? "border-encre bg-rose shadow-[0_3px_0_var(--color-encre)]" : "border-beige bg-blanc"}`}>
-                    <span className="text-[11px] font-bold">{j.court}</span>
-                    <span className="titre mt-0.5 text-[16px]">{j.num}</span>
-                  </button>
-                ))}
+        <div className="bloc bg-blanc p-5 lg:p-7">
+          <label htmlFor="legende" className="libelle">
+            Ta légende
+          </label>
+          <textarea id="legende" rows={4} maxLength={TEXTE_MAX} value={legende} onChange={(e) => setTexte(e.target.value)} className="champ mt-3 h-auto resize-y py-3 leading-snug" />
+        </div>
+
+        {tiktok && (
+          <section className="bloc bg-blanc p-5 lg:p-7" aria-labelledby="t-tk">
+            <h2 id="t-tk" className="titre text-[26px] lg:text-[32px]">
+              Sur TikTok
+            </h2>
+            <p className="mt-4 text-[15px] font-bold">Qui peut la voir ?</p>
+            <div className="mt-2 grid grid-cols-3 gap-2.5" role="radiogroup" aria-label="Qui peut la voir">
+              {VISIBILITES.map(([v, nom]) => (
+                <button key={v} type="button" role="radio" aria-checked={options.visibilite === v} onClick={() => setOptions((o) => ({ ...o, visibilite: v }))} className="puce">
+                  {nom}
+                </button>
+              ))}
+            </div>
+            <p className="mt-5 text-[15px] font-bold">Ce que tu autorises</p>
+            <div className="mt-2 grid grid-cols-3 gap-2.5">
+              {(
+                [
+                  ["commentaires", "Commenter"],
+                  ["duos", "Duo"],
+                  ["collages", "Collage"],
+                ] as const
+              ).map(([k, nom]) => (
+                <button key={k} type="button" aria-pressed={options[k]} onClick={() => setOptions((o) => ({ ...o, [k]: !o[k] }))} className="puce">
+                  {nom}
+                </button>
+              ))}
+            </div>
+            <button type="button" role="switch" aria-checked={sponsor} onClick={() => setSponsor((s) => !s)} className="mt-4 flex min-h-12 w-full items-center justify-between gap-3 text-left text-[16px] font-bold">
+              Vidéo sponsorisée
+              <span className={`pastille ${sponsor ? "bg-jaune" : "bg-fond"}`}>{sponsor ? "Oui" : "Non"}</span>
+            </button>
+            {sponsor && (
+              <div className="mt-2 grid grid-cols-2 gap-2.5">
+                <button type="button" aria-pressed={options.maMarque} onClick={() => setOptions((o) => ({ ...o, maMarque: !o.maMarque }))} className="puce">
+                  Ma marque
+                </button>
+                <button type="button" aria-pressed={options.partenaire} onClick={() => setOptions((o) => ({ ...o, partenaire: !o.partenaire }))} className="puce">
+                  Un partenaire
+                </button>
               </div>
-              <p className="titre my-3 text-center text-[44px] tabular-nums">{heure(minutes)}</p>
-              <div className="flex h-[230px] lg:h-[320px]">
-                <Roulette label="Heure de publication" valeurs={HEURES} valeur={minutes} libelle={heure} changer={setMinutes} />
-              </div>
-            </>
-          )}
-          <button type="button" disabled={!!manque || attente} onClick={partir} className="bouton bouton-rose mt-5 w-full">
+            )}
+            <p className="mt-4 text-[13px] leading-snug text-encre2">
+              En publiant, tu acceptes la{" "}
+              <a href="https://www.tiktok.com/legal/page/global/music-usage-confirmation/en" target="_blank" rel="noopener noreferrer" className="underline">
+                confirmation d&apos;utilisation de la musique
+              </a>
+              {sponsor && options.partenaire ? (
+                <>
+                  {" "}
+                  et la{" "}
+                  <a href="https://www.tiktok.com/legal/page/global/bc-policy/en" target="_blank" rel="noopener noreferrer" className="underline">
+                    politique de contenu de marque
+                  </a>
+                </>
+              ) : null}{" "}
+              de TikTok.
+            </p>
+          </section>
+        )}
+
+        <Publications video={id} titre="Déjà fait" />
+      </Ecran>
+
+      <div className="appli-sol">
+        <div>
+          <p>{plus ? `${l[jour].long} à ${heure(minutes)}`.replace(/^./, (x) => x.toUpperCase()) : "Elle part tout de suite."}</p>
+          <button type="button" disabled={!!manque || attente} onClick={partir} className="bouton bouton-rose">
             {attente ? "Un instant…" : (manque ?? (plus ? "Programmer ma vidéo" : "Publier ma vidéo"))}
           </button>
         </div>
       </div>
-
-      <Publications video={id} titre="Déjà fait" />
-    </div>
+    </>
   );
 }

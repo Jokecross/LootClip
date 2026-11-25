@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Robot } from "@/components/accueil/Robot";
 import { DefiSeptJours } from "@/components/app/DefiSeptJours";
+import { Message } from "@/components/app/Ecran";
 import { Lecteur } from "@/components/app/Lecteur";
 import { Paywall, type MomentPaywall } from "@/components/app/Paywall";
 import { Publications } from "@/components/app/Publications";
@@ -14,7 +16,7 @@ import { STYLES, type Style } from "@/lib/config";
 import { modifier, useEtat, type Video } from "@/lib/etat";
 import { supabase } from "@/lib/supabase";
 import { chrono } from "@/lib/format";
-import { ETAPES, LIBELLES_STATUT, quota, refaire, retirerFiligrane, sourcesDe, statutDe, useMaintenant } from "@/lib/montage";
+import { ETAPES, quota, refaire, retirerFiligrane, sourcesDe, statutDe, useMaintenant } from "@/lib/montage";
 import { usePublicationOuverte } from "@/lib/publication";
 import { suivre } from "@/lib/suivi";
 
@@ -35,13 +37,11 @@ export default function PageVideo() {
 
   if (!video) {
     return (
-      <div className="entree">
-        <h1 className="titre text-[32px]">Vidéo introuvable.</h1>
-        <p className="mt-2 text-[15px] text-encre2">Elle a peut-être été supprimée.</p>
-        <Link href="/app/videos" className="bouton bouton-blanc mt-6 w-full">
+      <Message titre="Vidéo introuvable." sous="Elle a peut-être été supprimée.">
+        <Link href="/app/videos" className="bouton bouton-blanc w-full">
           Voir mes vidéos
         </Link>
-      </div>
+      </Message>
     );
   }
 
@@ -50,60 +50,60 @@ export default function PageVideo() {
 
   if (statut === "echoue") {
     return (
-      <div className="entree lg:mx-auto lg:max-w-[720px]">
-        <span className="pastille bg-rose">Échoué</span>
-        <h1 className="titre mt-3 text-[32px]">Le montage a échoué.</h1>
-        <p className="mt-2 text-[15px] text-encre2">{video.echec}</p>
-        <p className="mt-1 text-[14px] font-bold">Cette tentative ne compte pas dans ton quota.</p>
-        <Link href="/app/creer" className="bouton bouton-rose mt-6 w-full">
+      <Message titre="Le montage a échoué." sous={video.echec}>
+        <p className="text-[16px] font-bold">Cette tentative ne compte pas dans ton quota.</p>
+        <Link href="/app/creer" className="bouton bouton-rose w-full">
           Réessayer
         </Link>
-      </div>
+      </Message>
     );
   }
 
   const conseil = CONSEILS[etape % CONSEILS.length];
+  const pourcent = Math.round(avancement * 100);
   return (
-    <div className="entree lg:mx-auto lg:max-w-[720px]">
-      <span className={`pastille ${statut === "en_cours" ? "bg-jaune" : "bg-blanc"}`}>{LIBELLES_STATUT[statut]}</span>
-      <h1 className="titre mt-3 text-[32px] lg:text-[48px]">{statut === "en_attente" ? "Ta vidéo est dans la file." : "Montage en cours."}</h1>
-      <p className="mt-2 text-[15px] text-encre2">Tu peux fermer l&apos;appli. On te prévient quand c&apos;est prêt.</p>
+    <div className="mx-auto max-w-[1000px]">
+      <h1 className="titre text-center text-[38px] lg:text-[68px]">{statut === "en_attente" ? "Ta vidéo est dans la file." : "Montage en cours."}</h1>
+      <p className="mt-2 text-center text-[16px] font-medium lg:mt-4 lg:text-[20px]">Tu peux fermer l&apos;appli. On te prévient quand c&apos;est prêt.</p>
 
-      <div className="carte-forte mt-5 bg-jaune p-4">
-        <div className="flex items-baseline justify-between">
-          <span className="text-[14px] font-bold">{STYLES[video.style].nom}</span>
-          <span className="titre text-[34px] tabular-nums">{Math.round(avancement * 100)} %</span>
+      <div className="bloc mt-6 overflow-hidden bg-blanc lg:mt-10 lg:grid lg:grid-cols-[1fr_1.1fr]">
+        <div className="atelier-scene lg:!h-auto lg:min-h-[400px] lg:border-b-0 lg:border-r-2">
+          <span className="tapis" aria-hidden="true" />
+          <Robot xp={avancement} className="travaille" />
         </div>
-        <div className="barre mt-3 h-4" role="progressbar" aria-valuenow={Math.round(avancement * 100)} aria-label="Avancement du montage">
-          <span style={{ width: `${Math.max(3, avancement * 100)}%` }} />
+        <div className="p-5 lg:p-9">
+          <div className="flex items-baseline justify-between gap-3">
+            <span className="titre text-[20px] lg:text-[24px]">{STYLES[video.style].nom}</span>
+            <span className="titre text-[48px] tabular-nums lg:text-[72px]">{pourcent}&nbsp;%</span>
+          </div>
+          <div className="barre mt-3" role="progressbar" aria-valuenow={pourcent} aria-label="Avancement du montage">
+            <span style={{ width: `${Math.max(3, avancement * 100)}%` }} />
+          </div>
+          <ol className="mt-5 flex flex-col gap-3.5 lg:mt-7">
+            {ETAPES.map((nom, i) => {
+              const fait = statut === "en_cours" && i < etape;
+              const actif = statut === "en_cours" && i === etape;
+              return (
+                <li key={nom} className={`flex items-center gap-3.5 text-[16px] lg:text-[18px] ${fait || actif ? "font-bold" : "text-encre2"}`}>
+                  {fait ? (
+                    <Coche className="h-7 w-7 shrink-0" />
+                  ) : (
+                    <span className={`h-7 w-7 shrink-0 rounded-full border-2 ${actif ? "clignote border-encre bg-rose" : "border-beige bg-fond"}`} aria-label={actif ? "en cours" : undefined} />
+                  )}
+                  {nom}
+                </li>
+              );
+            })}
+          </ol>
         </div>
       </div>
 
-      <ol className="carte mt-3 divide-y-2 divide-beige px-4">
-        {ETAPES.map((nom, i) => {
-          const fait = statut === "en_cours" && i < etape;
-          const actif = statut === "en_cours" && i === etape;
-          return (
-            <li key={nom} className={`flex min-h-12 items-center justify-between gap-3 text-[15px] ${fait || actif ? "font-bold" : "text-encre2"}`}>
-              {nom}
-              {fait ? (
-                <Coche className="h-5 w-5" />
-              ) : actif ? (
-                <span className="h-5 w-5 rounded-full border-[3px] border-encre border-t-transparent" style={{ animation: "tourne .8s linear infinite" }} aria-label="en cours" />
-              ) : (
-                <span className="h-5 w-5 rounded-full border-2 border-beige" aria-hidden="true" />
-              )}
-            </li>
-          );
-        })}
-      </ol>
-
-      <section className="carte mt-3 bg-fond p-4" aria-labelledby="t-conseil">
-        <span className="pastille bg-turquoise">Pendant que ça monte</span>
-        <h2 id="t-conseil" className="titre mt-3 text-[20px]">
+      <section className="bloc mt-5 bg-turquoise p-5 lg:mt-7 lg:p-8" aria-labelledby="t-conseil">
+        <span className="pastille bg-blanc">Pendant que ça monte</span>
+        <h2 id="t-conseil" className="titre mt-3 text-[24px] lg:text-[34px]">
           {conseil.titre}
         </h2>
-        <p className="mt-1.5 text-[14px] leading-snug text-encre2">{conseil.texte}</p>
+        <p className="mt-2 text-[16px] leading-snug lg:text-[19px]">{conseil.texte}</p>
       </section>
     </div>
   );
@@ -223,71 +223,70 @@ function Resultat({ video }: { video: Video }) {
   const publier = usePublicationOuverte();
 
   return (
-    <div className="entree lg:grid lg:grid-cols-[280px_1fr] lg:items-start lg:gap-x-8 xl:grid-cols-[380px_1fr] xl:gap-x-12 [&>*]:lg:col-start-2">
-      <div className="flex items-start justify-between gap-3">
-        <h1 className="titre text-[30px] lg:text-[38px] xl:text-[48px]">Ta vidéo est prête.</h1>
-        {!gratuit && <span className="pastille mt-1 shrink-0 rotate-2 bg-turquoise lg:mt-3">{q.restant} restantes</span>}
+    <div className="lg:grid lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start lg:gap-x-14 xl:grid-cols-[370px_minmax(0,1fr)]">
+      <div className="mb-5 flex items-center justify-between gap-3 lg:hidden">
+        <h1 className="titre text-[36px]">Ta vidéo est prête.</h1>
       </div>
-
-      {/* Ordinateur : « contents » libère le lecteur et les infos dans la grille de la page */}
-      <div className="mt-4 grid grid-cols-[1.55fr_1fr] gap-2.5 lg:contents">
-        <div className="lg:sticky lg:top-10 lg:col-start-1 lg:row-span-6 lg:row-start-1">
+      <div className="mx-auto w-[66%] max-w-[270px] lg:sticky lg:top-[130px] lg:mx-0 lg:w-full lg:max-w-none">
+        <div className="tel-lecteur">
           <Lecteur video={video} sources={sources} />
         </div>
-        <div className="flex flex-col gap-2.5 lg:col-start-2 lg:mt-6 lg:grid lg:grid-cols-3 lg:gap-3">
-          <Info libelle="Durée" valeur={chrono(video.duree).replace(":", " min ")} />
-          <Info libelle="Format" valeur="9:16" />
-          <Info libelle="Style" valeur={STYLES[video.style].nom} />
-          <p className="carte-pointillee p-2.5 text-[11px] leading-snug text-encre2 lg:col-span-3 lg:px-4 lg:py-3 lg:text-[14px]">Prête pour TikTok, Shorts et Reels.</p>
-        </div>
       </div>
 
-      <div className="carte mt-3 p-3.5 lg:p-5">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-[13px] font-bold">Légende proposée</p>
-          <button type="button" onClick={() => copier(description)} className="lien min-h-9 text-[13px]">
-            Copier
+      <div className="mt-7 flex flex-col gap-4 lg:mt-0 lg:gap-6">
+        <h1 className="titre hidden text-[64px] lg:block xl:text-[80px]">Ta vidéo est prête.</h1>
+        <div className="flex flex-wrap justify-center gap-2 lg:justify-start lg:gap-3">
+          {[chrono(video.duree).replace(":", " min "), "9:16", STYLES[video.style].nom, ...(gratuit ? [] : [`${q.restant} restantes`])].map((x, i) => (
+            <span key={x} className={`pastille lg:min-h-10 lg:px-4 lg:text-[17px] ${["bg-turquoise", "bg-blanc", "bg-jaune", "bg-blanc"][i]}`}>
+              {x}
+            </span>
+          ))}
+        </div>
+
+        <div className="bloc flex flex-col gap-3.5 bg-blanc p-5 lg:p-8">
+          {publier && !gratuit && (
+            <Link href={`/app/video/${video.id}/poster`} className="bouton bouton-rose w-full">
+              Poster ma vidéo
+            </Link>
+          )}
+          <div className="grid gap-3.5 xl:grid-cols-2">
+            <button type="button" onClick={partager} disabled={enPreparation} className={`bouton w-full ${publier && !gratuit ? "bouton-blanc" : "bouton-rose"}`}>
+              {enPreparation ? "Préparation…" : partageNatif ? "Partager sur TikTok ou Instagram" : "Partager sur TikTok"}
+            </button>
+            <button type="button" onClick={() => telecharger()} className="bouton bouton-blanc w-full">
+              {video.filigrane ? "Télécharger sans filigrane" : "Télécharger la vidéo"}
+            </button>
+          </div>
+          <button type="button" onClick={() => setRefaireOuvert(true)} className="lien mx-auto flex min-h-11 items-center text-[16px]">
+            Refaire avec un autre style
           </button>
         </div>
-        <p className="mt-1 text-[14px] leading-snug lg:mt-2 lg:text-[16px]">
-          {video.legende} <span className="text-encre2">{video.hashtags.join(" ")}</span>
-        </p>
-      </div>
 
-      {publier && !gratuit && (
-        <Link href={`/app/video/${video.id}/poster`} className="bouton bouton-rose mt-5 w-full lg:mt-6">
-          Poster ma vidéo
-        </Link>
-      )}
-      <div className={publier && !gratuit ? "mt-3 lg:grid lg:gap-3 xl:grid-cols-2" : "lg:mt-6 lg:grid lg:gap-3 xl:grid-cols-2"}>
-        <button type="button" onClick={partager} disabled={enPreparation} className={publier && !gratuit ? "bouton bouton-blanc w-full" : "bouton bouton-rose mt-5 w-full lg:mt-0"}>
-          {enPreparation ? "Préparation…" : partageNatif ? "Partager sur TikTok ou Instagram" : "Partager sur TikTok"}
-        </button>
-        <button type="button" onClick={() => telecharger()} className="bouton bouton-blanc mt-3 w-full lg:mt-0">
-          {video.filigrane ? "Télécharger sans filigrane" : "Télécharger la vidéo"}
-        </button>
-      </div>
-      <button type="button" onClick={() => setRefaireOuvert(true)} className="lien mx-auto mt-2 flex min-h-11 items-center text-[14px] lg:mx-0 lg:mt-3">
-        Refaire avec un autre style
-      </button>
-
-      {publier && <Publications video={video.id} titre="Tes publications" />}
-
-      {video.partageeLe && (
-        <div className="mt-4">
-          <DefiSeptJours />
+        <div className="bloc bg-blanc p-5 lg:p-8">
+          <div className="flex items-center justify-between gap-3">
+            <p className="libelle">Légende proposée</p>
+            <button type="button" onClick={() => copier(description)} className="pastille min-h-11 bg-jaune px-5">
+              Copier
+            </button>
+          </div>
+          <p className="mt-3 text-[16px] leading-snug lg:text-[18px]">
+            {video.legende} <span className="text-encre2">{video.hashtags.join(" ")}</span>
+          </p>
         </div>
-      )}
+
+        {publier && <Publications video={video.id} titre="Tes publications" />}
+        {video.partageeLe && <DefiSeptJours />}
+      </div>
 
       <Feuille ouverte={refaireOuvert} fermer={() => setRefaireOuvert(false)} titre="Autre style">
         <p className="text-[14px] text-encre2">Mêmes clips, nouveau montage. Ça compte comme une vidéo.</p>
-        <div className="mt-4 flex flex-col gap-2.5">
+        <div className="mt-4 flex flex-col gap-4">
           {(Object.keys(STYLES) as Style[])
             .filter((s) => s !== video.style)
             .map((s) => (
-              <button key={s} type="button" onClick={() => choisirStyle(s)} className="option min-h-[68px]">
+              <button key={s} type="button" onClick={() => choisirStyle(s)} className="touche">
                 <span>
-                  <span className="titre block text-[18px] font-bold tracking-[-0.01em]">{STYLES[s].nom}</span>
+                  <span className="titre block text-[22px]">{STYLES[s].nom}</span>
                   <span className="mt-0.5 block text-[13px] text-encre2">{STYLES[s].detail}</span>
                 </span>
               </button>
@@ -325,13 +324,3 @@ function usePartageNatif() {
   }, []);
   return oui;
 }
-
-function Info({ libelle, valeur }: { libelle: string; valeur: string }) {
-  return (
-    <div className="carte px-2.5 py-2 lg:px-3 lg:py-3 xl:px-4">
-      <p className="text-[11px] text-encre2 lg:text-[13px]">{libelle}</p>
-      <p className="titre mt-0.5 text-[15px] font-bold tracking-[-0.01em] lg:text-[17px] xl:text-[20px]">{valeur}</p>
-    </div>
-  );
-}
-

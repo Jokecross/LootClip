@@ -1,9 +1,13 @@
 "use client";
 
+import "@/app/accueil.css";
+import "@/components/ui/parcours.css";
+import "./appli.css";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Logo } from "@/components/marque/Logo";
+import { LogoIcone } from "@/components/marque/Logo";
+import { teinteDe, useTeinte, type Couleur } from "@/components/ui/teinte";
 import { afficherToast, Toasts } from "@/components/ui/Toast";
 import { Paywall } from "@/components/app/Paywall";
 import { aAcces, modifier, sansOnboarding, useEtat } from "@/lib/etat";
@@ -26,6 +30,10 @@ const ONGLETS = [
     icone: <path d="M12 12a4 4 0 100-8 4 4 0 000 8zM4 21a8 8 0 0116 0" />,
   },
 ];
+
+/** Une couleur par page. */
+const couleurDe = (c: string): Couleur =>
+  c.startsWith("/app/videos") || c.endsWith("/poster") ? "turquoise" : c.startsWith("/app/comptes") || c.startsWith("/app/video/") ? "rose" : c.startsWith("/app/compte") ? "orange" : "jaune";
 
 /** Prévient quand un montage se termine : message dans l'appli, et notification si l'appli est en fond. */
 function Notifier() {
@@ -73,99 +81,88 @@ export default function CoquilleAppli({ children }: { children: React.ReactNode 
     if (etat.charge && aFaire) router.replace("/commencer?e=2");
   }, [etat.charge, aFaire, router]);
 
-  if (!etat.charge || !etat.compte || aFaire) return <div className="min-h-dvh bg-fond" />;
-
   // Réservé aux abonnés. Restent ouverts : le compte, le retour de paiement, et les vidéos d'un ancien abonné.
   const libre = chemin.startsWith("/app/compte") || chemin.startsWith("/app/merci") || (etat.videos.length > 0 && chemin.startsWith("/app/video"));
   const acces = aAcces(etat);
+  const pret = etat.charge && !!etat.compte && !aFaire;
+  const couleur = couleurDe(chemin);
+  useTeinte(!pret || tuto || (!acces && !libre) ? null : couleur);
+
+  if (!pret) return <div className="min-h-dvh bg-fond" />;
   if (!acces && !libre) return <Paywall ouvert moment="entree" apresPaiement={() => {}} />;
 
   const q = quota(etat);
   const estActif = (href: string) => chemin.startsWith(href) || (href === "/app/videos" && chemin.startsWith("/app/video/"));
   const libelleQuota = `${q.restant} vidéo${q.restant > 1 ? "s" : ""} restante${q.restant > 1 ? "s" : ""}`;
 
-  return (
+  const suivi = (
     <>
-      {/* Ordinateur : barre latérale à la place des onglets du bas */}
-      {!tuto && (
-        <aside className="fixed inset-y-0 left-0 z-30 hidden w-[264px] flex-col border-r-2 border-encre bg-blanc px-5 pb-6 pt-7 lg:flex" aria-label="Navigation">
-          <Link href="/app/creer" className="flex min-h-11 items-center px-2" aria-label="XPclip, créer une vidéo">
-            <Logo taille={34} />
-          </Link>
-          <nav className="mt-10" aria-label="Onglets">
-            <ul className="flex flex-col gap-1.5">
-              {ONGLETS.map((o) => {
-                const actif = estActif(o.href);
-                return (
-                  <li key={o.href}>
-                    <Link
-                      href={o.href}
-                      aria-current={actif ? "page" : undefined}
-                      className={`flex min-h-12 items-center gap-3 rounded-[14px] border-2 px-3 text-[16px] font-bold transition-colors ${actif ? "border-encre bg-jaune shadow-[0_3px_0_var(--color-encre)]" : "border-transparent text-encre2 hover:bg-fond hover:text-encre"}`}
-                    >
-                      <svg viewBox="0 0 24 24" className="h-[22px] w-[22px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        {o.icone}
-                      </svg>
-                      {o.nom}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-          <div className={acces ? "mt-auto" : "hidden"}>
-            <Link href="/app/compte" className="carte block bg-fond p-4 hover:bg-beige/60">
-              <span className="block text-[13px] font-bold text-encre2">Ce mois-ci</span>
-              <span className="titre mt-1 block text-[22px] tabular-nums">{libelleQuota}</span>
-              <span className="barre mt-3 block h-3" aria-hidden="true">
-                <span style={{ width: `${q.total ? Math.max(4, (q.restant / q.total) * 100) : 0}%` }} />
-              </span>
-            </Link>
-          </div>
-        </aside>
-      )}
-
-    <div className={`mx-auto flex min-h-dvh max-w-[480px] flex-col ${tuto ? "lg:max-w-none" : "lg:ml-[264px] lg:max-w-none"}`}>
-      {!tuto && (
-        <header className="flex items-center justify-between px-4 pt-[max(12px,env(safe-area-inset-top))] lg:hidden">
-          <Link href="/app/creer" className="flex min-h-11 items-center" aria-label="XPclip, créer une vidéo">
-            <Logo taille={30} />
-          </Link>
-          <Link href="/app/compte" className={acces ? "pastille bg-blanc text-[12px] tabular-nums" : "hidden"} aria-label={`${libelleQuota} sur ${q.total}`}>
-            {libelleQuota}
-          </Link>
-        </header>
-      )}
-
-      <main className={`flex-1 px-4 ${tuto ? "lg:px-0" : "pb-36 pt-5 lg:px-12 lg:pb-16 lg:pt-14"}`}>
-        <div className={tuto ? "" : "lg:mx-auto lg:max-w-[1040px]"}>{children}</div>
-      </main>
-
-      {!tuto && (
-        <nav className="fixed inset-x-0 bottom-0 z-30 border-t-2 border-encre bg-blanc pb-[max(8px,env(safe-area-inset-bottom))] lg:hidden" aria-label="Onglets">
-          <ul className="mx-auto grid max-w-[480px] grid-cols-3">
-            {ONGLETS.map((o) => {
-              const actif = estActif(o.href);
-              return (
-                <li key={o.href}>
-                  <Link href={o.href} aria-current={actif ? "page" : undefined} className="flex min-h-[60px] flex-col items-center justify-center gap-1 text-[11px] font-bold">
-                    <span className={`grid h-7 w-12 place-items-center rounded-full border-2 ${actif ? "border-encre bg-jaune" : "border-transparent"}`}>
-                      <svg viewBox="0 0 24 24" className="h-[20px] w-[20px]" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                        {o.icone}
-                      </svg>
-                    </span>
-                    <span className={actif ? "" : "text-encre2"}>{o.nom}</span>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-      )}
-
       <Notifier />
       <Toasts />
-    </div>
     </>
+  );
+  // Le tutoriel prend tout l'écran.
+  if (tuto)
+    return (
+      <>
+        {children}
+        {suivi}
+      </>
+    );
+
+  const onglets = ONGLETS.map((o) => ({ ...o, actif: estActif(o.href), dessin: <Icone>{o.icone}</Icone> }));
+  return (
+    <div className="appli v4 v3" style={{ "--page": teinteDe(couleur) } as React.CSSProperties}>
+      <header className="nav">
+        <Link href="/app/creer" className="flex items-center gap-2.5" aria-label="XPclip, créer une vidéo">
+          <LogoIcone taille={38} className="rounded-[24%] ring-2 ring-encre" />
+          <span className="titre text-[22px]">XPclip</span>
+        </Link>
+        <nav className="hidden lg:block" aria-label="Navigation">
+          <ul className="flex gap-1.5">
+            {onglets.map((o) => (
+              <li key={o.href}>
+                <Link href={o.href} aria-current={o.actif ? "page" : undefined} className="nav-onglet">
+                  {o.dessin}
+                  {o.nom}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <Link href="/app/compte" className={acces ? "pastille bg-turquoise tabular-nums" : "hidden"} aria-label={`${libelleQuota} sur ${q.total}`}>
+          {libelleQuota}
+        </Link>
+        {acces && (
+          <span className="nav-xp" aria-hidden="true">
+            <i style={{ "--q": q.total ? q.restant / q.total : 0 } as React.CSSProperties} />
+          </span>
+        )}
+      </header>
+
+      <main className="appli-page">{children}</main>
+
+      <nav className="onglets lg:hidden" aria-label="Onglets">
+        <ul>
+          {onglets.map((o) => (
+            <li key={o.href}>
+              <Link href={o.href} aria-current={o.actif ? "page" : undefined}>
+                {o.dessin}
+                {o.nom}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      {suivi}
+    </div>
+  );
+}
+
+function Icone({ children }: { children: React.ReactNode }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {children}
+    </svg>
   );
 }

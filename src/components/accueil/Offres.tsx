@@ -2,6 +2,7 @@
 /* Les trois offres de l'accueil. Prix et avantages viennent de config.ts. */
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Avantages } from "@/components/tarifs/Avantages";
 import { Lancement } from "@/components/tarifs/Lancement";
 import { OFFRES_PAYANTES, ORDRE_OFFRES, PASTILLE_PRO, type OffrePayante } from "@/lib/config";
 import { eur, lancementActif, libelleFacturation, libelleJour, montant, parJour } from "@/lib/prix";
@@ -34,17 +35,9 @@ export function Offres() {
                 {libelleFacturation(prix, "mensuel")}
                 {remise && <s className="ml-2">{eur(montant(o, "mensuel", false))}</s>}
               </p>
-              <ul className="mt-5 flex flex-col gap-2.5 text-[16px] font-medium lg:text-[17px]">
-                {offre.avantages.map((a) => (
-                  <li key={a} className="flex items-center gap-2.5">
-                    <svg viewBox="0 0 24 24" className="h-6 w-6 shrink-0" aria-hidden="true">
-                      <circle cx="12" cy="12" r="11" fill="#6FE3D6" stroke="#1A0B2E" strokeWidth="2" />
-                      <path d="M7.500 12.400l3 3 6-6.400" fill="none" stroke="#1A0B2E" strokeWidth="2.600" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                    {a}
-                  </li>
-                ))}
-              </ul>
+              <div className="avantages mt-5">
+                <Avantages offre={o} />
+              </div>
               <Link href="/commencer" className={`gros mt-7 w-full ${pro ? "gros-rose" : "gros-blanc"}`}>
                 Choisir {offre.nom}
               </Link>

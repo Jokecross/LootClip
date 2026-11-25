@@ -23,7 +23,7 @@ export function Lancement() {
   const s = Math.floor(reste % 60);
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-[14px] border-2 border-encre bg-turquoise px-4 py-2.5" role="timer" aria-live="off">
+    <div className="flex items-center justify-between gap-3 min-h-[52px] rounded-[18px] border-2 border-encre bg-turquoise px-4 py-2 lg:min-h-[62px]" role="timer" aria-live="off">
       <span className="text-[14px] font-bold">-{Math.round(LANCEMENT.remise * 100)} % de lancement</span>
       <span className="text-[13px] font-bold tabular-nums">
         {j} j {deux(h)} h {deux(m)} min {deux(s)} s

@@ -7,8 +7,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { Logo } from "@/components/marque/Logo";
+import { Avantages } from "@/components/tarifs/Avantages";
 import { Bascule } from "@/components/tarifs/Bascule";
 import { Lancement } from "@/components/tarifs/Lancement";
+import { Duo, Titre } from "@/components/ui/Duo";
+import { Coche } from "@/components/ui/Parcours";
 import { commander } from "@/lib/abonnement";
 import { MENTION_OBJECTIF, ONBOARDING, OFFRES_PAYANTES, PASTILLE_PRO, type OffrePayante, type Periodicite } from "@/lib/config";
 import { useEtat } from "@/lib/etat";
@@ -77,119 +81,121 @@ export function Paywall({ ouvert, moment, fermer, apresPaiement }: { ouvert: boo
       />
     );
 
-  // Ordre de la maquette : Pro, Starter, Max. L'offre choisie est en jaune.
+  // Téléphone : l'offre conseillée en premier. Ordinateur : de la plus petite à la plus grande.
   const ordre: OffrePayante[] = ["pro", "starter", "max"];
+  const deconnexion = () => deconnecter().then(() => window.location.assign("/"));
 
   // Rendu à la racine de la page : rien (barre d'onglets, animation) ne peut passer par-dessus.
   return createPortal(
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-fond" role="dialog" aria-modal="true" aria-labelledby="t-paywall">
-      <div className="entree mx-auto flex min-h-dvh max-w-[480px] flex-col px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(16px,env(safe-area-inset-top))] lg:max-w-[1120px] lg:justify-center lg:px-8 lg:py-10">
-        <div className="flex items-start justify-between gap-4 lg:items-end">
-          <div>
-            <p className="text-[13px] font-bold lg:text-[16px]">Ton objectif XPclip</p>
-            <h1 id="t-paywall" className="titre mt-1 text-[34px] lg:text-[64px]">
-              {nombre(objectifBooste(objectif))}&nbsp;€ par mois
-            </h1>
-            <p className="mt-1.5 text-[14px] text-encre2 lg:mt-3 lg:text-[18px]">Ton plan : {videos(frequence)} par semaine.</p>
-            {relies.length > 0 && (
-              <p className="mt-3 flex items-center gap-2.5 text-[15px] font-bold lg:text-[18px]">
-                <span className="flex -space-x-2">
-                  {relies.map((c) => (
-                    <span key={c.id}>{c.photo ? <Photo url={c.photo} secours={<PictoReseau r={c.reseau} />} /> : <PictoReseau r={c.reseau} />}</span>
-                  ))}
-                </span>
-                <span className="min-w-0 truncate">@{relies[0].pseudo ?? "Ton compte"} est prêt à poster.</span>
-              </p>
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-orange" role="dialog" aria-modal="true" aria-labelledby="t-paywall">
+      <Duo
+        cle="offres"
+        fond="orange"
+        large
+        entete={
+          <div className="flex items-center justify-between gap-4">
+            <Logo taille={34} />
+            {fermer && (
+              <button type="button" onClick={fermer} className="bouton bouton-carre shrink-0 !flex-none" aria-label="Fermer">
+                <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
+                  <path d="M6 6l12 12M18 6L6 18" />
+                </svg>
+              </button>
             )}
           </div>
-          {fermer && (
-            <button type="button" onClick={fermer} className="bouton bouton-carre shrink-0" aria-label="Fermer">
-              <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
-                <path d="M6 6l12 12M18 6L6 18" />
-              </svg>
-            </button>
-          )}
-        </div>
-
-        <div className="lg:mt-8 lg:grid lg:grid-cols-2 lg:items-center lg:gap-6">
-          <div className="mt-5 lg:mt-0 lg:[&>div]:w-full">
-            <Bascule valeur={periode} changer={setPeriode} />
-          </div>
-          <div className="mt-3 lg:mt-0">
-            <Lancement />
-          </div>
-        </div>
-
-        <div className="mt-3 flex flex-col gap-3 lg:mt-10 lg:grid lg:grid-cols-3 lg:items-stretch lg:gap-6" role="radiogroup" aria-label="Offre">
-          {ordre.map((o) => {
-            const actif = choix === o;
-            const p = montant(o, periode, remise);
-            return (
-              <button
-                key={o}
-                type="button"
-                role="radio"
-                aria-checked={actif}
-                onClick={() => setChoix(o)}
-                className={`relative w-full p-4 text-left transition-colors lg:flex lg:min-h-[250px] lg:flex-col lg:p-7 ${actif ? "carte-forte bg-jaune lg:-translate-y-2" : "carte hover:bg-beige/40"} ${o === "pro" ? "mt-2 lg:order-2 lg:mt-0" : o === "starter" ? "lg:order-1" : "lg:order-3"}`}
-              >
-                {o === conseillee && <span className="pastille absolute -top-3 right-4 rotate-2 bg-rose">{PASTILLE_PRO}</span>}
-                <span className="flex items-end justify-between gap-3">
-                  <span>
-                    <span className="block text-[13px] font-bold lg:text-[18px]">{OFFRES_PAYANTES[o].nom}</span>
-                    <span className={`titre mt-0.5 block lg:mt-2 lg:text-[30px] ${actif ? "text-[24px]" : "text-[20px]"}`}>{libelleJour(parJour(p, periode))} par jour</span>
+        }
+        gauche={
+          <Titre
+            id="t-paywall"
+            avant="Ton objectif XPclip"
+            sous={`Ton plan : ${videos(frequence)} par semaine.`}
+            plus={
+              relies.length > 0 && (
+                <p className="flex items-center gap-2.5 !text-[15px] font-bold !text-encre lg:!text-[18px]">
+                  <span className="flex -space-x-2">
+                    {relies.map((c) => (
+                      <span key={c.id}>{c.photo ? <Photo url={c.photo} secours={<PictoReseau r={c.reseau} />} /> : <PictoReseau r={c.reseau} />}</span>
+                    ))}
                   </span>
-                  {!actif && <span className="shrink-0 pb-0.5 text-[13px] font-bold lg:hidden">{OFFRES_PAYANTES[o].videosParMois} vidéos</span>}
-                </span>
-                <span className="mt-1 block text-[13px] lg:mt-2 lg:text-[15px]">
-                  {libelleFacturation(p, periode)}
-                  {remise && <s className="ml-2 text-encre2">{eur(montant(o, periode, false))}</s>}
-                </span>
-                {/* Ordinateur : les avantages de chaque offre, toujours visibles */}
-                <span className="mt-5 hidden flex-col gap-1.5 text-[16px] lg:flex">
-                  {OFFRES_PAYANTES[o].avantages.map((a) => (
-                    <span key={a}>{a}</span>
-                  ))}
-                  {o === conseillee && <span className="font-bold">Couvre ton rythme de publication</span>}
-                </span>
-                {actif && (
-                  <span className="mt-1.5 block text-[13px] lg:hidden">
-                    {OFFRES_PAYANTES[o].videosParMois} vidéos par mois{o === conseillee ? " · Couvre ton rythme de publication" : ""}
-                  </span>
-                )}
-                {!actif && o === conseillee && <span className="mt-1.5 block text-[12px] font-bold lg:hidden">Couvre ton rythme de publication</span>}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="mt-auto pt-6 lg:mx-auto lg:mt-6 lg:w-full lg:max-w-[480px]">
-          <button type="button" onClick={payer} disabled={paiement} className="bouton bouton-rose w-full text-[16px]">
-            {paiement ? "Un instant…" : libelleBouton(choix, prix, periode)}
-          </button>
-          {refus && (
-            <p className="carte mt-3 bg-jaune p-3 text-center text-[14px] font-bold" role="alert">
-              {refus}
-            </p>
-          )}
-          <p className="mt-3 text-center text-[13px] text-encre2">Sans engagement. Résiliation en deux clics.</p>
-          {fermer ? (
-            <button type="button" onClick={fermer} className="lien mx-auto mt-1 flex min-h-11 items-center px-4 text-[14px]">
-              Plus tard
+                  <span className="min-w-0 truncate">@{relies[0].pseudo ?? "Ton compte"} est prêt à poster.</span>
+                </p>
+              )
+            }
+          >
+            {nombre(objectifBooste(objectif))}&nbsp;€ par mois
+          </Titre>
+        }
+        droite={
+          <>
+            <div className="mt-4 grid gap-2.5 lg:mt-0 lg:grid-cols-2 lg:items-center lg:gap-5 lg:[&>div]:w-full">
+              <Bascule valeur={periode} changer={setPeriode} />
+              <Lancement />
+            </div>
+            <div className="offres" role="radiogroup" aria-label="Offre">
+              {ordre.map((o) => {
+                const actif = choix === o;
+                const p = montant(o, periode, remise);
+                return (
+                  <button key={o} type="button" role="radio" aria-checked={actif} onClick={() => setChoix(o)} className={`choix offre surgit ${o === "pro" ? "lg:order-2" : o === "starter" ? "lg:order-1" : "lg:order-3"}`}>
+                    <span className="offre-tete">
+                      <span className="titre">{OFFRES_PAYANTES[o].nom}</span>
+                      {o === conseillee && <span className="pastille bg-rose">{PASTILLE_PRO}</span>}
+                      <span className={`choix-rond ${actif ? "choix-rond-oui" : ""}`}>{actif && <Coche className="h-full w-full" />}</span>
+                    </span>
+                    <span className="titre offre-prix">
+                      {libelleJour(parJour(p, periode))} <small>par jour</small>
+                    </span>
+                    <span className="offre-fact">
+                      {libelleFacturation(p, periode)}
+                      {remise && <s>{eur(montant(o, periode, false))}</s>}
+                    </span>
+                    <span className="offre-court">
+                      {OFFRES_PAYANTES[o].videosParMois} vidéos par mois{o === conseillee ? ", ton rythme est couvert" : ""}
+                    </span>
+                    <span className="offre-liste">
+                      <Avantages offre={o} plus={o === conseillee ? "Couvre ton rythme" : undefined} />
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </>
+        }
+        action={
+          <>
+            {refus && (
+              <p className="mb-3 rounded-2xl border-2 border-encre bg-jaune p-3 !text-[14px] font-bold !text-encre" role="alert">
+                {refus}
+              </p>
+            )}
+            <button type="button" onClick={payer} disabled={paiement} className="bouton bouton-rose w-full">
+              {paiement ? "Un instant…" : libelleBouton(choix, prix, periode)}
             </button>
-          ) : (
-            <p className="mt-1 flex justify-center gap-6 text-[13px]">
-              <Link href="/app/compte" className="lien flex min-h-11 items-center">
-                Mon compte
-              </Link>
-              <button type="button" onClick={() => deconnecter().then(() => window.location.assign("/"))} className="lien flex min-h-11 items-center">
-                Me déconnecter
-              </button>
-            </p>
-          )}
-          <p className="mt-1 text-center text-[11px] text-encre2">{MENTION_OBJECTIF}</p>
-        </div>
-      </div>
+          </>
+        }
+        pied={
+          <>
+            <p className="font-bold">Sans engagement. Résiliation en deux clics.</p>
+            <p className="max-lg:!text-[11px]">{MENTION_OBJECTIF}</p>
+            <div className="flex justify-center gap-6 lg:justify-start">
+              {fermer ? (
+                <button type="button" onClick={fermer} className="lien flex min-h-9 items-center">
+                  Plus tard
+                </button>
+              ) : (
+                <>
+                  <Link href="/app/compte" className="lien flex min-h-9 items-center">
+                    Mon compte
+                  </Link>
+                  <button type="button" onClick={deconnexion} className="lien flex min-h-9 items-center">
+                    Me déconnecter
+                  </button>
+                </>
+              )}
+            </div>
+          </>
+        }
+      />
     </div>,
     document.body,
   );

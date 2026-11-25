@@ -22,21 +22,21 @@ export function DefiSeptJours() {
   const fini = debut !== null && aujourdHui >= debut + DEFI_JOURS * 86_400_000;
 
   return (
-    <section className="carte p-4" aria-labelledby="t-defi">
+    <section className="bloc bg-blanc p-5 lg:p-7" aria-labelledby="t-defi">
       <div className="flex items-center justify-between gap-3">
-        <h2 id="t-defi" className="text-[14px] font-bold">
+        <h2 id="t-defi" className="titre text-[19px] lg:text-[24px]">
           Objectif : 1 vidéo par jour pendant {DEFI_JOURS} jours
         </h2>
-        <span className="titre text-[20px] tabular-nums">
+        <span className="titre shrink-0 text-[28px] tabular-nums lg:text-[36px]">
           {faits}/{DEFI_JOURS}
         </span>
       </div>
       <div className="mt-3 grid grid-cols-7 gap-1.5" role="progressbar" aria-valuenow={faits} aria-valuemax={DEFI_JOURS} aria-label="Jours réussis">
         {cases.map((c, k) => (
-          <span key={k} className={`h-5 rounded-md border-2 ${c.fait ? "border-encre bg-jaune" : c.aujourdhui ? "border-encre bg-blanc" : "border-beige bg-blanc"}`} />
+          <span key={k} className={`h-9 rounded-[11px] border-2 lg:h-12 lg:rounded-[14px] ${c.fait ? "border-encre bg-rose" : c.aujourdhui ? "border-encre bg-jaune" : "border-beige bg-fond"}`} />
         ))}
       </div>
-      <p className="mt-2 text-[13px] text-encre2">
+      <p className="mt-3 text-[15px] text-encre2">
         {debut === null
           ? "Partage ta vidéo sur TikTok pour lancer le défi."
           : fini

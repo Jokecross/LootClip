@@ -1,10 +1,15 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { DefiSeptJours } from "@/components/app/DefiSeptJours";
+import { Ecran, Message } from "@/components/app/Ecran";
 import { Paywall } from "@/components/app/Paywall";
-import { BoutonRetour, Coche } from "@/components/ui/Parcours";
+import { Quota } from "@/components/app/Quota";
+import { Objet } from "@/components/objets/Objet";
+import { Essai } from "@/components/studio/Essai";
+import { Coche } from "@/components/ui/Parcours";
 import { afficherToast } from "@/components/ui/Toast";
 import { CLIPS, OFFRES_PAYANTES, STYLES, TITRE_MAX, type Duree, type Style } from "@/lib/config";
 import { cheminClip, deposer, lireDuree } from "@/lib/depot";
@@ -14,6 +19,10 @@ import { useEtat } from "@/lib/etat";
 import { chrono, duree as dureeLisible, taille } from "@/lib/format";
 import { dureeParDefaut, lancerMontage, optionsDuree, quota, stylesOuverts, verifierClips } from "@/lib/montage";
 import { prendreEnAttente } from "@/lib/onboarding";
+
+/** Longueur des plans de chaque style, dessinée sur sa touche. */
+const RYTHMES: Record<Style, number[]> = { defi: [3, 2, 2, 3, 2, 2], drole: [1, 1, 1, 1, 1, 1, 1, 1, 1, 1], mission: [5, 4, 5] };
+const FONDS = ["bg-rose", "bg-blanc", "bg-turquoise", "bg-orange"];
 
 type Element = {
   id: string;
@@ -40,6 +49,9 @@ function Creer() {
   const [paywall, setPaywall] = useState(false);
   const [creation, setCreation] = useState(false);
   const [enLigne, setEnLigne] = useState(true);
+  // L'aperçu du style ne joue que sur ordinateur.
+  const [large, setLarge] = useState(false);
+  useEffect(() => setLarge(matchMedia("(min-width: 1024px)").matches), []);
   const entree = useRef<HTMLInputElement>(null);
   const annulations = useRef(new Map<string, AbortController>());
 
@@ -156,11 +168,10 @@ function Creer() {
   }
 
   const barreBas = (info: React.ReactNode, bouton: React.ReactNode) => (
-    <div className="au-dessus-onglets fixed inset-x-0 z-20 border-t-2 border-encre bg-fond px-4 pb-3 pt-3 lg:static lg:z-auto lg:mt-8 lg:border-t-0 lg:bg-transparent lg:p-0">
-      {/* Ordinateur : la barre n'est plus collée en bas, elle suit le contenu */}
-      <div className="mx-auto max-w-[448px] lg:flex lg:max-w-[720px] lg:items-center lg:justify-between lg:gap-6 lg:rounded-[18px] lg:border-2 lg:border-encre lg:bg-blanc lg:p-4 lg:pl-6">
-        <p className="mb-2 text-center text-[13px] font-bold tabular-nums lg:mb-0 lg:text-left lg:text-[15px]">{info}</p>
-        <div className="lg:w-[300px] lg:shrink-0">{bouton}</div>
+    <div className="appli-sol">
+      <div>
+        <p className="tabular-nums">{info}</p>
+        {bouton}
       </div>
     </div>
   );
@@ -168,94 +179,104 @@ function Creer() {
   /* ---------- Offre payante : quota du mois atteint ---------- */
   if (bloque && compte.offre !== "gratuit" && etape === "clips" && !elements.length) {
     return (
-      <div className="entree lg:mx-auto lg:max-w-[720px]">
-        <h1 className="titre text-[32px] lg:text-[48px]">Mois bouclé.</h1>
-        <p className="mt-2 text-[15px] text-encre2">Tes {OFFRES_PAYANTES[compte.offre].videosParMois} vidéos reviennent le 1er du mois.</p>
-      </div>
+      <Message titre="Mois bouclé." sous={`Tes ${OFFRES_PAYANTES[compte.offre].videosParMois} vidéos reviennent le 1er du mois.`}>
+        <Link href="/app/videos" className="bouton bouton-rose w-full">
+          Voir mes vidéos
+        </Link>
+      </Message>
     );
   }
 
-  /* ---------- Étape 2 : le style ---------- */
+  /* ---------- Étape 2 : le titre et le style ---------- */
   if (etape === "style") {
     return (
       <>
-        <div className="entree lg:mx-auto lg:max-w-[720px]">
-          <BoutonRetour onClick={() => setEtape("clips")} />
-          <h1 className="titre mt-4 text-[32px] lg:text-[48px]">Titre et style.</h1>
-          <p className="mt-2 text-[15px] text-encre2">C&apos;est toi qui as joué. Raconte ce qui se passe.</p>
+        <Ecran
+          titre="Titre et style."
+          sous="C'est toi qui as joué. Raconte ce qui se passe."
+          plus={
+            <div className="pt-3 lg:pt-6">
+              <label htmlFor="titre-video" className="libelle">
+                Ton titre
+              </label>
+              <input
+                id="titre-video"
+                maxLength={TITRE_MAX}
+                placeholder="Ex. Mon chien conduit mieux que moi"
+                className="champ mt-2"
+                value={titre}
+                onChange={(e) => setTitre(e.target.value)}
+                aria-describedby="titre-aide"
+              />
+              <p id="titre-aide" className="!mt-2 flex justify-between gap-3 !text-[13px] lg:!text-[14px]">
+                <span>Il s&apos;affiche au début. Vide : on t&apos;en propose un.</span>
+                <span className="shrink-0 tabular-nums">
+                  {titre.length}/{TITRE_MAX}
+                </span>
+              </p>
+            </div>
+          }
+        >
+          <button type="button" onClick={() => setEtape("clips")} className="lien flex min-h-11 w-fit items-center text-[16px] lg:text-[18px]">
+            ‹ Mes clips
+          </button>
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_230px] lg:gap-8">
+            <div className="flex flex-col gap-6">
+              <div>
+                <p className="libelle">Durée</p>
+                <div className="mt-3 grid grid-cols-3 gap-2.5 lg:gap-3.5" role="radiogroup" aria-label="Durée de la vidéo">
+                  {optionsDuree(total, compte.offre).map((o) => (
+                    <button key={o.cle} type="button" role="radio" aria-checked={duree === o.cle} disabled={!o.dispo} onClick={() => setDuree(o.cle)} className="puce !min-h-[74px]">
+                      <span className="titre block text-[18px] lg:text-[21px]">{o.nom}</span>
+                      <span className="mt-1 block text-[12px] font-medium lg:text-[14px]">{o.ferme ? "Pro et Max" : o.dispo ? dureeLisible(o.secondes) : "Pas assez de clips"}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-          <label htmlFor="titre-video" className="mt-5 block text-[14px] font-bold">
-            Ton titre
-          </label>
-          <input
-            key="titre-video"
-            id="titre-video"
-            maxLength={TITRE_MAX}
-            placeholder="Ex. Mon chien conduit mieux que moi"
-            className="champ mt-2"
-            value={titre}
-            onChange={(e) => setTitre(e.target.value)}
-            aria-describedby="titre-aide"
-          />
-          <p id="titre-aide" className="mt-2 flex justify-between gap-3 text-[13px] text-encre2">
-            <span>Il s&apos;affiche au début de la vidéo. Vide : on t&apos;en propose un.</span>
-            <span className="shrink-0 tabular-nums">
-              {titre.length}/{TITRE_MAX}
-            </span>
-          </p>
+              <div>
+                <p className="libelle">Style</p>
+                <div className="mt-3 flex flex-col gap-3.5" role="radiogroup" aria-label="Style de la vidéo">
+                  {(Object.keys(STYLES) as Style[]).map((s) => {
+                    const actif = style === s;
+                    const ferme = !ouverts.includes(s);
+                    return (
+                      <button key={s} type="button" role="radio" aria-checked={actif} disabled={ferme} onClick={() => setStyle(s)} className="touche disabled:opacity-60">
+                        <span className="flex items-center justify-between gap-3">
+                          <span className="titre text-[22px] lg:text-[26px]">{STYLES[s].nom}</span>
+                          {ferme ? <span className="pastille bg-turquoise">Dès Pro</span> : actif ? <Coche className="h-7 w-7 shrink-0" /> : null}
+                        </span>
+                        <span className="mt-1 block text-[14px] lg:text-[16px]">{STYLES[s].detail}</span>
+                        <span className="mt-3 flex h-4 gap-1 lg:h-5" aria-hidden="true">
+                          {RYTHMES[s].map((n, k) => (
+                            <span key={k} className={`rounded-md border-2 border-encre ${actif ? FONDS[k % 4] : "bg-beige"}`} style={{ flex: n }} />
+                          ))}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
 
-          <p className="mt-6 text-[14px] font-bold">Durée de la vidéo</p>
-          <div className="mt-2 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Durée de la vidéo">
-            {optionsDuree(total, compte.offre).map((o) => {
-              const actif = duree === o.cle;
-              return (
-                <button
-                  key={o.cle}
-                  type="button"
-                  role="radio"
-                  aria-checked={actif}
-                  disabled={!o.dispo}
-                  onClick={() => setDuree(o.cle)}
-                  className={`flex min-h-[68px] flex-col items-center justify-center rounded-[14px] border-2 border-encre px-1 text-center transition-colors disabled:opacity-40 ${actif ? "bg-jaune" : "bg-blanc"}`}
-                >
-                  <span className="titre text-[17px] font-bold tracking-[-0.01em]">{o.nom}</span>
-                  <span className="mt-0.5 text-[12px] text-encre2">{o.ferme ? "Pro et Max" : o.dispo ? dureeLisible(o.secondes) : "Pas assez de clips"}</span>
-                </button>
-              );
-            })}
+              <label className="bloc flex min-h-[68px] cursor-pointer items-center justify-between gap-4 bg-blanc px-5 text-[16px] font-bold lg:text-[18px]">
+                Préviens-moi quand c&apos;est prêt
+                <input type="checkbox" checked={prevenir} onChange={(e) => setPrevenir(e.target.checked)} className="peer sr-only" />
+                <span
+                  className="relative h-8 w-14 shrink-0 rounded-full border-2 border-encre bg-beige transition-colors peer-checked:bg-turquoise peer-focus-visible:outline peer-focus-visible:outline-3 peer-focus-visible:outline-turquoise after:absolute after:left-0.5 after:top-0.5 after:h-6 after:w-6 after:rounded-full after:border-2 after:border-encre after:bg-blanc after:transition-transform peer-checked:after:translate-x-6"
+                  aria-hidden="true"
+                />
+              </label>
+            </div>
+            {large && valides[0] && (
+              <div className="sticky top-[138px] h-[430px]">
+                <Essai url={valides[0].url} titre={titre} style={style} />
+              </div>
+            )}
           </div>
-
-          <p className="mt-6 text-[14px] font-bold">Ton style</p>
-          <div className="mt-2 flex flex-col gap-2.5" role="radiogroup" aria-label="Style de la vidéo">
-            {(Object.keys(STYLES) as Style[]).map((s) => {
-              const actif = style === s;
-              const ferme = !ouverts.includes(s);
-              return (
-                <button key={s} type="button" role="radio" aria-checked={actif} disabled={ferme} onClick={() => setStyle(s)} className="option min-h-[72px] disabled:opacity-50">
-                  <span>
-                    <span className="titre block text-[19px] font-bold tracking-[-0.01em]">{STYLES[s].nom}</span>
-                    <span className="mt-0.5 block text-[13px] text-encre2">{ferme ? "Inclus dans Pro et Max" : STYLES[s].detail}</span>
-                  </span>
-                  {actif && <Coche />}
-                </button>
-              );
-            })}
-          </div>
-
-          <label className="carte mt-4 flex min-h-14 cursor-pointer items-center justify-between gap-4 px-4 text-[15px] font-bold">
-            Préviens-moi quand c&apos;est prêt
-            <input type="checkbox" checked={prevenir} onChange={(e) => setPrevenir(e.target.checked)} className="peer sr-only" />
-            <span
-              className="relative h-7 w-12 shrink-0 rounded-full border-2 border-encre bg-beige transition-colors peer-checked:bg-turquoise peer-focus-visible:outline peer-focus-visible:outline-3 peer-focus-visible:outline-turquoise after:absolute after:left-0.5 after:top-0.5 after:h-5 after:w-5 after:rounded-full after:border-2 after:border-encre after:bg-blanc after:transition-transform peer-checked:after:translate-x-5"
-              aria-hidden="true"
-            />
-          </label>
-          <p className="mt-4 text-[13px] text-encre2">En 9:16, 1080 × 1920. On garde les meilleurs passages de tes clips.</p>
-          <div className="h-36 lg:hidden" aria-hidden="true" />
-        </div>
+        </Ecran>
         {barreBas(
-          `Style : ${STYLES[style].nom}`,
-          <button type="button" onClick={() => generer()} disabled={creation} className="bouton bouton-rose w-full">
+          `${STYLES[style].nom}, en 9:16. On garde les meilleurs passages.`,
+          <button type="button" onClick={() => generer()} disabled={creation} className="bouton bouton-rose">
             {creation ? "Lancement…" : "Générer ma vidéo"}
           </button>,
         )}
@@ -275,20 +296,9 @@ function Creer() {
   /* ---------- Étape 1 : les clips ---------- */
   return (
     <>
-      <div className="entree lg:mx-auto lg:max-w-[720px]">
-        {etat.videos.length > 0 && (
-          <div className="mb-6">
-            <DefiSeptJours />
-          </div>
-        )}
-
-        <h1 className="titre text-[32px] lg:text-[48px]">Dépose tes clips.</h1>
-        <p className="mt-2 text-[15px] text-encre2">
-          Jusqu&apos;à {CLIPS.max} clips, 3 minutes maximum chacun.
-        </p>
-
+      <Ecran titre="Dépose tes clips." sous={`Jusqu'à ${CLIPS.max} clips, 3 minutes maximum chacun.`} socle={<Quota />}>
         {!enLigne && (
-          <p className="mt-4 rounded-xl border-2 border-encre bg-orange px-4 py-2.5 text-[14px] font-bold" role="status">
+          <p className="bloc bg-orange px-5 py-3.5 text-[16px] font-bold" role="status">
             Connexion perdue. L&apos;envoi reprend tout seul.
           </p>
         )}
@@ -309,47 +319,55 @@ function Creer() {
               setSurvol(false);
               ajouter(e.dataTransfer.files);
             }}
-            className={`carte-pointillee mt-5 flex w-full flex-col items-center justify-center gap-3 py-9 transition-colors active:bg-fond lg:mt-8 lg:py-16 ${survol ? "bg-jaune" : "bg-blanc lg:hover:bg-fond"}`}
+            className={`depot ${elements.length ? "depot-court" : ""} ${survol ? "depot-survol" : ""}`}
           >
-            <span className="grid h-12 w-12 place-items-center rounded-xl border-2 border-encre bg-rose shadow-[0_3px_0_var(--color-encre)]" aria-hidden="true">
-              <svg viewBox="0 0 24 24" className="h-6 w-6" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
+            {!elements.length && (
+              <>
+                <Objet nom="clip-b" className="absolute right-[5%] top-[7%] h-[24%] w-[30%]" />
+                <Objet nom="manette" className="absolute bottom-[3%] left-[3%] h-[20%] w-[26%] lg:h-[24%] lg:w-[28%]" />
+              </>
+            )}
+            <span className="depot-plus" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round">
                 <path d="M12 5v14M5 12h14" />
               </svg>
             </span>
-            <span className="titre text-[18px] font-bold tracking-[-0.01em] lg:hidden">{valides.length ? "Ajouter des clips" : "Choisir dans ma galerie"}</span>
-            <span className="hidden text-center lg:block">
-              <span className="titre block text-[24px] font-bold tracking-[-0.01em]">{valides.length ? "Glisse d'autres clips ici" : "Glisse tes clips ici"}</span>
-              <span className="mt-1 block text-[15px] text-encre2">ou clique pour les choisir</span>
+            <span className="relative z-10">
+              <span className="titre block text-[22px] lg:text-[34px]">
+                <span className="lg:hidden">{valides.length ? "Ajouter des clips" : "Choisir dans ma galerie"}</span>
+                <span className="hidden lg:inline">{valides.length ? "Glisse d'autres clips ici" : "Glisse tes clips ici"}</span>
+              </span>
+              <span className="mt-1.5 hidden text-[18px] lg:block">ou clique pour les choisir</span>
             </span>
           </button>
         )}
 
         {elements.length > 0 && (
-          <ul className="mt-4 flex flex-col gap-2.5">
+          <ul className="flex flex-col gap-3">
             {elements.map((e) => (
-              <li key={e.id} className="carte flex items-center gap-3 p-2.5 pr-1">
-                <video src={`${e.url}#t=0.5`} muted playsInline preload="metadata" className="h-14 w-10 shrink-0 rounded-lg border-2 border-encre bg-encre object-cover" />
+              <li key={e.id} className="clip">
+                <video src={`${e.url}#t=0.5`} muted playsInline preload="metadata" />
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-[15px] font-bold">{e.fichier.name}</p>
+                  <p className="truncate text-[16px] font-bold">{e.fichier.name}</p>
                   {e.etat === "refuse" ? (
-                    <p className="mt-0.5 text-[13px] font-bold">{e.erreur}</p>
+                    <p className="mt-0.5 text-[14px] font-bold">{e.erreur}</p>
                   ) : (
                     <>
-                      <p className="mt-0.5 text-[13px] text-encre2 tabular-nums">
+                      <p className="mt-0.5 text-[14px] tabular-nums text-encre2">
                         {e.duree ? chrono(e.duree) : "…"} · {taille(e.fichier.size)}
                         {e.etat === "pret" ? " · envoyé" : e.enPause ? " · en pause" : ` · ${Math.round(e.envoye * 100)} %`}
                       </p>
                       {e.etat !== "pret" && (
-                        <div className="barre mt-1.5 h-[10px]" role="progressbar" aria-valuenow={Math.round(e.envoye * 100)} aria-label={`Envoi de ${e.fichier.name}`}>
+                        <div className="barre mt-2 !h-[14px]" role="progressbar" aria-valuenow={Math.round(e.envoye * 100)} aria-label={`Envoi de ${e.fichier.name}`}>
                           <span style={{ width: `${e.envoye * 100}%`, "--remplissage": "var(--color-turquoise)" } as React.CSSProperties} />
                         </div>
                       )}
                     </>
                   )}
                 </div>
-                {e.etat === "pret" && <Coche className="h-5 w-5 shrink-0" />}
-                <button type="button" onClick={() => retirer(e.id)} className="grid h-11 w-11 shrink-0 place-items-center rounded-full" aria-label={`Retirer ${e.fichier.name}`}>
-                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
+                {e.etat === "pret" && <Coche className="h-7 w-7 shrink-0" />}
+                <button type="button" onClick={() => retirer(e.id)} className="grid h-12 w-11 shrink-0 place-items-center rounded-full" aria-label={`Retirer ${e.fichier.name}`}>
+                  <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
                     <path d="M6 6l12 12M18 6L6 18" />
                   </svg>
                 </button>
@@ -358,8 +376,8 @@ function Creer() {
           </ul>
         )}
 
-        <div className="h-36 lg:hidden" aria-hidden="true" />
-      </div>
+        {etat.videos.length > 0 && <DefiSeptJours />}
+      </Ecran>
 
       {barreBas(
         <>
@@ -371,9 +389,10 @@ function Creer() {
           onClick={() => {
             setDuree(dureeParDefaut(total, compte.offre));
             setEtape("style");
+            window.scrollTo({ top: 0 });
           }}
           disabled={!!probleme || enCours}
-          className="bouton bouton-rose w-full"
+          className="bouton bouton-rose"
         >
           {enCours && valides.length ? "Envoi en cours…" : "Titre et style"}
         </button>,

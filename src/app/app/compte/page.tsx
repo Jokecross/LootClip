@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Ecran } from "@/components/app/Ecran";
 import { Feuille } from "@/components/ui/Feuille";
 import { afficherToast } from "@/components/ui/Toast";
 import { arreter, lienGestion, reprendre, resilier } from "@/lib/abonnement";
@@ -46,69 +47,67 @@ export default function Compte() {
     modifier((e) => ({ ...e, compte: e.compte ? { ...e.compte, plateforme: p } : e.compte }));
   }
 
-  const ligne = "flex min-h-14 w-full items-center justify-between gap-4 px-4 text-left text-[15px] font-bold";
+  const ligne = "flex min-h-[64px] w-full items-center justify-between gap-4 px-5 text-left text-[17px] font-bold lg:min-h-[72px] lg:px-7 lg:text-[19px]";
 
   return (
-    <div className="entree lg:mx-auto lg:max-w-[720px]">
-      <h1 className="titre text-[32px] lg:text-[48px]">Ton compte</h1>
-      <p className="mt-2 truncate text-[15px] text-encre2">{compte.email}</p>
-
+    <>
+    <Ecran
+      titre="Ton compte"
+      sous={<span className="block truncate">{compte.email}</span>}
+      socle={
+        compte.profil && (
+          <section className="bloc mt-5 bg-blanc p-5 lg:mt-0 lg:p-7" aria-labelledby="t-obj">
+            <p id="t-obj" className="text-[15px] font-bold">
+              Ton objectif XPclip
+            </p>
+            <p className="titre mt-1 text-[32px] lg:text-[38px]">{nombre(objectifBooste(compte.profil.objectif))}&nbsp;€ par mois</p>
+            <p className="mt-1.5 text-[15px] text-encre2">Ton plan : {videos(compte.profil.frequence)} par semaine.</p>
+            <p className="mt-2 text-[12px] text-encre2">{MENTION_OBJECTIF}</p>
+          </section>
+        )
+      }
+    >
       {/* Abonnement */}
-      <section className={`mt-5 p-4 ${estPro ? "carte-forte bg-jaune" : "carte"}`} aria-labelledby="t-abo">
+      <section className={`bloc p-5 lg:p-8 ${estPro ? "bg-jaune" : "bg-blanc"}`} aria-labelledby="t-abo">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[13px] font-bold">Ton offre</p>
-            <h2 id="t-abo" className="titre mt-0.5 text-[26px]">
+            <p className="text-[15px] font-bold">Ton offre</p>
+            <h2 id="t-abo" className="titre mt-1 text-[36px] lg:text-[48px]">
               {nomOffre}
             </h2>
           </div>
-          <span className="pastille bg-blanc tabular-nums">{estPro ? `${eur(prix)} ${unite(periode)}` : "0 €"}</span>
+          <span className="pastille bg-blanc tabular-nums lg:min-h-10 lg:px-4 lg:text-[17px]">{estPro ? `${eur(prix)} ${unite(periode)}` : "0 €"}</span>
         </div>
-        {estPro && <p className="mt-3 text-[13px] font-bold">
-          {q.utilise} vidéo{q.utilise > 1 ? "s" : ""} sur {q.total} {q.periode}
-          {estPro && compte.abonneDepuis ? ` · depuis le ${date(compte.abonneDepuis)}` : ""}
-        </p>}
-        {estPro && <div className="barre mt-2" role="progressbar" aria-valuenow={q.utilise} aria-valuemax={q.total} aria-label="Vidéos utilisées">
-          <span style={{ width: `${Math.max(3, (q.utilise / q.total) * 100)}%` }} />
-        </div>}
-        {estPro && compte.abonnementFin && <p className="mt-2 text-[13px] font-bold">Résilié. Ton accès reste ouvert jusqu&apos;au {date(compte.abonnementFin)}.</p>}
+        {estPro && (
+          <>
+            <p className="mt-4 text-[15px] font-bold lg:text-[17px]">
+              {q.utilise} vidéo{q.utilise > 1 ? "s" : ""} sur {q.total} {q.periode}
+              {compte.abonneDepuis ? ` · depuis le ${date(compte.abonneDepuis)}` : ""}
+            </p>
+            <div className="barre mt-2.5" role="progressbar" aria-valuenow={q.utilise} aria-valuemax={q.total} aria-label="Vidéos utilisées">
+              <span style={{ width: `${Math.max(3, (q.utilise / q.total) * 100)}%` }} />
+            </div>
+            {compte.abonnementFin && <p className="mt-3 text-[15px] font-bold">Résilié. Ton accès reste ouvert jusqu&apos;au {date(compte.abonnementFin)}.</p>}
+          </>
+        )}
         {estPro ? (
-          <button type="button" onClick={() => setGerer(true)} className="bouton bouton-blanc bouton-petit mt-4 w-full">
+          <button type="button" onClick={() => setGerer(true)} className="bouton bouton-blanc mt-5 w-full">
             Gérer mon abonnement
           </button>
         ) : (
-          <Link href="/tarifs" className="bouton bouton-blanc bouton-petit mt-4 w-full">
+          <Link href="/tarifs" className="bouton bouton-rose mt-5 w-full">
             Voir les offres
           </Link>
         )}
       </section>
 
-      {/* Objectif de l'onboarding */}
-      {compte.profil && (
-        <section className="carte mt-3 p-4" aria-labelledby="t-obj">
-          <p id="t-obj" className="text-[13px] font-bold">
-            Ton objectif XPclip
-          </p>
-          <p className="titre mt-1 text-[26px]">{nombre(objectifBooste(compte.profil.objectif))}&nbsp;€ par mois</p>
-          <p className="mt-1 text-[14px] text-encre2">Ton plan : {videos(compte.profil.frequence)} par semaine.</p>
-          <p className="mt-2 text-[11px] text-encre2">{MENTION_OBJECTIF}</p>
-        </section>
-      )}
-
       {/* Réglages */}
-      <section className="carte mt-3 divide-y-2 divide-beige overflow-hidden" aria-label="Réglages">
+      <section className="bloc divide-y-2 divide-encre overflow-hidden bg-blanc" aria-label="Réglages">
         <div className={ligne}>
           Ma console
-          <div className="grid grid-cols-2 gap-1 rounded-[10px] border-2 border-encre p-0.5" role="radiogroup" aria-label="Ta console">
+          <div className="segment !rounded-[15px] !p-1" role="radiogroup" aria-label="Ta console">
             {(["ps5", "xbox"] as const).map((p) => (
-              <button
-                key={p}
-                type="button"
-                role="radio"
-                aria-checked={compte.plateforme === p}
-                onClick={() => choisirConsole(p)}
-                className={`min-h-9 rounded-[7px] px-3 text-[13px] ${compte.plateforme === p ? "bg-encre text-fond" : ""}`}
-              >
+              <button key={p} type="button" role="radio" aria-checked={compte.plateforme === p} onClick={() => choisirConsole(p)} className="!min-h-[40px] !rounded-[9px] px-4">
                 {p === "ps5" ? "PS5" : "Xbox"}
               </button>
             ))}
@@ -117,25 +116,25 @@ export default function Compte() {
         {publier && (
           <Link href="/app/comptes" className={ligne}>
             TikTok et Instagram
-            <span aria-hidden="true">›</span>
+            <Chevron />
           </Link>
         )}
         <Link href="/app/demarrage" className={ligne}>
           Revoir le tutoriel
-          <span aria-hidden="true">›</span>
+          <Chevron />
         </Link>
         <details className="group">
           <summary className={`${ligne} cursor-pointer list-none [&::-webkit-details-marker]:hidden`}>
             Factures
-            <span className="pastille bg-fond">{etat.factures.length}</span>
+            <span className="pastille bg-turquoise">{etat.factures.length}</span>
           </summary>
           {etat.factures.length ? (
-            <ul className="px-4 pb-3">
+            <ul className="px-5 pb-4 lg:px-7">
               {etat.factures.map((f) => (
-                <li key={f.id} className="flex items-center justify-between gap-3 py-2 text-[14px]">
+                <li key={f.id} className="flex items-center justify-between gap-3 py-2 text-[15px]">
                   <span>
                     {f.libelle}
-                    <span className="block text-[12px] text-encre2">
+                    <span className="block text-[13px] text-encre2">
                       {date(f.le)} · {f.id}
                     </span>
                   </span>
@@ -144,7 +143,7 @@ export default function Compte() {
               ))}
             </ul>
           ) : (
-            <p className="px-4 pb-4 text-[14px] text-encre2">Aucune facture pour l&apos;instant.</p>
+            <p className="px-5 pb-5 text-[15px] text-encre2 lg:px-7">Aucune facture pour l&apos;instant.</p>
           )}
         </details>
         <button
@@ -160,10 +159,13 @@ export default function Compte() {
         </button>
       </section>
 
-      <button type="button" onClick={() => setSupprimer(true)} className="lien mt-4 flex min-h-11 items-center text-[14px]">
-        Supprimer mon compte et mes fichiers
-      </button>
-      <p className="mt-1 text-[12px] text-encre2">Tes clips bruts sont supprimés automatiquement après {PURGE_CLIPS_JOURS} jours.</p>
+      <div>
+        <button type="button" onClick={() => setSupprimer(true)} className="lien flex min-h-11 items-center text-[15px]">
+          Supprimer mon compte et mes fichiers
+        </button>
+        <p className="mt-1 text-[14px] font-medium">Tes clips bruts sont supprimés automatiquement après {PURGE_CLIPS_JOURS} jours.</p>
+      </div>
+    </Ecran>
 
       <Feuille ouverte={gerer} fermer={() => setGerer(false)} titre="Ton abonnement">
         <p className="text-[14px] text-encre2">
@@ -220,6 +222,14 @@ export default function Compte() {
           Garder mon compte
         </button>
       </Feuille>
-    </div>
+    </>
+  );
+}
+
+function Chevron() {
+  return (
+    <svg viewBox="0 0 24 24" className="h-6 w-6 shrink-0" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M9 5l7 7-7 7" />
+    </svg>
   );
 }

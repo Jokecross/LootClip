@@ -6,12 +6,13 @@
  */
 import "@/app/accueil.css";
 import "./parcours.css";
-import { createContext, isValidElement, useContext, useEffect, type ReactNode } from "react";
+import "@/app/app/appli.css";
+import { createContext, isValidElement, useContext, type ReactNode } from "react";
 import { Robot } from "@/components/accueil/Robot";
 import { Logo } from "@/components/marque/Logo";
+import { useTeinte } from "./teinte";
 
 const COULEURS = ["jaune", "rose", "turquoise", "orange"] as const;
-const CREME = "#FDF5EA";
 const Avance = createContext(1);
 
 export function Duo({
@@ -43,17 +44,7 @@ export function Duo({
   centre?: boolean;
 }) {
   const couleur = COULEURS.find((c) => fond.includes(c));
-  // La barre du téléphone (heure, batterie) prend la couleur de l'écran.
-  useEffect(() => {
-    const balise = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
-    const teinte = couleur ? getComputedStyle(document.documentElement).getPropertyValue(`--color-${couleur}`).trim() : CREME;
-    if (balise) balise.content = teinte;
-    document.body.style.background = teinte;
-    return () => {
-      if (balise) balise.content = CREME;
-      document.body.style.background = "";
-    };
-  }, [couleur]);
+  useTeinte(couleur ?? "");
   const p = isValidElement<{ n?: number; total?: number }>(entete) ? entete.props : {};
   return (
     <Avance.Provider value={p.n && p.total ? p.n / p.total : 1}>
@@ -85,16 +76,20 @@ export function Mots({ children }: { children: ReactNode }) {
 }
 
 /** La question, dite par le robot. `plus` : ce qui va dans la bulle, sous le texte. */
-export function Titre({ children, sous, plus }: { children: ReactNode; sous?: string; plus?: ReactNode }) {
-  const xp = useContext(Avance);
+export function Titre({ children, sous, plus, avant, id, travaille = false, xp: force }: { children: ReactNode; sous?: ReactNode; plus?: ReactNode; /** Petite ligne au-dessus. */ avant?: string; id?: string; travaille?: boolean; xp?: number }) {
+  const avance = useContext(Avance);
+  const xp = force ?? avance;
   return (
     <div className="dit">
       <div className="bulle arrivee">
-        <h1 className="titre">{children}</h1>
+        {avant && <p className="!mb-1.5 !mt-0 font-bold !text-encre">{avant}</p>}
+        <h1 id={id} className="titre">
+          {children}
+        </h1>
         {sous && <p>{sous}</p>}
         {plus && <div className="plus">{plus}</div>}
       </div>
-      <Robot xp={xp} className="saute" />
+      <Robot xp={xp} className={travaille ? "travaille" : "saute"} />
     </div>
   );
 }

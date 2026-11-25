@@ -1,6 +1,6 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Logo } from "@/components/marque/Logo";
+import "@/app/accueil.css";
+import { LienAccueil } from "@/components/marque/Logo";
 import { NON_AFFILIATION, SOCIETE } from "@/lib/config";
 
 /* Textes à faire relire par un juriste. Les infos de la société viennent de SOCIETE (config.ts). */
@@ -68,21 +68,25 @@ export default async function PageLegale({ params }: { params: Promise<{ page: s
   const contenu = PAGES[page];
   if (!contenu) notFound();
   return (
-    <main className="mx-auto max-w-[680px] px-4 pb-20 pt-4">
-      <Link href="/" className="flex min-h-12 w-fit items-center" aria-label="Retour à l'accueil">
-        <Logo taille={24} />
-      </Link>
-      <h1 className="titre mt-8 text-[44px]">{contenu.titre}</h1>
-      {contenu.blocs.map((b) => (
-        <section key={b.h} className="mt-8">
-          <h2 className="titre text-[24px]">{b.h}</h2>
-          {b.p.map((l) => (
-            <p key={l} className="mt-2 text-[16px] leading-relaxed text-encre2">
-              {l}
-            </p>
+    <main className="v4 pb-16">
+      <nav className="nav !max-w-[760px]" aria-label="Menu">
+        <LienAccueil />
+      </nav>
+      <div className="mx-auto max-w-[760px] px-4 lg:px-0">
+        <h1 className="titre titre-v4 mt-10 lg:mt-16">{contenu.titre}</h1>
+        <div className="bloc mt-7 bg-blanc px-5 pb-8 lg:mt-10 lg:px-10 lg:pb-12">
+          {contenu.blocs.map((b) => (
+            <section key={b.h} className="pt-8">
+              <h2 className="titre text-[26px]">{b.h}</h2>
+              {b.p.map((l) => (
+                <p key={l} className="mt-2 text-[16px] leading-relaxed text-encre2">
+                  {l}
+                </p>
+              ))}
+            </section>
           ))}
-        </section>
-      ))}
+        </div>
+      </div>
     </main>
   );
 }

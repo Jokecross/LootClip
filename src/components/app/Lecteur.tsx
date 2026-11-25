@@ -52,7 +52,7 @@ function LecteurReel({ chemin, duree }: { chemin: string; duree: number }) {
         type="button"
         onClick={basculer}
         disabled={!url}
-        className="relative block aspect-[9/16] w-full overflow-hidden rounded-[18px] border-2 border-encre bg-encre text-fond"
+        className="relative block aspect-[9/16] w-full overflow-hidden bg-encre text-fond"
         aria-label={lecture ? "Mettre en pause" : "Lire la vidéo"}
       >
         {url && (
@@ -147,7 +147,7 @@ function LecteurDemo({ video, sources }: { video: Video; sources: string[] | nul
       <button
         type="button"
         onClick={() => setLecture((l) => !l)}
-        className="relative block aspect-[9/16] w-full overflow-hidden rounded-[18px] border-2 border-encre bg-encre text-fond"
+        className="relative block aspect-[9/16] w-full overflow-hidden bg-encre text-fond"
         aria-label={lecture ? "Mettre en pause" : "Lire la vidéo"}
       >
         {sources && n > 0 && <video ref={refVideo} muted playsInline className="absolute inset-0 h-full w-full object-cover" />}

@@ -27,3 +27,11 @@ export function Logo({ taille = 32 }: { taille?: number }) {
     </span>
   );
 }
+
+export function LienAccueil() {
+  return (
+    <a href="/" className="flex min-h-11 w-fit items-center" aria-label="Retour à l'accueil">
+      <Logo taille={34} />
+    </a>
+  );
+}

@@ -6,7 +6,7 @@
  */
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { CadreBureau } from "@/components/marque/CadreBureau";
+import { Duo, Titre } from "@/components/ui/Duo";
 import { Entete } from "@/components/ui/Parcours";
 import { modifier, useEtat, type Plateforme } from "@/lib/etat";
 import { mettreEnAttente } from "@/lib/onboarding";
@@ -15,21 +15,21 @@ const ECRANS: { titre: string; ou: string; fond: string; chemin: Record<Platefor
   {
     titre: "Active l'envoi automatique.",
     ou: "Sur ta console",
-    fond: "bg-jaune",
+    fond: "jaune",
     chemin: { ps5: ["Paramètres", "Captures et diffusions", "Envoi automatique"], xbox: ["Paramètres", "Préférences", "Capture et partage"] },
     note: { ps5: "Active l'envoi de tes captures. C'est réglé une fois pour toutes.", xbox: "Active l'envoi automatique. C'est réglé une fois pour toutes." },
   },
   {
     titre: "Capture le bon moment.",
     ou: "Pendant que tu joues",
-    fond: "bg-orange",
+    fond: "orange",
     chemin: { ps5: ["Bouton Créer", "Enregistrer le gameplay récent"], xbox: ["Bouton Partager", "Enregistrer ce qui s'est passé"] },
     note: { ps5: "Juste après un bon moment. Garde 1 à 3 minutes.", xbox: "Juste après un bon moment. Garde 1 à 3 minutes." },
   },
   {
     titre: "Garde-le dans ta galerie.",
     ou: "Sur ton téléphone",
-    fond: "bg-turquoise",
+    fond: "turquoise",
     chemin: { ps5: ["Appli PlayStation", "Bibliothèque", "Captures", "Enregistrer"], xbox: ["Appli Xbox", "Ma bibliothèque", "Captures", "Enregistrer"] },
     note: { ps5: "Le clip arrive dans la galerie de ton téléphone.", xbox: "Le clip arrive dans la galerie de ton téléphone." },
   },
@@ -53,57 +53,48 @@ export default function Demarrage() {
   }
 
   return (
-    <CadreBureau>
-    <div className="flex min-h-dvh flex-col pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(14px,env(safe-area-inset-top))] lg:mx-auto lg:min-h-0 lg:w-full lg:max-w-[480px] lg:p-0">
-      <Entete n={i + 1} total={ECRANS.length} retour={() => (i > 0 ? setI(i - 1) : router.back())} />
-
-      <div className="mt-5 grid grid-cols-2 gap-1 rounded-[14px] border-2 border-encre bg-blanc p-1" role="radiogroup" aria-label="Ta console">
-        {(["ps5", "xbox"] as const).map((p) => (
-          <button
-            key={p}
-            type="button"
-            role="radio"
-            aria-checked={plateforme === p}
-            onClick={() => changerConsole(p)}
-            className={`min-h-10 rounded-[10px] text-[14px] font-bold ${plateforme === p ? "bg-encre text-fond" : ""}`}
-          >
-            {p === "ps5" ? "PS5" : "Xbox"}
-          </button>
-        ))}
-      </div>
-
-      <div key={`${i}-${plateforme}`} className="entree mt-6 flex-1">
-        <span className={`pastille ${ecran.fond}`}>
-          Étape {i + 1} · {ecran.ou}
-        </span>
-        <h1 className="titre mt-3 text-[30px]">{ecran.titre}</h1>
-
-        <ol className="mt-5 flex flex-col gap-2">
-          {ecran.chemin[plateforme].map((etape, k, liste) => {
-            const cible = k === liste.length - 1;
-            return (
-              <li key={etape} className={`flex min-h-12 items-center gap-3 rounded-[14px] border-2 border-encre px-4 ${cible ? "bg-jaune shadow-[0_4px_0_var(--color-encre)]" : "bg-blanc"}`}>
-                <span className="titre grid h-7 w-7 shrink-0 place-items-center rounded-lg border-2 border-encre bg-fond text-[14px]">{k + 1}</span>
-                <span className="text-[16px] font-bold">{etape}</span>
+    <Duo
+      cle={`${i}-${plateforme}`}
+      marque
+      entete={<Entete n={i + 1} total={ECRANS.length} retour={() => (i > 0 ? setI(i - 1) : router.back())} />}
+      fond={ecran.fond}
+      gauche={
+        <Titre avant={`Étape ${i + 1}, ${ecran.ou.toLowerCase()}`} sous={ecran.note[plateforme]}>
+          {ecran.titre}
+        </Titre>
+      }
+      droite={
+        <div className="flex flex-1 flex-col justify-center gap-5 pt-5 lg:gap-8 lg:pt-0">
+          <div className="segment" role="radiogroup" aria-label="Ta console">
+            {(["ps5", "xbox"] as const).map((p) => (
+              <button key={p} type="button" role="radio" aria-checked={plateforme === p} onClick={() => changerConsole(p)}>
+                {p === "ps5" ? "PS5" : "Xbox"}
+              </button>
+            ))}
+          </div>
+          <ol className="flex flex-col gap-3.5 lg:gap-5">
+            {ecran.chemin[plateforme].map((etape, k, liste) => (
+              <li key={etape} className={`bloc surgit flex min-h-[72px] items-center gap-4 px-4 lg:min-h-[104px] lg:gap-6 lg:px-7 ${k === liste.length - 1 ? "bg-rose" : "bg-blanc"}`} style={{ "--d": `${k * 90}ms` } as React.CSSProperties}>
+                <span className="titre grid h-11 w-11 shrink-0 place-items-center rounded-[14px] border-2 border-encre bg-fond text-[22px] lg:h-16 lg:w-16 lg:rounded-[20px] lg:text-[32px]">{k + 1}</span>
+                <span className="titre text-[21px] leading-[1.05] lg:text-[34px]">{etape}</span>
               </li>
-            );
-          })}
-        </ol>
-        <p className="mt-4 text-[14px] leading-snug text-encre2">{ecran.note[plateforme]}</p>
-      </div>
-
-      <input ref={galerie} type="file" accept="video/*" multiple className="sr-only" onChange={(e) => deposer(e.target.files)} />
-      <div className="pt-6">
+            ))}
+          </ol>
+          <input ref={galerie} type="file" accept="video/*" multiple className="sr-only" onChange={(e) => deposer(e.target.files)} />
+        </div>
+      }
+      action={
         <button type="button" onClick={() => (dernier ? galerie.current?.click() : setI(i + 1))} className="bouton bouton-rose w-full">
           {dernier ? "C'est fait, je dépose mes clips" : "Suivant"}
         </button>
-        {dernier && (
-          <button type="button" onClick={() => deposer(null)} className="lien mx-auto mt-2 flex min-h-11 items-center px-4 text-[14px]">
+      }
+      pied={
+        dernier && (
+          <button type="button" onClick={() => deposer(null)} className="lien mx-auto flex min-h-10 items-center lg:mx-0">
             Je le ferai plus tard
           </button>
-        )}
-      </div>
-    </div>
-    </CadreBureau>
+        )
+      }
+    />
   );
 }

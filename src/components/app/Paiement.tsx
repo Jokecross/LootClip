@@ -8,6 +8,9 @@ import { Checkout, CheckoutElement, ExpressCheckoutElement, WhopElements } from 
 import { loadWhop } from "@whop/elements";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Logo } from "@/components/marque/Logo";
+import { Titre } from "@/components/ui/Duo";
+import { teinteDe, useTeinte } from "@/components/ui/teinte";
 import { confirmer } from "@/lib/abonnement";
 import { OFFRES_PAYANTES, SITE, type OffrePayante, type Periodicite } from "@/lib/config";
 import { useEtat } from "@/lib/etat";
@@ -43,6 +46,7 @@ export type Achat = { commande: string; offre: OffrePayante; periodicite: Period
 
 export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () => void; reussi: () => void }) {
   const etat = useEtat();
+  useTeinte("jaune");
   const [erreur, setErreur] = useState(false);
   const [activation, setActivation] = useState(false);
   const [lent, setLent] = useState("");
@@ -88,18 +92,10 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
   }
 
   return createPortal(
-    <div data-paiement className="fixed inset-0 z-[60] overflow-y-auto bg-fond" role="dialog" aria-modal="true" aria-labelledby="t-paiement">
-      <div className="entree mx-auto flex min-h-dvh max-w-[480px] flex-col px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(16px,env(safe-area-inset-top))]">
-        <div className="flex items-start justify-between gap-4">
-          <div>
-            <p className="text-[13px] font-bold">XPclip {OFFRES_PAYANTES[achat.offre].nom}</p>
-            <h1 id="t-paiement" className="titre mt-1 text-[34px]">
-              {eur(achat.montant)} {unite(achat.periodicite)}
-            </h1>
-            <p className="mt-1.5 text-[14px] text-encre2">
-              {activation ? "Paiement envoyé. On ouvre ton offre." : achat.periodicite === "mensuel" ? "Tous les 30 jours. Résilie quand tu veux." : "Une fois par an. Résilie quand tu veux."}
-            </p>
-          </div>
+    <div data-paiement className="appli v4 v3 fixed inset-0 z-[60] overflow-y-auto" style={{ "--page": teinteDe("jaune") } as React.CSSProperties} role="dialog" aria-modal="true" aria-labelledby="t-paiement">
+      <div className="entree paiement mx-auto flex min-h-dvh max-w-[560px] flex-col px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(14px,env(safe-area-inset-top))] lg:pt-8">
+        <div className="flex min-h-11 items-center justify-between gap-4 pb-4">
+          <Logo taille={34} />
           {!activation && (
             <button type="button" onClick={fermer} className="bouton bouton-carre shrink-0" aria-label="Annuler le paiement">
               <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
@@ -108,9 +104,16 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
             </button>
           )}
         </div>
+        <Titre
+          id="t-paiement"
+          avant={`XPclip ${OFFRES_PAYANTES[achat.offre].nom}`}
+          sous={activation ? "Paiement envoyé. On ouvre ton offre." : achat.periodicite === "mensuel" ? "Tous les 30 jours. Résilie quand tu veux." : "Une fois par an. Résilie quand tu veux."}
+        >
+          {eur(achat.montant)} {unite(achat.periodicite)}
+        </Titre>
 
         {lent ? (
-          <div className="carte mt-5 p-4 text-[15px]" role="status">
+          <div className="bloc mt-5 bg-blanc p-5 text-[16px]" role="status">
             <p className="font-bold">Ta banque confirme encore le paiement.</p>
             <p className="mt-1 text-[14px] text-encre2">Ton offre s&apos;ouvre dès que c&apos;est bon. Ne paie pas deux fois.</p>
             <button type="button" onClick={() => verifier(lent)} className="bouton bouton-rose mt-4 w-full">
@@ -118,14 +121,14 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
             </button>
           </div>
         ) : activation ? (
-          <div className="carte mt-5 flex min-h-40 items-center justify-center gap-3 p-4 text-[15px] font-bold" role="status">
+          <div className="bloc mt-5 bg-blanc flex min-h-40 items-center justify-center gap-3 p-4 text-[15px] font-bold" role="status">
             <span className="h-6 w-6 rounded-full border-[3px] border-encre border-t-transparent" style={{ animation: "tourne .8s linear infinite" }} aria-hidden="true" />
             Un instant…
           </div>
         ) : null}
 
         {erreur && (
-          <div className="carte mt-5 p-4 text-[15px]" role="alert">
+          <div className="bloc mt-5 bg-blanc p-5 text-[16px]" role="alert">
             <p className="font-bold">Le paiement n&apos;a pas pu s&apos;afficher.</p>
             <a className="bouton bouton-rose mt-4 w-full" href={`https://whop.com/checkout/${achat.commande}/`}>
               Payer sur la page Whop
@@ -148,7 +151,7 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
                 }}
               >
                 {vue === "express" ? (
-                  <div className="mt-6">
+                  <div className="bloc mt-5 bg-blanc p-4 lg:p-6">
                     <div ref={boutons}>
                       <ExpressCheckoutElement wallets={{ payPal: "never" }} layout="vertical" onReady={() => setPretExpress(true)} onError={() => setVue("carte")} />
                     </div>
@@ -164,7 +167,7 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
                     </p>
                   </div>
                 ) : (
-                  <div className="carte mt-5 w-full overflow-hidden">
+                  <div className="bloc mt-5 w-full overflow-hidden bg-blanc">
                     <CheckoutElement
                       buyerEmail={etat.compte?.email}
                       lockBuyerEmail={!!etat.compte?.email}
@@ -177,7 +180,7 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
             </WhopElements>
           </>
         )}
-        <p className="mt-auto pt-6 text-center text-[12px] text-encre2">Paiement traité par Whop. XPclip ne voit jamais ta carte.</p>
+        <p className="mt-auto pt-6 text-center text-[13px] font-medium">Paiement traité par Whop. XPclip ne voit jamais ta carte.</p>
       </div>
     </div>,
     document.body,

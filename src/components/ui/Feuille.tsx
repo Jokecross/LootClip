@@ -21,10 +21,10 @@ export function Feuille({ ouverte, fermer, titre, children }: { ouverte: boolean
       aria-label={titre}
       className="m-0 mt-auto w-full max-w-none bg-transparent p-0 text-encre backdrop:bg-encre/40 sm:m-auto"
     >
-      <div className="entree pb-sur mx-auto max-w-[480px] rounded-t-[22px] border-2 border-b-0 border-encre bg-fond px-5 pt-3 sm:rounded-[22px] sm:border-b-2 sm:pt-6 sm:shadow-[0_6px_0_var(--color-encre)]">
+      <div className="entree pb-sur mx-auto max-w-[520px] rounded-t-[30px] border-2 border-b-0 border-encre bg-blanc px-5 pt-3 sm:rounded-[32px] sm:border-b-2 sm:p-7 sm:shadow-[0_9px_0_var(--color-encre)]">
         <div className="mx-auto mb-4 h-1.5 w-10 rounded-full bg-beige sm:hidden" aria-hidden="true" />
         <div className="flex items-start justify-between gap-4">
-          <h2 className="titre text-[26px]">{titre}</h2>
+          <h2 className="titre text-[28px] lg:text-[34px]">{titre}</h2>
           <button type="button" onClick={fermer} className="bouton bouton-carre" aria-label="Fermer">
             <svg viewBox="0 0 24 24" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round">
               <path d="M6 6l12 12M18 6L6 18" />

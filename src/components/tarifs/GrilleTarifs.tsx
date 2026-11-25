@@ -9,21 +9,14 @@ import { commander } from "@/lib/abonnement";
 import { OFFRES_PAYANTES, PASTILLE_PRO, type OffrePayante, type Periodicite } from "@/lib/config";
 import { useEtat } from "@/lib/etat";
 import { eur, lancementActif, libelleBouton, libelleFacturation, libelleJour, montant, parJour } from "@/lib/prix";
+import { Avantages } from "./Avantages";
 import { Bascule } from "./Bascule";
 import { Lancement } from "./Lancement";
 
 const ORDRE: OffrePayante[] = ["pro", "starter", "max"];
-const RESUME: Record<OffrePayante, string> = {
-  starter: "20 vidéos par mois, jusqu'à 1 minute.",
-  pro: "60 vidéos par mois, jusqu'à 3 minutes, les 3 styles.",
-  max: "200 vidéos par mois, tout ce qu'il y a dans Pro.",
-};
 
-/**
- * Les offres. « compacte » (landing) : cartes seules, sans bascule.
- * Sinon (page Tarifs) : bascule mensuel / annuel et bouton de paiement sur chaque carte.
- */
-export function GrilleTarifs({ compacte = false }: { compacte?: boolean }) {
+/** Les offres de la page Tarifs : mensuel ou annuel, et le bouton de paiement sur chaque carte. */
+export function GrilleTarifs() {
   const etat = useEtat();
   const router = useRouter();
   const [periode, setPeriode] = useState<Periodicite>("mensuel");
@@ -59,78 +52,54 @@ export function GrilleTarifs({ compacte = false }: { compacte?: boolean }) {
           }}
         />
       )}
-      {!compacte && <Bascule valeur={periode} changer={setPeriode} />}
-      <Lancement />
+      <div className="mx-auto grid w-full max-w-[860px] gap-3 lg:grid-cols-2 lg:items-center lg:gap-5 lg:[&>div]:w-full">
+        <Bascule valeur={periode} changer={setPeriode} />
+        <Lancement />
+      </div>
 
       {/* Téléphone : Pro en premier. Ordinateur : 3 colonnes, Pro au centre. */}
-      <div className="flex flex-col gap-3 lg:mt-4 lg:grid lg:grid-cols-3 lg:items-stretch lg:gap-6">
-      {ORDRE.map((o) => {
-        const offre = OFFRES_PAYANTES[o];
-        const prix = montant(o, periode, remise);
-        const vedette = o === "pro";
-        const actuelle = compte?.offre === o;
-        return (
-          <article
-            key={o}
-            className={`relative flex flex-col p-4 lg:p-7 ${vedette ? "carte-forte mt-2 bg-jaune lg:order-2 lg:mt-0 lg:-translate-y-3" : `carte ${o === "starter" ? "lg:order-1" : "lg:order-3"}`}`}
-          >
-            {vedette && <span className="pastille absolute -top-3 right-4 rotate-2 bg-rose">{PASTILLE_PRO}</span>}
-            <div className="flex items-end justify-between gap-3">
-              <div>
-                <h3 className="text-[14px] font-bold">{offre.nom}</h3>
-                <p className={`titre mt-1 ${vedette ? "text-[28px] lg:text-[34px]" : "text-[22px] lg:text-[28px]"}`}>{libelleJour(parJour(prix, periode))} par jour</p>
-              </div>
-              {!vedette && <span className="shrink-0 pb-1 text-[14px] font-bold lg:hidden">{offre.videosParMois} vidéos</span>}
-            </div>
-            <p className="mt-1 text-[14px]">
-              {libelleFacturation(prix, periode)}
-              {remise && <s className="ml-2 text-encre2">{eur(montant(o, periode, false))}</s>}
-            </p>
-            {vedette ? (
-              <>
-                <p className="mt-2 text-[14px] lg:mt-5 lg:text-[16px]">{RESUME.pro}</p>
-                <p className="mt-1 text-[14px] font-bold lg:text-[16px]">Le prix d&apos;un skin par mois.</p>
-              </>
-            ) : (
-              <p className="mt-5 hidden text-[16px] lg:block">{RESUME[o]}</p>
-            )}
-            <span className="hidden flex-1 lg:block" aria-hidden="true" />
-            {refus?.offre === o && (
-              <p className="carte mt-4 bg-blanc p-3 text-center text-[14px] font-bold" role="alert">
-                {refus.texte}
+      <div className="mt-3 flex flex-col gap-5 lg:mt-10 lg:grid lg:grid-cols-3 lg:items-center lg:gap-7">
+        {ORDRE.map((o) => {
+          const offre = OFFRES_PAYANTES[o];
+          const prix = montant(o, periode, remise);
+          const vedette = o === "pro";
+          const actuelle = compte?.offre === o;
+          return (
+            <article key={o} className={`bloc relative flex flex-col p-6 lg:p-8 ${vedette ? "bg-jaune lg:order-2 lg:py-12" : `bg-blanc ${o === "starter" ? "lg:order-1" : "lg:order-3"}`}`}>
+              {vedette && <span className="etiquette absolute -top-5 right-6 bg-rose">{PASTILLE_PRO}</span>}
+              <h2 className="titre text-[26px] lg:text-[30px]">{offre.nom}</h2>
+              <p className={`titre mt-3 whitespace-nowrap ${vedette ? "text-[46px] lg:text-[clamp(38px,3.600vw,50px)]" : "text-[38px] lg:text-[clamp(34px,3vw,42px)]"}`}>{libelleJour(parJour(prix, periode))}</p>
+              <p className="mt-1 text-[16px] font-bold">par jour</p>
+              <p className="mt-1 text-[14px]">
+                {libelleFacturation(prix, periode)}
+                {remise && <s className="ml-2 opacity-65">{eur(montant(o, periode, false))}</s>}
               </p>
-            )}
-            {!compacte &&
-              (actuelle ? (
-                <p className="mt-4 text-center text-[14px] font-bold lg:mt-7">Ton offre actuelle</p>
+              <div className="avantages mt-5">
+                <Avantages offre={o} />
+              </div>
+              {refus?.offre === o && (
+                <p className="mt-5 rounded-2xl border-2 border-encre bg-rose p-3 text-center text-[15px] font-bold" role="alert">
+                  {refus.texte}
+                </p>
+              )}
+              {actuelle ? (
+                <p className="mt-7 text-center text-[17px] font-bold">Ton offre actuelle</p>
               ) : compte ? (
-                <button type="button" onClick={() => choisir(o)} disabled={!!paiement} className={`bouton mt-4 w-full text-[16px] lg:mt-7 lg:px-3 lg:text-[15px] ${vedette ? "bouton-rose" : "bouton-blanc"}`}>
+                <button type="button" onClick={() => choisir(o)} disabled={!!paiement} className={`bouton mt-7 w-full text-balance !text-[16px] ${vedette ? "bouton-rose" : "bouton-blanc"}`}>
                   {paiement === o ? "Un instant…" : libelleBouton(o, prix, periode)}
                 </button>
               ) : (
-                <Link href="/commencer" className={`bouton mt-4 w-full text-[16px] lg:mt-7 lg:px-3 lg:text-[15px] ${vedette ? "bouton-rose" : "bouton-blanc"}`}>
+                <Link href="/commencer" className={`bouton mt-7 w-full text-balance !text-[16px] ${vedette ? "bouton-rose" : "bouton-blanc"}`}>
                   {libelleBouton(o, prix, periode)}
                 </Link>
-              ))}
-          </article>
-        );
-      })}
+              )}
+            </article>
+          );
+        })}
       </div>
 
-      {compte && compte.offre !== "gratuit" && !compacte && (
-        <p className="mt-2 text-center text-[13px] font-bold">Tu changes d&apos;offre ? Le reste payé devient des jours offerts.</p>
-      )}
-      <p className="mt-2 text-center text-[13px] leading-relaxed text-encre2 lg:mt-6 lg:text-[15px]">
-        Sans engagement. Résiliation en deux clics.
-        {compacte && (
-          <>
-            {" "}
-            <Link href="/tarifs" className="lien text-encre">
-              Voir l&apos;annuel
-            </Link>
-          </>
-        )}
-      </p>
+      {compte && compte.offre !== "gratuit" && <p className="mt-5 text-center text-[15px] font-bold">Tu changes d&apos;offre ? Le reste payé devient des jours offerts.</p>}
+      <p className="mt-4 text-center text-[15px] font-medium lg:mt-8 lg:text-[17px]">Sans engagement. Résiliation en deux clics.</p>
     </div>
   );
 }

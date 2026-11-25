@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { CadreBureau } from "@/components/marque/CadreBureau";
-import { Logo } from "@/components/marque/Logo";
+import { LienAccueil } from "@/components/marque/Logo";
+import { Duo, Titre } from "@/components/ui/Duo";
 import { SITE } from "@/lib/config";
 import { rafraichir } from "@/lib/serveur";
 import { messageErreur, supabase } from "@/lib/supabase";
@@ -48,44 +48,47 @@ export default function MotDePasse() {
 
   const nouveau = etape === "nouveau";
   return (
-    <CadreBureau>
-      <main className="mx-auto flex min-h-dvh w-full max-w-[480px] flex-col px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(14px,env(safe-area-inset-top))] lg:min-h-0 lg:p-0">
-        <Link href="/" className="flex min-h-11 w-fit items-center lg:hidden" aria-label="Retour à l'accueil">
-          <Logo taille={30} />
-        </Link>
-        <h1 className="titre mt-6 text-[32px] lg:text-[44px]">{nouveau ? "Nouveau mot de passe." : etape === "envoye" ? "Regarde tes e-mails." : "Mot de passe oublié."}</h1>
-        <p className="mt-2 text-[15px] text-encre2">
-          {nouveau ? "Choisis-en un de 6 caractères minimum." : etape === "envoye" ? "Si un compte existe, le lien arrive dans une minute." : "On t'envoie un lien pour en choisir un autre."}
-        </p>
-        {etape !== "envoye" && (
-          <form onSubmit={valider} noValidate className="mt-6 flex flex-1 flex-col">
-            <label htmlFor="champ" className="text-[14px] font-bold">
-              {nouveau ? "Ton nouveau mot de passe" : "Ton e-mail"}
-            </label>
-            <input
-              key={etape}
-              id="champ"
-              type={nouveau ? "password" : "email"}
-              autoComplete={nouveau ? "new-password" : "email"}
-              className="champ mt-2"
-              value={valeur}
-              onChange={(e) => {
-                setValeur(e.target.value);
-                setErreur("");
-              }}
-            />
-            <p className="mt-2 min-h-5 text-[13px] font-bold" role={erreur ? "alert" : undefined}>
-              {erreur}
-            </p>
-            <button type="submit" disabled={envoi} className="bouton bouton-rose mt-auto w-full lg:mt-6">
-              {envoi ? "Un instant…" : nouveau ? "Enregistrer" : "Recevoir le lien"}
-            </button>
-          </form>
-        )}
-        <Link href="/inscription" className="lien mx-auto mt-3 flex min-h-11 items-center text-[14px]">
-          Retour à la connexion
-        </Link>
-      </main>
-    </CadreBureau>
+    <Duo
+      cle={etape}
+      fond="orange"
+      entete={<LienAccueil />}
+      gauche={
+        <Titre sous={nouveau ? "Choisis-en un de 6 caractères minimum." : etape === "envoye" ? "Si un compte existe, le lien arrive dans une minute." : "On t'envoie un lien pour en choisir un autre."}>
+          {nouveau ? "Nouveau mot de passe." : etape === "envoye" ? "Regarde tes e-mails." : "Mot de passe oublié."}
+        </Titre>
+      }
+      droite={
+        <div className="bloc mt-5 bg-blanc p-5 lg:m-auto lg:w-full lg:max-w-[600px] lg:p-10">
+          {etape !== "envoye" && (
+            <form onSubmit={valider} noValidate className="flex flex-col">
+              <label htmlFor="champ" className="text-[15px] font-bold">
+                {nouveau ? "Ton nouveau mot de passe" : "Ton e-mail"}
+              </label>
+              <input
+                key={etape}
+                id="champ"
+                type={nouveau ? "password" : "email"}
+                autoComplete={nouveau ? "new-password" : "email"}
+                className="champ mt-2"
+                value={valeur}
+                onChange={(e) => {
+                  setValeur(e.target.value);
+                  setErreur("");
+                }}
+              />
+              <p className="mt-2 min-h-5 text-[14px] font-bold" role={erreur ? "alert" : undefined}>
+                {erreur}
+              </p>
+              <button type="submit" disabled={envoi} className="bouton bouton-rose mt-3 w-full">
+                {envoi ? "Un instant…" : nouveau ? "Enregistrer" : "Recevoir le lien"}
+              </button>
+            </form>
+          )}
+          <Link href="/inscription" className="lien mx-auto mt-3 flex min-h-11 w-fit items-center text-[15px]">
+            Retour à la connexion
+          </Link>
+        </div>
+      }
+    />
   );
 }
