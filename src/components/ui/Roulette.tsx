@@ -20,9 +20,12 @@ export function Roulette({
   elan = true,
   centre,
   nu = false,
+  page = false,
 }: {
   /** V2 : sans cadre, la roue est posée sur la page et déborde. */
   nu?: boolean;
+  /** Posée dans une page qui défile : ni molette, ni blocage du défilement au doigt. */
+  page?: boolean;
   valeurs: number[];
   valeur: number;
   libelle: (v: number) => string;
@@ -308,7 +311,7 @@ export function Roulette({
     cv.addEventListener("pointermove", bouge);
     cv.addEventListener("pointerup", haut);
     cv.addEventListener("pointercancel", haut);
-    cv.addEventListener("wheel", roule, { passive: false });
+    if (!page) cv.addEventListener("wheel", roule, { passive: false });
 
     const premier = setTimeout(() => {
       if (!tient && cible === null && Math.round(p) !== fin) aller(fin);
@@ -353,7 +356,7 @@ export function Roulette({
         aria-valuenow={valeur}
         aria-valuetext={libelle(valeur)}
         onKeyDown={clavier}
-        className="absolute inset-0 h-full w-full cursor-grab touch-none select-none rounded-[14px] lg:rounded-[30px] focus-visible:-outline-offset-4 active:cursor-grabbing"
+        className={`absolute inset-0 h-full w-full cursor-grab ${page ? "touch-pan-y" : "touch-none"} select-none rounded-[14px] lg:rounded-[30px] focus-visible:-outline-offset-4 active:cursor-grabbing`}
       />
       {centre && (
         <div ref={moyeu} className="pointer-events-none absolute inset-x-0 hidden flex-col items-center justify-center lg:flex">

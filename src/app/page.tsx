@@ -1,200 +1,236 @@
 import Link from "next/link";
-import { AvantApres } from "@/components/landing/AvantApres";
+import "./accueil.css";
+import { Machine } from "@/components/accueil/Machine";
+import { Objectif } from "@/components/accueil/Objectif";
+import { Offres } from "@/components/accueil/Offres";
+import { Styles } from "@/components/accueil/Styles";
 import { BarreFixe } from "@/components/landing/BarreFixe";
-import { Logo } from "@/components/marque/Logo";
-import { Objet, Pieces } from "@/components/objets/Objet";
-import { Montre } from "@/components/objets/Montre";
-import { SceneAccroche } from "@/components/onboarding/Ecrans";
-import { Mots } from "@/components/ui/Duo";
+import { LogoIcone } from "@/components/marque/Logo";
+import { Objet } from "@/components/objets/Objet";
 import { PiedDePage } from "@/components/PiedDePage";
-import { GrilleTarifs } from "@/components/tarifs/GrilleTarifs";
 
-const ETAPES = [
-  { titre: "Joue à GTA 6", texte: "Un appui sur ta manette garde chaque bon moment.", fond: "bg-jaune", couleur: "turquoise" },
-  { titre: "Dépose tes clips", texte: "Les tiens, ceux de ta console. XPclip les monte.", fond: "bg-orange", couleur: "orange" },
-  { titre: "Poste ta vidéo", texte: "Plus tu fais de vues, plus ça peut rapporter.", fond: "bg-turquoise", couleur: "jaune" },
-];
-
+/*
+ * Accueil V4. Une idée : on voit la machine tourner. Ta partie entre, ta vidéo sort.
+ * Les scènes de jeu sont dessinées par nous (outils/scenes) et montées par le vrai moteur.
+ */
 const FAQ = [
   { q: "Comment mes parties peuvent me payer ?", r: "Tu postes tes vidéos sur tes propres comptes. Plus elles font de vues, plus elles peuvent rapporter. Le montant dépend de tes vues : rien n'est garanti." },
   { q: "C'est du clipping ?", r: "Non. Le clipping reprend les vidéos des autres. Ici, tu postes tes propres parties, jouées sur ta console." },
   {
-    q: "Comment je sors mes clips de la PS5 ?",
+    q: "Comment je sors mes clips de la PS5 ?",
     r: "Tu actives l'envoi automatique des captures. Tes clips arrivent dans l'appli PlayStation de ton téléphone. Tu les enregistres dans ta galerie, puis tu les déposes ici. Sur Xbox, c'est pareil avec l'appli Xbox.",
   },
-  { q: "Ça prend combien de temps ?", r: "Le temps d'envoyer tes clips, puis une minute de montage. Tu reçois une notification quand ta vidéo est prête." },
-  { q: "Je dois savoir monter ?", r: "Non. XPclip choisit les meilleurs passages, les assemble en vertical et ajoute l'accroche. Tu n'as plus qu'à poster." },
-  { q: "Je dois montrer mon visage ?", r: "Non. Tes vidéos montrent ton jeu, pas toi." },
-  { q: "Je peux poster ailleurs que sur TikTok ?", r: "Oui. Le format 9:16 marche aussi sur YouTube Shorts et Instagram Reels." },
+  { q: "Ça prend combien de temps ?", r: "Le temps d'envoyer tes clips, puis une minute de montage. Tu reçois une notification quand ta vidéo est prête." },
+  { q: "Je dois savoir monter ?", r: "Non. XPclip choisit les meilleurs passages, les assemble en vertical et ajoute l'accroche. Tu n'as plus qu'à poster." },
+  { q: "Je dois montrer mon visage ?", r: "Non. Tes vidéos montrent ton jeu, pas toi." },
+  { q: "Je peux poster ailleurs que sur TikTok ?", r: "Oui. Le format 9:16 marche aussi sur YouTube Shorts et Instagram Reels." },
 ];
 
-/** Une section : colonne de 560 px sur téléphone, 1120 px sur ordinateur. */
-function Section({ fond, children, id, sombre = false }: { fond: string; children: React.ReactNode; id?: string; sombre?: boolean }) {
-  return (
-    <section id={id ? `s-${id}` : undefined} aria-labelledby={id} className={`relative scroll-mt-4 border-t-2 border-encre px-4 py-12 sm:py-16 lg:px-8 lg:py-24 ${fond} ${sombre ? "text-fond" : ""}`}>
-      <div className="relative mx-auto max-w-[560px] lg:max-w-[1240px]">{children}</div>
-    </section>
-  );
-}
-
-const TITRE_SECTION = "titre text-[32px] sm:text-[40px] lg:text-[60px]";
-
 const LIENS = [
-  { href: "#s-t-etapes", nom: "Comment ça marche" },
-  { href: "#s-t-avap", nom: "Avant / après" },
-  { href: "#s-t-tarifs", nom: "Tarifs" },
-  { href: "#s-t-faq", nom: "Questions" },
+  { href: "#s-etapes", nom: "Comment ça marche" },
+  { href: "#s-styles", nom: "Les styles" },
+  { href: "#s-offres", nom: "Tarifs" },
+  { href: "#s-questions", nom: "Questions" },
+];
+
+const Coche = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <circle cx="12" cy="12" r="11" fill="#6FE3D6" stroke="#1A0B2E" strokeWidth="2" />
+    <path d="M7.500 12.400l3 3 6-6.400" fill="none" stroke="#1A0B2E" strokeWidth="2.600" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
+
+const ETAPES = [
+  {
+    titre: "Joue.",
+    texte: "Un bon moment ? Un bouton, et ton clip est gardé.",
+    fond: "bg-turquoise",
+    scene: (
+      <>
+        <Objet nom="manette" className="absolute inset-x-[14%] bottom-[8%] top-[24%]" plusTard />
+        <span className="toast-clip">
+          <Coche /> Clip gardé
+        </span>
+      </>
+    ),
+  },
+  {
+    titre: "Dépose.",
+    texte: "Choisis tes clips. XPclip monte la vidéo en une minute.",
+    fond: "bg-orange",
+    scene: (
+      <div className="pile">
+        {["chien", "canard", "saut"].map((n, i) => (
+          <span key={n} style={{ "--i": i } as React.CSSProperties}>
+            <img src={`/v4/${n}.webp`} alt="" width={480} height={270} loading="lazy" />
+            <b>
+              <Coche />
+            </b>
+          </span>
+        ))}
+      </div>
+    ),
+  },
+  {
+    titre: "Poste.",
+    texte: "TikTok, Reels ou Shorts. Tes vues peuvent payer.",
+    fond: "bg-jaune",
+    scene: (
+      <>
+        <div className="tel-carte">
+          <div className="m-tel-ecran">
+            <img src="/v4/drole.webp" alt="" width={432} height={768} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+          </div>
+        </div>
+        <span className="publiee titre">Publiée !</span>
+      </>
+    ),
+  },
 ];
 
 export default function Accueil() {
   return (
-    <div className="v3 overflow-x-clip">
-      {/* 1. Hero */}
-      <header className="relative px-4 pb-6 pt-4 lg:flex lg:min-h-[max(94dvh,640px)] lg:flex-col lg:px-8 lg:pb-8 lg:pt-6">
-        <div className="relative mx-auto lg:flex lg:w-full lg:max-w-[1500px] lg:flex-1 lg:flex-col">
-          <nav className="relative z-20 flex items-center justify-between gap-6">
-            <Logo />
-            <ul className="hidden items-center gap-1 lg:flex">
-              {LIENS.map((l) => (
-                <li key={l.href}>
-                  <a href={l.href} className="rounded-full px-4 py-2.5 text-[15px] font-bold hover:bg-blanc/60">
-                    {l.nom}
-                  </a>
-                </li>
-              ))}
-            </ul>
-            <div className="flex items-center gap-2.5">
-              <Link href="/inscription?mode=connexion" className="bouton bouton-blanc bouton-petit">
-                Se connecter
-              </Link>
-              <Link href="/commencer" className="bouton bouton-rose bouton-petit hidden lg:inline-flex">
-                Commencer
-              </Link>
-            </div>
-          </nav>
+    <div className="v4">
+      <nav className="nav" aria-label="Menu">
+        <Link href="/" className="flex items-center gap-2.5" aria-label="XPclip">
+          <LogoIcone taille={38} className="rounded-[24%] ring-2 ring-encre" />
+          <span className="titre text-[22px]">XPclip</span>
+        </Link>
+        <ul className="hidden items-center lg:flex">
+          {LIENS.map((l) => (
+            <li key={l.href}>
+              <a href={l.href} className="nav-lien">
+                {l.nom}
+              </a>
+            </li>
+          ))}
+        </ul>
+        <div className="flex items-center gap-1.5 lg:gap-2">
+          <Link href="/inscription?mode=connexion" className="nav-lien">
+            Se connecter
+          </Link>
+          <Link href="/commencer" className="bouton bouton-rose bouton-petit hidden lg:inline-flex">
+            Commencer
+          </Link>
+        </div>
+        <span className="nav-xp" aria-hidden="true">
+          <i />
+        </span>
+      </nav>
 
-          <div className="mt-7 lg:grid lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.15fr)] lg:items-center lg:gap-[4vw] lg:pl-[2vw]">
-            <div className="relative z-20">
-              <span className="pastille bg-turquoise lg:text-[14px]">Pour les joueurs PS5 et Xbox</span>
-              <h1 className="titre mt-4 text-[44px] sm:text-[64px] lg:mt-6 lg:text-[clamp(56px,min(6vw,11.4vh),112px)]">
-                <Mots>Tes parties de GTA 6 peuvent te payer.</Mots>
-              </h1>
-              <p className="mt-4 max-w-[34ch] text-[17px] leading-snug text-encre2 lg:mt-6 lg:text-[clamp(19px,1.5vw,26px)]">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
-              <div id="cta-hero" className="mt-6 sm:max-w-[400px] lg:mt-9">
-                <Link href="/commencer" className="bouton bouton-rose w-full lg:h-[64px] lg:text-[20px]">
-                  Créer ma première vidéo
-                </Link>
-                <p className="mt-3 text-center text-[13px] text-encre2 lg:text-left lg:text-[14px]">Sans engagement. Résiliation en deux clics.</p>
-              </div>
-            </div>
-            <div className="mt-2 flex h-[420px] lg:mt-6 lg:h-[calc(100%-24px)] lg:rounded-[36px] lg:bg-(--p-jaune) lg:p-8">
-              <SceneAccroche />
-            </div>
+      {/* 1. La machine */}
+      <header className="hero">
+        {["nuage-a", "nuage-b"].map((n) => (
+          <svg key={n} viewBox="0 -10 160 96" className={`nuage ${n}`} aria-hidden="true">
+            <path d="M28 78a24 24 0 0 1-3-47.800A36 36 0 0 1 92 18a30 30 0 0 1 40 20 20.500 20.500 0 0 1-2 40z" fill="currentColor" stroke="#1A0B2E" strokeWidth="3" strokeLinejoin="round" />
+          </svg>
+        ))}
+        <div className="hero-texte relative">
+          <h1 className="titre">
+            Tes parties de GTA&nbsp;6 peuvent te <span className="mot-fort">payer.</span>
+          </h1>
+          <p>Tu joues sur ta console. XPclip monte tes clips.</p>
+          <div id="cta-hero">
+            <Link href="/commencer" className="gros gros-rose gros-xl">
+              Créer ma première vidéo
+            </Link>
+            <small>Sans engagement. Résiliation en deux clics.</small>
           </div>
         </div>
+        <Machine />
       </header>
 
       <main>
-        {/* 2. Trois étapes : les objets descendent avec la page */}
-        <Section fond="bg-blanc" id="t-etapes">
-          <h2 id="t-etapes" className={TITRE_SECTION}>
-            Ton jeu, tes clips, tes vidéos.
+        {/* 2. Les étapes, en escalier */}
+        <section id="s-etapes" aria-labelledby="t-etapes" className="sect">
+          <h2 id="t-etapes" className="titre titre-v4 text-center">
+            Trois gestes. C&apos;est tout.
           </h2>
-          <ol className="mt-6 flex flex-col gap-4 lg:mt-12 lg:grid lg:grid-cols-3 lg:gap-7">
+          <ol className="escalier">
             {ETAPES.map((e, i) => (
-              <li key={e.titre} className="carte flex flex-col overflow-hidden rounded-[24px] bg-blanc lg:rounded-[28px]">
-                <div className="relative h-[210px] lg:h-[300px]" style={{ background: `var(--p-${e.couleur})` }}>
-                  {i === 0 && <Objet nom="manette" className="absolute inset-x-[12%] inset-y-[12%]" plusTard />}
-                  {i === 1 && (
-                    <>
-                      <Objet nom="clip-a" className="absolute left-[9%] top-[12%] h-[50%] w-[56%]" plusTard />
-                      <Objet nom="clip-b" className="absolute bottom-[12%] right-[9%] h-[50%] w-[56%]" plusTard />
-                    </>
-                  )}
-                  {i === 2 && <Montre nom="route" fixe className="absolute inset-x-0 inset-y-[7%]" />}
+              <li key={e.titre} className="bloc overflow-hidden bg-blanc">
+                <div className={`relative h-[240px] overflow-hidden border-b-2 border-encre lg:h-[320px] ${e.fond}`}>
+                  <span className="numero titre">{i + 1}</span>
+                  {e.scene}
                 </div>
-                <div className="relative z-20 border-t-2 border-encre p-5 lg:p-7">
-                  <p className="text-[13px] font-bold text-encre2 lg:text-[15px]">Étape {i + 1}</p>
-                  <h3 className="titre mt-1 text-[24px] lg:text-[32px]">{e.titre}</h3>
-                  <p className="mt-1.5 text-[14px] leading-snug text-encre2 lg:mt-2.5 lg:text-[17px]">{e.texte}</p>
+                <div className="p-6 lg:p-8">
+                  <h3 className="titre text-[34px] lg:text-[46px]">{e.titre}</h3>
+                  <p className="mt-2.5 text-[17px] leading-snug lg:text-[20px]">{e.texte}</p>
                 </div>
               </li>
             ))}
           </ol>
-        </Section>
+        </section>
 
-        {/* 4. Avant / après */}
-        <Section fond="bg-encre" id="t-avap" sombre>
-          <h2 id="t-avap" className={TITRE_SECTION}>
-            De ta capture à ta vidéo.
-          </h2>
-          <div className="mt-6 lg:mt-14">
-            <AvantApres />
+        {/* 3. Les styles */}
+        <section id="s-styles" aria-labelledby="t-styles" className="plein bg-turquoise">
+          <div className="sect">
+            <Styles />
           </div>
-        </Section>
+        </section>
 
-        {/* 5. Tarifs */}
-        <Section fond="bg-fond" id="t-tarifs">
-          <div className="lg:flex lg:items-end lg:justify-between lg:gap-10">
-            <h2 id="t-tarifs" className={TITRE_SECTION}>
+        {/* 4. La roue */}
+        <section aria-labelledby="t-objectif" className="sect">
+          <Objectif />
+        </section>
+
+        {/* 5. Les offres */}
+        <section id="s-offres" aria-labelledby="t-offres" className="plein bg-blanc">
+          <div className="sect">
+            <h2 id="t-offres" className="titre titre-v4 text-center">
               Choisis ton rythme.
             </h2>
-            <p className="mt-2 hidden max-w-[30ch] text-[17px] text-encre2 lg:block">Sans engagement. Tu changes d&apos;offre quand tu veux.</p>
+            <Offres />
           </div>
-          <div className="mt-6 lg:mt-12">
-            <GrilleTarifs compacte />
-          </div>
-        </Section>
+        </section>
 
-        {/* 6. Questions */}
-        <Section fond="bg-blanc" id="t-faq">
-          <div className="lg:grid lg:grid-cols-[1fr_1.5fr] lg:gap-16">
-          <div className="lg:sticky lg:top-8 lg:self-start">
-            <h2 id="t-faq" className={TITRE_SECTION}>
-              Tes questions.
-            </h2>
-            <p className="mt-4 hidden max-w-[28ch] text-[17px] text-encre2 lg:block">Tout ce qu&apos;il faut savoir avant ta première vidéo.</p>
-          </div>
-          <div className="mt-6 flex flex-col gap-3 lg:mt-0">
-            {FAQ.map(({ q, r }, i) => (
-              <details key={q} className="carte group bg-fond" open={i === 0}>
-                <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-4 px-4 py-3.5 text-[16px] font-bold lg:min-h-16 lg:px-6 lg:text-[18px] [&::-webkit-details-marker]:hidden">
-                  {q}
-                  <span className="titre text-[22px] leading-none transition-transform group-open:rotate-45" aria-hidden="true">
-                    +
-                  </span>
-                </summary>
-                <p className="px-4 pb-4 text-[14px] leading-relaxed text-encre2 lg:px-6 lg:pb-6 lg:text-[16px]">{r}</p>
-              </details>
-            ))}
-          </div>
-          </div>
-        </Section>
-
-        {/* 7. Rappel final */}
-        <section id="s-t-fin" aria-labelledby="t-fin" className="relative border-t-2 border-encre bg-(--p-jaune) px-4 pb-8 pt-12 lg:px-8 lg:py-20">
-          <div className="mx-auto max-w-[560px] lg:grid lg:max-w-[1240px] lg:grid-cols-[1.1fr_1fr] lg:items-center lg:gap-16">
-            <div className="relative z-20">
-              <h2 id="t-fin" className="titre text-[38px] sm:text-[48px] lg:text-[72px]">
-                Ta prochaine session peut payer.
+        {/* 6. Les questions */}
+        <section id="s-questions" aria-labelledby="t-faq" className="sect">
+          <div className="questions">
+            <div className="questions-tete">
+              <h2 id="t-faq" className="titre titre-v4">
+                Une question&nbsp;?
               </h2>
-              <div id="cta-fin" className="mt-6 sm:max-w-[380px] lg:mt-10">
-                <Link href="/commencer" className="bouton bouton-rose w-full lg:h-[64px] lg:text-[20px]">
-                  Créer ma première vidéo
-                </Link>
-                <p className="mt-3 text-center text-[13px] font-bold lg:text-left lg:text-[14px]">Sans engagement. Résiliation en deux clics.</p>
-              </div>
+              <img src="/v4/duck.webp" alt="" width={520} height={440} loading="lazy" className="duck" />
             </div>
-            <div className="relative mt-6 h-[260px] lg:mt-0 lg:h-[400px]">
-              <Pieces part={1} className="absolute inset-x-[4%] bottom-[4%] h-[88%]" />
+            <div className="flex flex-col gap-3.5">
+              {FAQ.map(({ q, r }) => (
+                <details key={q} name="faq" className="question">
+                  <summary>
+                    {q}
+                    <span aria-hidden="true">
+                      <svg viewBox="0 0 24 24">
+                        <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="3.400" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                  </summary>
+                  <p>{r}</p>
+                </details>
+              ))}
             </div>
+          </div>
+        </section>
+
+        {/* 7. Le départ */}
+        <section aria-labelledby="t-fin" className="depart">
+          <h2 id="t-fin" className="titre">
+            Ta prochaine session peut payer.
+          </h2>
+          <div id="cta-fin">
+            <Link href="/commencer" className="arcade titre" aria-label="Créer ma première vidéo">
+              <span>Start</span>
+            </Link>
+          </div>
+          <p>Sans engagement. Résiliation en deux clics.</p>
+          <div className="route" aria-hidden="true">
+            <span className="voiture">
+              <img src="/v4/voiture.webp" alt="" width={820} height={400} loading="lazy" />
+            </span>
           </div>
         </section>
       </main>
 
-      <div className="relative z-20 bg-fond">
-        <PiedDePage />
-      </div>
+      <PiedDePage />
       <BarreFixe />
     </div>
   );
