@@ -5,7 +5,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Telephone } from "@/components/studio/Telephone";
-import { Duo } from "@/components/ui/Duo";
+import { Duo, Titre } from "@/components/ui/Duo";
 import { Coche } from "@/components/ui/Parcours";
 import { ETAPES } from "@/lib/montage";
 import { bravo, coupe, cran, pop } from "@/lib/sons";
@@ -108,18 +108,24 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
             ))}
           </div>
 
-          <div className="flex w-full items-end justify-between gap-3">
-            <p key={etape} className="surgit titre text-[22px] leading-[1.05] lg:hidden">{ETAPES[etape]}</p>
-            <p className="titre shrink-0 text-[46px] tabular-nums lg:text-[clamp(96px,10vw,190px)]">{k}&nbsp;%</p>
-          </div>
-          <ol className="mt-8 hidden flex-col gap-4 lg:flex">
-            {ETAPES.map((e, i) => (
-              <li key={e} className={`flex items-center gap-4 text-[clamp(18px,1.5vw,26px)] font-bold transition-opacity duration-300 ${i > etape ? "opacity-30" : ""}`}>
-                {i < etape || k === 100 ? <Coche className="h-8 w-8 shrink-0" /> : <span className={`h-8 w-8 shrink-0 rounded-full border-2 border-encre ${i === etape ? "clignote bg-rose" : ""}`} />}
-                {e}
-              </li>
-            ))}
-          </ol>
+          <Titre
+            travaille={k < 100}
+            fete={k >= 100}
+            xp={k / 100}
+            sous={<span key={etape} className="arrivee block font-bold text-encre">{ETAPES[etape]}</span>}
+            plus={
+              <ol className="mt-5 hidden flex-col gap-3 lg:flex">
+                {ETAPES.map((e, i) => (
+                  <li key={e} className={`flex items-center gap-3.5 text-[clamp(16px,1.3vw,21px)] font-bold transition-opacity duration-300 ${i > etape ? "opacity-35" : ""}`}>
+                    {i < etape || k === 100 ? <Coche className="h-7 w-7 shrink-0" /> : <span className={`h-7 w-7 shrink-0 rounded-full border-2 border-encre ${i === etape ? "clignote bg-rose" : ""}`} />}
+                    {e}
+                  </li>
+                ))}
+              </ol>
+            }
+          >
+            <span className="block text-[1.7em] tabular-nums leading-[0.9]">{k}&nbsp;%</span>
+          </Titre>
         </>
       }
       droite={
@@ -137,12 +143,20 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
             {k > 78 && <span className="surgit pastille absolute bottom-[8%] right-[6%] z-20 bg-turquoise lg:min-h-12 lg:px-5 lg:text-[20px]">1080 × 1920</span>}
           </div>
 
-          <div className="carte relative z-20 mt-3 flex h-12 w-full items-stretch gap-[3px] p-1.5 lg:mt-[min(24px,3vh)] lg:h-[min(84px,10vh)] lg:gap-1.5 lg:p-2" role="progressbar" aria-valuenow={k} aria-label="Avancement du montage">
+          <div className="relative mt-3 lg:mt-[min(24px,3vh)]">
+            {/* Le tapis : les clips passent par le robot et tombent dans la frise */}
+            <span className="convoyeur" aria-hidden="true">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <i key={i} className={COULEURS[i % 4]} style={{ "--i": i } as React.CSSProperties} />
+              ))}
+            </span>
+          <div className="bloc relative z-20 flex h-14 w-full items-stretch gap-[3px] !rounded-[18px] bg-blanc p-1.5 lg:h-[min(88px,10vh)] lg:gap-1.5 lg:!rounded-[24px] lg:p-2.5" role="progressbar" aria-valuenow={k} aria-label="Avancement du montage">
             {Array.from({ length: MORCEAUX }, (_, i) =>
               i < poses ? <span key={i} className={`surgit rounded-[5px] border-2 border-encre lg:rounded-lg ${COULEURS[i % 4]}`} style={{ flex: [2, 1, 3, 1, 2, 2, 1][i % 7] }} /> : <span key={i} className="rounded-[5px] bg-beige lg:rounded-lg" style={{ flex: [2, 1, 3, 1, 2, 2, 1][i % 7] }} />,
             )}
           </div>
-          <p className="mt-2 text-center text-[11px] font-medium lg:text-[14px]">Séquence accélérée</p>
+          </div>
+          <p className="mt-4 text-center text-[12px] font-bold lg:text-[15px]">Séquence accélérée</p>
         </>
       }
     />

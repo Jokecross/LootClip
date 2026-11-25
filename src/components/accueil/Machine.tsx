@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { Objet } from "@/components/objets/Objet";
 import { Boucle } from "./Boucle";
 
-const Coeur = ({ i }: { i: number }) => (
+export const Coeur = ({ i }: { i: number }) => (
   <svg viewBox="0 0 24 24" className="coeur" style={{ "--i": i } as React.CSSProperties} aria-hidden="true">
     <path d="M12 20.500S3 15 3 8.800A4.700 4.700 0 0 1 12 7a4.700 4.700 0 0 1 9 1.800C21 15 12 20.500 12 20.500z" fill={["#F05FA5", "#FFFFFF", "#6FE3D6"][i % 3]} stroke="#1A0B2E" strokeWidth="2" strokeLinejoin="round" />
   </svg>

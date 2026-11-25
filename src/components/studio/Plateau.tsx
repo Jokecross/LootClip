@@ -5,6 +5,7 @@
  * Réservé à l'équipe, rien n'est écrit dans un vrai compte. Appui long sur le logo : retour aux réglages.
  */
 import { useEffect, useRef, useState } from "react";
+import { Coeur } from "@/components/accueil/Machine";
 import { Logo } from "@/components/marque/Logo";
 import { ecranAccroche, ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
 import { Objet, precharger } from "@/components/objets/Objet";
@@ -14,7 +15,7 @@ import { nomsReseaux, PictoReseau, Publier, type Depart } from "@/components/stu
 import { Essai } from "@/components/studio/Essai";
 import { Telephone } from "@/components/studio/Telephone";
 import { VideoPortrait } from "@/components/studio/VideoPortrait";
-import { Duo, Mots, Titre } from "@/components/ui/Duo";
+import { Duo, Titre } from "@/components/ui/Duo";
 import { Coche, Entete } from "@/components/ui/Parcours";
 import { CLIPS, MENTION_OBJECTIF, NON_AFFILIATION, ONBOARDING, STYLES, TITRE_MAX, type Style } from "@/lib/config";
 import { lireDuree } from "@/lib/depot";
@@ -188,8 +189,8 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
     case "regie":
       contenu = {
         gauche: (
-        <>
-          <h1 className="titre text-[34px] lg:text-[56px]">Prêt à filmer ?</h1>
+        <div className="bloc overflow-y-auto bg-blanc p-5 lg:max-h-full lg:p-8">
+          <h1 className="titre text-[34px] lg:text-[48px]">Prêt à filmer ?</h1>
           <p className="mt-2 text-[14px] text-encre2">Cette page, personne ne la voit. Le tournage commence après.</p>
 
           <p className="mt-6 text-[14px] font-bold">La vidéo montrée à la fin</p>
@@ -230,9 +231,9 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
           </div>
 
           <p className="mt-5 text-[14px] font-bold">Quand tu tapes xpclip.com</p>
-          <div className="mt-2 grid grid-cols-2 gap-2" role="radiogroup" aria-label="Quand tu tapes xpclip.com">
+          <div className="segment mt-2" role="radiogroup" aria-label="Quand tu tapes xpclip.com">
             {([[true, "Le tournage"], [false, "Le vrai site"]] as const).map(([v, nom]) => (
-              <button key={nom} type="button" role="radio" aria-checked={regl.tournage === v} onClick={() => regler({ tournage: v })} className={`min-h-12 rounded-[14px] border-2 border-encre text-[15px] font-bold ${regl.tournage === v ? "bg-jaune" : "bg-blanc"}`}>
+              <button key={nom} type="button" role="radio" aria-checked={regl.tournage === v} onClick={() => regler({ tournage: v })}>
                 {nom}
               </button>
             ))}
@@ -249,9 +250,9 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
                 <Champ libelle="Titre déjà écrit" valeur={regl.titre} changer={(v) => regler({ titre: v.slice(0, TITRE_MAX) })} />
               </div>
               <p className="mt-4 text-[14px] font-bold">Durée du montage à l&apos;écran</p>
-              <div className="mt-2 grid grid-cols-3 gap-2" role="radiogroup" aria-label="Durée du montage">
+              <div className="segment mt-2" role="radiogroup" aria-label="Durée du montage">
                 {[6, 9, 14].map((s) => (
-                  <button key={s} type="button" role="radio" aria-checked={regl.secondes === s} onClick={() => regler({ secondes: s })} className={`min-h-12 rounded-[14px] border-2 border-encre text-[15px] font-bold ${regl.secondes === s ? "bg-jaune" : "bg-blanc"}`}>
+                  <button key={s} type="button" role="radio" aria-checked={regl.secondes === s} onClick={() => regler({ secondes: s })}>
                     {s} s
                   </button>
                 ))}
@@ -262,7 +263,7 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
             </div>
           </details>
           <p className="mt-4 text-[13px] text-encre2">Enlève le mode silencieux. Appui long sur le logo : retour ici.</p>
-        </>
+        </div>
         ),
         droite: (
           <div className="hidden flex-1 items-center justify-center lg:flex">
@@ -327,25 +328,34 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
             <button
               type="button"
               onClick={() => galerie.current?.click()}
-              className={`group relative mt-5 flex w-full flex-col items-center justify-center gap-3 rounded-[22px] border-2 border-dashed border-encre transition-[padding,background-color] duration-300 lg:mt-0 lg:rounded-[28px] ${clips.length ? "bg-blanc py-5 lg:flex-row lg:gap-5 lg:py-6" : "flex-1 bg-blanc py-12 lg:gap-9"}`}
+              className={`depot mt-5 lg:mt-0 ${clips.length ? "depot-court" : "!min-h-0 flex-1"}`}
             >
               {!clips.length && (
                 <>
                   <Objet nom="clip-b" className="absolute right-[5%] top-[7%] h-[21%] w-[32%]" />
-                  <Objet nom="manette" className="absolute bottom-[5%] left-[4%] h-[29%] w-[40%]" />
+                  <Objet nom="manette" className="absolute bottom-[4%] left-[4%] h-[25%] w-[34%]" />
                 </>
               )}
-              <span className={`relative z-20 grid place-items-center border-2 border-encre bg-rose shadow-[0_4px_0_var(--color-encre)] transition-all ${clips.length ? "h-12 w-12 rounded-2xl" : "h-20 w-20 rounded-[24px] lg:h-32 lg:w-32 lg:rounded-[36px]"}`} aria-hidden="true">
-                <svg viewBox="0 0 24 24" className="h-1/2 w-1/2" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round">
+              <span className="depot-plus" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.4" strokeLinecap="round">
                   <path d="M12 5v14M5 12h14" />
                 </svg>
               </span>
-              <span className={`titre relative z-20 text-[20px] ${clips.length ? "lg:text-[26px]" : "lg:text-[clamp(32px,3vw,58px)]"}`}>{clips.length ? "Ajouter des clips" : <><span className="lg:hidden">Choisir dans ma galerie</span><span className="hidden lg:inline">Glisse tes clips ici</span></>}</span>
+              <span className={`titre relative z-20 text-[22px] ${clips.length ? "lg:text-[28px]" : "lg:text-[clamp(32px,3vw,58px)]"}`}>
+                {clips.length ? (
+                  "Ajouter des clips"
+                ) : (
+                  <>
+                    <span className="lg:hidden">Choisir dans ma galerie</span>
+                    <span className="hidden lg:inline">Glisse tes clips ici</span>
+                  </>
+                )}
+              </span>
             </button>
             {clips.length > 0 && (
               <div className={`relative mt-4 grid gap-3 lg:mt-7 lg:min-h-0 lg:flex-1 lg:auto-rows-fr lg:gap-7 ${clips.length <= 2 || clips.length === 4 ? "grid-cols-2" : "grid-cols-3"} ${clips.length <= 3 ? COLONNES[clips.length] : ""}`}>
                 {clips.map((c, i) => (
-                  <div key={c.url} className="surgit relative aspect-[4/5] overflow-hidden rounded-[18px] border-2 border-encre bg-encre shadow-[0_4px_0_var(--color-encre)] lg:aspect-auto lg:min-h-0 lg:rounded-[28px]">
+                  <div key={c.url} className="surgit relative aspect-[4/5] overflow-hidden rounded-[20px] border-2 border-encre bg-encre shadow-[0_5px_0_var(--color-encre)] lg:aspect-auto lg:min-h-0 lg:rounded-[30px] lg:shadow-[0_8px_0_var(--color-encre)]">
                     <video src={`${c.url}#t=0.5`} muted playsInline autoPlay={i === clips.length - 1} loop preload="auto" className="h-full w-full object-cover lg:absolute lg:inset-0" />
                     <span className="pastille absolute bottom-2 left-2 bg-jaune tabular-nums lg:bottom-5 lg:left-5 lg:min-h-10 lg:px-4 lg:text-[18px]">{dureeLisible(c.duree)}</span>
                   </div>
@@ -379,8 +389,8 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
           </>
         ),
         droite: (
-          <div className="mt-4 grid min-h-0 flex-1 grid-cols-[1fr_0.72fr] gap-3 lg:mt-0 lg:grid-cols-[1fr_0.8fr] lg:gap-8 lg:py-[2vh]">
-            <div className="relative z-20 flex min-w-0 flex-col gap-3 lg:gap-6" role="radiogroup" aria-label="Style">
+          <div className="mt-4 grid flex-1 grid-cols-[1fr_0.72fr] lg:min-h-0 gap-3 lg:mt-0 lg:grid-cols-[1fr_0.8fr] lg:gap-8 lg:py-[2vh]">
+            <div className="relative z-20 flex min-w-0 flex-col gap-3.5 lg:justify-center lg:gap-6" role="radiogroup" aria-label="Style">
               {(Object.keys(STYLES) as Style[]).map((s, i) => (
                 <button
                   key={s}
@@ -391,18 +401,19 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
                     pop(0.3 + i * 0.3);
                     setStyle(s);
                   }}
-                  style={{ "--d": `${i * 90}ms` } as React.CSSProperties}
-                  className={`surgit relative flex min-h-[92px] flex-1 flex-col justify-center rounded-[20px] border-2 border-encre px-4 py-3 text-left transition-[transform,box-shadow,background-color] duration-200 ease-out lg:rounded-[28px] lg:px-8 ${style === s ? "bg-jaune shadow-[0_5px_0_var(--color-encre)] lg:shadow-[0_8px_0_var(--color-encre)]" : "bg-blanc hover:-translate-y-1"}`}
+                  className="touche max-lg:flex-1 max-lg:!px-4 max-lg:!py-3"
                 >
-                  <span className="titre block text-[20px] lg:text-[clamp(30px,2.9vw,58px)]">{STYLES[s].nom}</span>
-                  <span className="mt-1 block text-[12px] font-medium leading-tight lg:mt-2 lg:text-[18px]">{STYLES[s].detail}</span>
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="titre text-[20px] lg:text-[clamp(28px,2.500vw,44px)]">{STYLES[s].nom}</span>
+                    {style === s && <Coche className="h-7 w-7 shrink-0 lg:h-10 lg:w-10" />}
+                  </span>
+                  <span className="mt-1 block text-[13px] leading-tight lg:mt-2 lg:text-[18px]">{STYLES[s].detail}</span>
                   {/* Le rythme du style : longueur des plans */}
-                  <span className="mt-3 flex h-4 gap-1 lg:mt-6 lg:h-8 lg:gap-1.5" aria-hidden="true">
+                  <span className="mt-3 flex h-4 gap-1 lg:mt-5 lg:h-7 lg:gap-1.5" aria-hidden="true">
                     {RYTHMES[s].map((f, j) => (
-                      <span key={j} className={`rounded-md border-2 border-encre lg:rounded-lg  ${["bg-rose", "bg-blanc", "bg-turquoise"][j % 3]}`} style={{ flex: f }} />
+                      <span key={j} className={`rounded-md border-2 border-encre lg:rounded-lg ${style === s ? ["bg-rose", "bg-blanc", "bg-turquoise", "bg-orange"][j % 4] : "bg-beige"}`} style={{ flex: f }} />
                     ))}
                   </span>
-                  {style === s && <Coche className="absolute right-3 top-3 h-6 w-6 lg:right-6 lg:top-6 lg:h-11 lg:w-11" />}
                 </button>
               ))}
             </div>
@@ -434,16 +445,20 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
         gauche: (
           <>
             <Confettis />
-            <h1 className="titre text-center text-[38px] lg:text-left lg:text-[clamp(56px,min(6vw,11.4vh),120px)]">
-              <Mots>Ta vidéo est prête.</Mots>
-            </h1>
-            <div className="order-2 mt-4 flex flex-wrap justify-center gap-2 lg:order-none lg:mt-9 lg:justify-start lg:gap-3.5">
-              {["100 % ton jeu", "9:16", "1080 × 1920", STYLES[style].nom].map((t, i) => (
-                <span key={t} className={`pastille surgit lg:min-h-12 lg:px-5 lg:text-[19px] ${["bg-turquoise", "bg-blanc", "bg-blanc", "bg-jaune"][i]}`} style={{ "--d": `${700 + i * 130}ms` } as React.CSSProperties}>
-                  {t}
-                </span>
-              ))}
-            </div>
+            <Titre
+              fete
+              plus={
+                <div className="flex flex-wrap gap-1.5 pt-2 lg:gap-3 lg:pt-5">
+                  {["100 % ton jeu", "9:16", "1080 × 1920", STYLES[style].nom].map((t, i) => (
+                    <span key={t} className={`pastille surgit lg:min-h-11 lg:px-4 lg:text-[17px] ${["bg-turquoise", "bg-fond", "bg-fond", "bg-jaune"][i]}`} style={{ "--d": `${500 + i * 120}ms` } as React.CSSProperties}>
+                      {t}
+                    </span>
+                  ))}
+                </div>
+              }
+            >
+              <span className="block lg:text-[1.3em] lg:leading-[0.98]">Ta vidéo est prête.</span>
+            </Titre>
           </>
         ),
         droite: <Finale url={urlFinale} titre={titre} />,
@@ -558,7 +573,7 @@ function Finale({ url, titre }: { url: string; titre: string }) {
     v.play().catch(() => {});
   };
   return (
-    <button type="button" onClick={basculer} aria-label={muet ? "Activer le son" : "Couper le son"} className="relative order-1 mt-4 min-h-[320px] flex-1 lg:order-none lg:mt-0 lg:min-h-0">
+    <button type="button" onClick={basculer} aria-label={muet ? "Activer le son" : "Couper le son"} className="relative mt-4 min-h-[320px] flex-1 lg:mt-0 lg:min-h-0">
       <Telephone className="surgit absolute inset-0">
         <VideoPortrait url={url} titre={titre} lecteur={ref} />
       </Telephone>
@@ -591,36 +606,51 @@ function Fin({ entete, depart, url, titre, pseudo, fini, action }: { entete: Rea
       action={action}
       fond="turquoise"
       gauche={
-        <div className="order-1 flex flex-1 flex-col lg:order-none lg:flex-none">
+        <>
           {t >= 5 && <Confettis />}
-          <div className="mt-6 flex flex-col gap-3 lg:mt-0 lg:gap-5">
-            {depart.reseaux.map((r, i) => (
-              <div key={r} className={t >= 2 + i ? "" : "invisible"}>
-                <div key={String(t >= 2 + i)} className="carte-forte surgit relative z-20 flex items-center gap-3 bg-blanc p-3.5 lg:gap-6 lg:rounded-[30px] lg:p-8">
-                  <PictoReseau r={r} />
-                  <span className="min-w-0 flex-1">
-                    <span className="titre block text-[19px] lg:text-[clamp(26px,2.4vw,42px)]">{nomsReseaux([r])}</span>
-                    <span className="mt-1 block text-[13px] leading-snug text-encre2 lg:mt-2 lg:text-[18px]">
-                      <span className="inline-block">@{pseudo}</span> <span className="inline-block">· {depart.quand ?? "maintenant"}</span>
-                    </span>
-                  </span>
-                  <Coche className="h-7 w-7 shrink-0 lg:h-11 lg:w-11" />
-                </div>
+          <Titre
+            key={t >= 4 ? "ok" : "envoi"}
+            travaille={t < 4}
+            fete={t >= 4}
+            plus={
+              <div className="flex flex-col gap-2.5 pt-2 lg:gap-4 lg:pt-5">
+                {depart.reseaux.map((r, i) => {
+                  const fait = t >= 2 + i;
+                  return (
+                    <div key={r} className={`flex items-center gap-3 rounded-[18px] border-2 border-encre p-2.5 transition-colors duration-200 lg:gap-5 lg:rounded-[24px] lg:p-5 ${fait ? "bg-jaune" : "bg-fond"}`}>
+                      <PictoReseau r={r} />
+                      <span className="min-w-0 flex-1">
+                        <span className="titre block !text-[18px] lg:!text-[26px]">{nomsReseaux([r])}</span>
+                        <span className="mt-0.5 block text-[12px] font-medium leading-snug lg:mt-1 lg:text-[16px]">
+                          <span className="inline-block">@{pseudo}</span> <span className="inline-block">· {depart.quand ?? "maintenant"}</span>
+                        </span>
+                      </span>
+                      {fait ? <Coche className="surgit h-7 w-7 shrink-0 lg:h-10 lg:w-10" /> : <span className="clignote h-7 w-7 shrink-0 rounded-full border-2 border-encre bg-rose lg:h-10 lg:w-10" aria-hidden="true" />}
+                    </div>
+                  );
+                })}
               </div>
-            ))}
-          </div>
-        </div>
+            }
+          >
+            {t < 4 ? "Ça part." : depart.quand ? "C'est calé." : "C'est posté."}
+          </Titre>
+        </>
       }
       droite={
-        <div className="relative flex min-h-[300px] flex-1 items-center justify-center lg:min-h-0">
-          {t < 4 && (
-            <Telephone className={`absolute inset-x-0 inset-y-[3%] ${t >= 1 ? "envol" : ""}`}>
-              <VideoPortrait url={url} titre={titre} />
-            </Telephone>
-          )}
+        <div className="relative mt-3 min-h-[320px] flex-1 lg:mt-0 lg:min-h-0">
+          <Telephone key={t >= 4 ? "pose" : "vol"} className={`absolute inset-0 ${t >= 4 ? "surgit" : t >= 1 ? "envol" : ""}`}>
+            <VideoPortrait url={url} titre={titre} />
+          </Telephone>
           {t >= 4 && (
             <>
-              <p className="tampon titre relative z-30 whitespace-nowrap rounded-[22px] border-4 border-encre bg-rose px-5 py-3 text-[42px] shadow-[0_6px_0_var(--color-encre)] lg:rounded-[32px] lg:border-[6px] lg:px-9 lg:py-7 lg:text-[clamp(52px,5.8vw,112px)] lg:shadow-[0_12px_0_var(--color-encre)]">{depart.quand ? "Programmée !" : "Publiée !"}</p>
+              <span className="fin-coeurs" aria-hidden="true">
+                {[0, 1, 2, 3].map((i) => (
+                  <Coeur key={i} i={i} />
+                ))}
+              </span>
+              <span className="absolute inset-0 z-30 grid place-items-center">
+                <p className="tampon titre whitespace-nowrap rounded-[22px] border-4 border-encre bg-rose px-5 py-3 text-[44px] shadow-[0_6px_0_var(--color-encre)] lg:rounded-[32px] lg:border-[6px] lg:px-9 lg:py-7 lg:text-[clamp(52px,5.400vw,104px)] lg:shadow-[0_12px_0_var(--color-encre)]">{depart.quand ? "Programmée !" : "Publiée !"}</p>
+              </span>
             </>
           )}
         </div>

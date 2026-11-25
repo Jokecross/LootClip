@@ -76,7 +76,7 @@ export function Mots({ children }: { children: ReactNode }) {
 }
 
 /** La question, dite par le robot. `plus` : ce qui va dans la bulle, sous le texte. */
-export function Titre({ children, sous, plus, avant, id, travaille = false, xp: force }: { children: ReactNode; sous?: ReactNode; plus?: ReactNode; /** Petite ligne au-dessus. */ avant?: string; id?: string; travaille?: boolean; xp?: number }) {
+export function Titre({ children, sous, plus, avant, id, travaille = false, fete = false, xp: force }: { children: ReactNode; sous?: ReactNode; plus?: ReactNode; /** Petite ligne au-dessus. */ avant?: string; id?: string; travaille?: boolean; fete?: boolean; xp?: number }) {
   const avance = useContext(Avance);
   const xp = force ?? avance;
   return (
@@ -89,7 +89,7 @@ export function Titre({ children, sous, plus, avant, id, travaille = false, xp: 
         {sous && <p>{sous}</p>}
         {plus && <div className="plus">{plus}</div>}
       </div>
-      <Robot xp={xp} className={travaille ? "travaille" : "saute"} />
+      <Robot xp={xp} className={travaille ? "travaille" : fete ? "fete" : "saute"} />
     </div>
   );
 }

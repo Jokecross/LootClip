@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { Telephone } from "@/components/studio/Telephone";
 import { VideoPortrait } from "@/components/studio/VideoPortrait";
-import { Duo, Mots } from "@/components/ui/Duo";
+import { Duo, Titre } from "@/components/ui/Duo";
 import { Coche } from "@/components/ui/Parcours";
 import { Roulette } from "@/components/ui/Roulette";
 import { pop } from "@/lib/sons";
@@ -64,62 +64,66 @@ export function Publier({ entete, pseudo, url, titre, partir }: { url: string; t
       action={envoyer}
       fond={plus ? "turquoise" : "jaune"}
       gauche={
+        <Titre
+          plus={
+            <div className="grid grid-cols-2 gap-2.5 pt-2 lg:gap-4 lg:pt-6">
+              {(["tiktok", "instagram"] as Reseau[]).map((r, i) => {
+                const actif = reseaux.includes(r);
+                return (
+                  <button key={r} type="button" aria-pressed={actif} onClick={() => bascule(r)} style={{ "--d": `${i * 90}ms` } as React.CSSProperties} className="choix surgit !rounded-[20px] items-start gap-2 p-3 lg:gap-3 lg:!rounded-[26px] lg:p-5">
+                    <PictoReseau r={r} />
+                    <span className="min-w-0 max-w-full">
+                      <span className="titre block !text-[18px] lg:!text-[clamp(21px,1.700vw,28px)]">{NOMS[r]}</span>
+                      <span className="mt-1 block truncate text-[12px] lg:text-[16px]">@{pseudo}</span>
+                    </span>
+                    {actif && <Coche className="absolute right-3 top-3 h-7 w-7 lg:right-4 lg:top-4 lg:h-9 lg:w-9" />}
+                  </button>
+                );
+              })}
+            </div>
+          }
+        >
+          Tu postes où&nbsp;?
+        </Titre>
+      }
+      droite={
         <>
-          <div className="flex items-start justify-between gap-3 lg:flex-col-reverse lg:gap-3">
-            <h1 className="titre text-[32px] lg:text-[clamp(44px,4.6vw,88px)]"><Mots>Tu postes où ?</Mots></h1>
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-2.5 lg:mt-[min(32px,3vh)] lg:gap-4">
-            {(["tiktok", "instagram"] as Reseau[]).map((r, i) => {
-              const actif = reseaux.includes(r);
-              return (
-                <button key={r} type="button" aria-pressed={actif} onClick={() => bascule(r)} style={{ "--d": `${i * 90}ms` } as React.CSSProperties} className={`surgit relative flex min-w-0 flex-col items-start gap-2 p-3 text-left lg:gap-[min(16px,1.6vh)] lg:rounded-3xl lg:p-[min(24px,2.4vh)] ${actif ? "carte-forte bg-jaune" : "carte"}`}>
-                  <PictoReseau r={r} />
-                  <span className="min-w-0 max-w-full">
-                    <span className="titre block text-[17px] lg:text-[clamp(22px,1.9vw,32px)]">{NOMS[r]}</span>
-                    <span className="mt-1 block truncate text-[12px] text-encre2 lg:text-[16px]">@{pseudo}</span>
-                  </span>
-                  {actif && <Coche className="absolute right-3 top-3 h-6 w-6 lg:right-5 lg:top-5 lg:h-8 lg:w-8" />}
-                </button>
-              );
-            })}
-          </div>
-
-          <div className="mt-4 grid grid-cols-2 gap-1 rounded-[14px] border-2 border-encre bg-blanc p-1" role="radiogroup" aria-label="Moment de la publication">
-            {[true, false].map((v) => (
-              <button key={String(v)} type="button" role="radio" aria-checked={plus === v} onClick={() => (pop(0.5), setPlus(v))} className={`min-h-12 rounded-[10px] text-[15px] font-bold lg:min-h-14 lg:text-[18px] ${plus === v ? "bg-encre text-fond" : ""}`}>
-                {v ? "Programmer" : "Publier maintenant"}
-              </button>
-            ))}
-          </div>
-
-          {plus && (
-            <div className="mt-3 grid grid-cols-7 gap-1 lg:mt-4 lg:gap-2" role="radiogroup" aria-label="Jour">
-              {l.map((j, i) => (
-                <button key={i} type="button" role="radio" aria-checked={jour === i} onClick={() => (pop(i / 7), setJour(i))} className={`flex min-h-[54px] flex-col items-center justify-center rounded-xl border-2 lg:min-h-[min(76px,9vh)] lg:rounded-2xl ${jour === i ? "border-encre bg-rose shadow-[0_3px_0_var(--color-encre)]" : "border-beige bg-blanc"}`}>
-                  <span className="text-[11px] font-bold lg:text-[13px]">{j.court}</span>
-                  <span className="titre mt-0.5 text-[16px] lg:text-[22px]">{j.num}</span>
+          <div className="pt-4 lg:pt-0">
+            <div className="segment" role="radiogroup" aria-label="Moment de la publication">
+              {[true, false].map((v) => (
+                <button key={String(v)} type="button" role="radio" aria-checked={plus === v} onClick={() => (pop(0.5), setPlus(v))}>
+                  {v ? "Programmer" : "Publier maintenant"}
                 </button>
               ))}
             </div>
-          )}
-        </>
-      }
-      droite={
-        plus ? (
-          <>
-            <p className="titre my-3 text-center text-[44px] tabular-nums lg:hidden">{heure(minutes)}</p>
-            <Roulette nu label="Heure de publication" valeurs={HEURES} valeur={minutes} libelle={heure} changer={setMinutes} centre={<p className="titre pb-[8%] text-[clamp(60px,6.4vw,120px)] tabular-nums">{heure(minutes)}</p>} />
-          </>
+            {plus && (
+              <div className="mt-3 grid grid-cols-7 gap-1.5 lg:mt-4 lg:gap-2.5" role="radiogroup" aria-label="Jour">
+                {l.map((j, i) => (
+                  <button key={i} type="button" role="radio" aria-checked={jour === i} onClick={() => (pop(i / 7), setJour(i))} className={`flex min-h-[58px] flex-col items-center justify-center rounded-[14px] border-2 border-encre lg:min-h-[min(78px,9vh)] lg:rounded-[18px] ${jour === i ? "bg-rose" : "bg-blanc shadow-[0_3px_0_var(--color-encre)]"}`}>
+                    <span className="text-[12px] font-bold lg:text-[14px]">{j.court}</span>
+                    <span className="titre mt-0.5 text-[18px] lg:text-[24px]">{j.num}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+          {plus ? (
+            <>
+              <p className="titre my-2.5 text-center text-[48px] tabular-nums lg:hidden">{heure(minutes)}</p>
+              <div className="flex min-h-0 flex-1 lg:p-[clamp(24px,2.6vw,48px)] lg:pb-0">
+                <Roulette nu label="Heure de publication" valeurs={HEURES} valeur={minutes} libelle={heure} changer={setMinutes} centre={<p className="titre pb-[8%] text-[clamp(52px,5.400vw,96px)] tabular-nums">{heure(minutes)}</p>} />
+              </div>
+            </>
         ) : (
           <div className="relative flex min-h-[260px] flex-1 flex-col items-center justify-end text-center">
             <Telephone className="absolute inset-x-0 bottom-[88px] top-2 lg:bottom-[19%] lg:top-0">
               <VideoPortrait url={url} titre={titre} />
             </Telephone>
             <p className="titre relative z-20 text-[30px] lg:text-[clamp(44px,4.2vw,84px)]">Ça part tout de suite.</p>
-            <p className="relative z-20 mt-2 text-[15px] font-medium lg:mt-3 lg:text-[22px]">Une vidéo, {reseaux.length > 1 ? "deux comptes" : "un compte"}, un bouton.</p>
+            <p className="relative z-20 mt-2 text-[16px] font-bold lg:mt-3 lg:text-[22px]">Une vidéo, {reseaux.length > 1 ? "deux comptes" : "un compte"}, un bouton.</p>
           </div>
-        )
+          )}
+        </>
       }
     />
   );
