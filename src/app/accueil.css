@@ -171,7 +171,7 @@ html:has(.v4) { scroll-behavior: smooth; scroll-padding-top: 96px; }
 .v4 .pile span { position: absolute; left: 50%; top: 50%; width: 56%; max-width: 250px; border: var(--ep) solid var(--color-encre); border-radius: 18px; background: var(--color-encre); transform: translate(calc(-50% + (var(--i) - 1) * 46px), calc(-50% + (var(--i) - 1) * 44px)) rotate(calc((var(--i) - 1) * 4deg)); }
 .v4 .pile img { display: block; width: 100%; height: auto; border-radius: 15px; }
 .v4 .pile b { position: absolute; right: -12px; top: -12px; width: 38px; height: 38px; animation: coche 4.2s cubic-bezier(0.2, 1.4, 0.4, 1) infinite; animation-delay: calc(var(--i) * 0.45s); }
-.v4 .pile b svg { display: block; width: 100%; }
+.v4 .pile b svg { display: block; width: 100%; height: 100%; }
 @keyframes coche { 0%, 8% { transform: scale(0); } 18%, 82% { transform: scale(1); } 88%, 100% { transform: scale(0); } }
 .v4 .tel-carte { position: absolute; left: 50%; top: 26px; width: 168px; margin-left: -84px; padding: 7px; border-radius: 28px; }
 .v4 .publiee { position: absolute; left: 50%; top: 56%; padding: 10px 20px 13px; border: 3px solid var(--color-encre); border-radius: 18px; background: var(--color-rose); box-shadow: 0 5px 0 var(--color-encre); font-size: 34px; white-space: nowrap; animation: publiee 4.2s cubic-bezier(0.5, 0, 0.2, 1) infinite; }

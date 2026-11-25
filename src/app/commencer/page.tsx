@@ -6,13 +6,13 @@
  */
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
-import { SceneAccroche, ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
+import { ecranAccroche, ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
 import { Reseaux } from "@/components/onboarding/Reseaux";
 import { FormulaireCompte } from "@/components/compte/FormulaireCompte";
 import { Paywall } from "@/components/app/Paywall";
 import { Objet, precharger } from "@/components/objets/Objet";
 import { Logo } from "@/components/marque/Logo";
-import { Duo, Mots, Titre } from "@/components/ui/Duo";
+import { Duo, Titre } from "@/components/ui/Duo";
 import { Entete } from "@/components/ui/Parcours";
 import { MENTION_OBJECTIF, NON_AFFILIATION, ONBOARDING } from "@/lib/config";
 import { aAcces, modifier, sansOnboarding, useEtat } from "@/lib/etat";
@@ -134,30 +134,18 @@ function Onboarding() {
 
   const objectif = r.objectif ?? 0;
 
-  let contenu: { gauche: React.ReactNode; droite: React.ReactNode; fond?: string; large?: boolean } = { gauche: null, droite: null };
+  let contenu: { gauche: React.ReactNode; droite: React.ReactNode; fond?: string; large?: boolean; centre?: boolean } = { gauche: null, droite: null };
   let action: { libelle: string; faire: () => void; actif: boolean } | null = null;
   let pied: React.ReactNode = null;
 
   switch (ECRANS[n - 1]) {
     case "accroche":
-      contenu = {
-        gauche: (
-          <>
-            <h1 className="titre text-[38px] lg:text-[clamp(52px,min(5.6vw,10.4vh),112px)]">
-              <Mots>Tes parties de GTA 6 peuvent te payer.</Mots>
-            </h1>
-            <p className="mt-3 text-[16px] font-medium leading-snug text-encre2 lg:mt-7 lg:max-w-[28ch] lg:text-[clamp(20px,1.8vw,32px)]">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
-          </>
-        ),
-        droite: <SceneAccroche />,
-        fond: "jaune",
-        large: true,
-      };
+      contenu = ecranAccroche();
       action = { libelle: "Commencer", faire: suivant, actif: true };
       pied = (
         <>
-          <p className="mt-3 text-center text-[13px] font-bold">Sans engagement. Résiliation en deux clics.</p>
-          <p className="mt-2 text-center text-[11px] text-encre2">{NON_AFFILIATION}</p>
+          <p>Sans engagement. Résiliation en deux clics.</p>
+          <p>{NON_AFFILIATION}</p>
         </>
       );
       break;
@@ -165,7 +153,7 @@ function Onboarding() {
     case "principe":
       contenu = ecranPrincipe();
       action = { libelle: "C'est parti", faire: suivant, actif: true };
-      pied = <p className="mt-3 text-center text-[11px] text-encre2">{MENTION_PRINCIPE}</p>;
+      pied = <p>{MENTION_PRINCIPE}</p>;
       break;
 
     case "console":
@@ -186,21 +174,21 @@ function Onboarding() {
     case "heures":
       contenu = ecranHeures({ r, repondre });
       action = { libelle: "Voir mon plan", faire: suivant, actif: !!r.frequence };
-      pied = <p className="mt-3 text-center text-[11px] text-encre2">{REPERE_HEURES}</p>;
+      pied = <p>{REPERE_HEURES}</p>;
       break;
 
     case "plan":
       if (objectif && r.frequence) contenu = ecranPlan({ objectif, frequence: r.frequence });
       action = { libelle: etat.compte ? "Continuer" : "Créer mon compte", faire: suivant, actif: !!objectif && !!r.frequence };
-      pied = <p className="mt-3 text-center text-[11px] text-encre2">{MENTION_OBJECTIF}</p>;
+      pied = <p>{MENTION_OBJECTIF}</p>;
       break;
 
     case "compte":
       contenu = {
         gauche: <Titre sous="Pour garder ton plan et tes vidéos.">Crée ton compte.</Titre>,
         droite: (
-          <div className="relative flex flex-1 flex-col lg:m-auto lg:w-full lg:max-w-[560px] lg:flex-none lg:rounded-3xl lg:border-2 lg:border-encre lg:bg-fond lg:p-10">
-            <Objet nom="cadenas" className="absolute -top-[84px] right-1 h-[84px] w-[70px] lg:-right-[70px] lg:-top-[96px] lg:h-[150px] lg:w-[120px]" />
+          <div className="bloc compte-carte relative mt-5 flex flex-col bg-blanc p-5 lg:m-auto lg:w-full lg:max-w-[600px] lg:p-10">
+            <Objet nom="cadenas" className="absolute -right-[52px] -top-[76px] hidden h-[140px] w-[118px] lg:block" />
             <FormulaireCompte mode="inscription" retour={`/commencer?e=${RESEAUX}`} valider={creerCompte} />
           </div>
         ),
@@ -214,25 +202,23 @@ function Onboarding() {
         droite: (
           <>
           <input ref={galerie} type="file" accept="video/*" multiple className="sr-only" onChange={(e) => aDesClips(e.target.files)} />
-          <div className="flex flex-col gap-3 lg:flex-1 lg:gap-6">
-            <button type="button" onClick={() => galerie.current?.click()} className="option min-h-[72px] lg:flex-1 lg:rounded-3xl lg:px-10 lg:shadow-[0_6px_0_var(--color-encre)] lg:hover:-translate-y-1">
-              <span>
-                <span className="titre block text-[18px] font-bold tracking-[-0.01em] lg:text-[clamp(28px,2.6vw,48px)] lg:font-extrabold lg:tracking-[-0.03em]">Oui, je les dépose</span>
-                <span className="mt-0.5 block text-[13px] text-encre2 lg:mt-3 lg:text-[18px]">Ta galerie s&apos;ouvre tout de suite.</span>
-              </span>
-              <Fleche />
-            </button>
-            <button type="button" onClick={pasDeClips} className="option min-h-[72px] lg:flex-1 lg:rounded-3xl lg:px-10 lg:shadow-[0_6px_0_var(--color-encre)] lg:hover:-translate-y-1">
-              <span>
-                <span className="titre block text-[18px] font-bold tracking-[-0.01em] lg:text-[clamp(28px,2.6vw,48px)] lg:font-extrabold lg:tracking-[-0.03em]">Non, montre-moi comment</span>
-                <span className="mt-0.5 block text-[13px] text-encre2 lg:mt-3 lg:text-[18px]">3 étapes, sur ta console puis ton téléphone.</span>
-              </span>
-              <Fleche />
-            </button>
+          <div className="mt-6 flex flex-1 flex-col justify-center gap-4 lg:mt-0 lg:gap-7">
+            {[
+              { titre: "Oui, je les dépose", texte: "Ta galerie s'ouvre tout de suite.", faire: () => galerie.current?.click() },
+              { titre: "Non, montre-moi comment", texte: "3 étapes, sur ta console puis ton téléphone.", faire: pasDeClips },
+            ].map((o) => (
+              <button key={o.titre} type="button" onClick={o.faire} className="choix !flex-row items-center justify-between gap-4 p-5 lg:px-10 lg:py-12">
+                <span>
+                  <span className="titre block text-[23px] lg:text-[clamp(30px,2.800vw,50px)]">{o.titre}</span>
+                  <span className="mt-1.5 block text-[14px] lg:mt-3 lg:text-[20px]">{o.texte}</span>
+                </span>
+                <Fleche />
+              </button>
+            ))}
           </div>
           </>
         ),
-        fond: "lg:bg-turquoise",
+        fond: "jaune",
       };
       break;
   }

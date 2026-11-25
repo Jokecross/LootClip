@@ -1,12 +1,17 @@
 "use client";
 /*
- * V3. Les écrans de l'onboarding et du studio.
- * Téléphone : une colonne crème, bouton en bas. Ordinateur : la question à gauche, la scène dans un panneau de couleur douce à droite.
+ * Un écran du parcours (onboarding et studio), dans l'univers de l'accueil V4.
+ * Une couleur pleine, une barre d'XP en haut, un sol en bas avec le bouton.
+ * Le robot pose la question. Téléphone : une colonne. Ordinateur : la question à gauche, la réponse à droite.
  */
-import { type ReactNode } from "react";
+import "@/app/accueil.css";
+import "./parcours.css";
+import { createContext, isValidElement, useContext, type ReactNode } from "react";
+import { Robot } from "@/components/accueil/Robot";
 import { Logo } from "@/components/marque/Logo";
 
 const COULEURS = ["jaune", "rose", "turquoise", "orange"] as const;
+const Avance = createContext(1);
 
 export function Duo({
   cle,
@@ -18,48 +23,47 @@ export function Duo({
   fond = "",
   marque = false,
   large = false,
+  centre = false,
 }: {
   /** Change à chaque écran : relance l'animation d'entrée. */
   cle: string | number;
-  entete: React.ReactNode;
-  gauche: React.ReactNode;
-  droite: React.ReactNode;
-  action?: React.ReactNode;
-  pied?: React.ReactNode;
-  /** Couleur de l'écran (« lg:bg-jaune » ou « jaune »). Vide : orange. */
+  entete: ReactNode;
+  gauche: ReactNode;
+  droite: ReactNode;
+  action?: ReactNode;
+  pied?: ReactNode;
+  /** Couleur de l'écran : jaune, rose, turquoise ou orange. Vide : crème. */
   fond?: string;
   /** Affiche le logo à côté de la progression, sur ordinateur. */
   marque?: boolean;
-  /** La scène prend plus de place. */
+  /** La réponse prend plus de place. */
   large?: boolean;
+  /** Tout au milieu, la scène posée sur le sol. */
+  centre?: boolean;
 }) {
   const couleur = COULEURS.find((c) => fond.includes(c));
+  const p = isValidElement<{ n?: number; total?: number }>(entete) ? entete.props : {};
   return (
-    <main
-      className={`v3 relative mx-auto flex min-h-dvh max-w-[480px] flex-col overflow-x-clip px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(14px,env(safe-area-inset-top))] lg:grid lg:min-h-[max(100dvh,620px)] lg:max-w-[1800px] lg:grid-rows-[auto_minmax(16px,1fr)_auto_auto_minmax(32px,1fr)] lg:gap-x-[4vw] lg:py-[min(28px,3vh)] lg:pl-[4vw] lg:pr-7 ${
-        large ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,1.45fr)]" : "lg:grid-cols-[minmax(0,1fr)_minmax(0,1.25fr)]"
-      }`}
-    >
-      <div className="relative z-20 lg:col-start-1 lg:row-start-1 lg:flex lg:items-center lg:gap-6">
-        {marque && (
-          <span className="hidden lg:block">
-            <Logo taille={34} />
-          </span>
-        )}
-        <div className="lg:min-w-0 lg:flex-1">{entete}</div>
-      </div>
-      <div key={cle} className="mt-5 flex flex-1 flex-col lg:contents">
-        <div className="contents lg:relative lg:z-20 lg:col-start-1 lg:row-start-3 lg:flex lg:min-w-0 lg:flex-col [&>*]:max-lg:relative [&>*]:max-lg:z-20">{gauche}</div>
-        <div
-          className={`contents lg:relative lg:col-start-2 lg:row-span-full lg:row-start-1 lg:mb-2 lg:flex lg:min-h-0 lg:min-w-0 lg:flex-col ${couleur ? "lg:rounded-[36px] lg:bg-(--panneau) lg:p-[clamp(24px,2.6vw,48px)]" : ""}`}
-          style={{ "--panneau": couleur ? `var(--p-${couleur})` : undefined } as React.CSSProperties}
-        >
-          {droite}
+    <Avance.Provider value={p.n && p.total ? p.n / p.total : 1}>
+      <main className={`v4 v3 etape ${large ? "etape-large" : ""} ${centre ? "etape-centre" : ""}`} style={{ "--page": couleur ? `var(--color-${couleur})` : "var(--color-fond)" } as React.CSSProperties}>
+        <div className="etape-tete">
+          {marque && (
+            <span className="hidden lg:block">
+              <Logo taille={36} />
+            </span>
+          )}
+          <div className="min-w-0 flex-1">{entete}</div>
         </div>
-      </div>
-      {action && <div className="relative z-20 pt-6 lg:col-start-1 lg:row-start-4 lg:pt-[min(40px,4.4vh)] lg:[&_.bouton]:h-[min(68px,8.4vh)] lg:[&_.bouton]:max-w-[420px] lg:[&_.bouton]:rounded-[18px] lg:[&_.bouton]:text-[21px]">{action}</div>}
-      {pied && <div className="relative z-20 lg:col-start-1 lg:row-start-5 lg:self-end [&_p]:lg:text-left [&_p]:lg:text-[13px]">{pied}</div>}
-    </main>
+        <div key={cle} className="etape-corps">
+          <div className="etape-gauche">{gauche}</div>
+          <div className="etape-droite">{droite}</div>
+        </div>
+        <div className={`etape-sol ${action ? "" : "etape-sol-mince"}`}>
+          {action && <div className="etape-action">{action}</div>}
+          {pied && <div className="etape-pied">{pied}</div>}
+        </div>
+      </main>
+    </Avance.Provider>
   );
 }
 
@@ -68,14 +72,17 @@ export function Mots({ children }: { children: ReactNode }) {
   return <span className="arrivee block">{children}</span>;
 }
 
-/** Le grand titre d'un écran. */
-export function Titre({ children, sous }: { children: React.ReactNode; sous?: string }) {
+/** La question, dite par le robot. `plus` : ce qui va dans la bulle, sous le texte. */
+export function Titre({ children, sous, plus }: { children: ReactNode; sous?: string; plus?: ReactNode }) {
+  const xp = useContext(Avance);
   return (
-    <div className="mb-5 lg:mb-0">
-      <h1 className="titre text-[32px] lg:text-[clamp(42px,min(4.8vw,8.4vh),96px)]">
-        <Mots>{children}</Mots>
-      </h1>
-      {sous && <p className="mt-2 text-[14px] text-encre2 lg:mt-[min(24px,2.8vh)] lg:text-[clamp(18px,1.5vw,26px)] lg:leading-snug">{sous}</p>}
+    <div className="dit">
+      <div className="bulle arrivee">
+        <h1 className="titre">{children}</h1>
+        {sous && <p>{sous}</p>}
+        {plus && <div className="plus">{plus}</div>}
+      </div>
+      <Robot xp={xp} className="saute" />
     </div>
   );
 }

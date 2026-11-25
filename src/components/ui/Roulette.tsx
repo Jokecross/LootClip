@@ -344,7 +344,7 @@ export function Roulette({
   return (
     <div
       ref={boite}
-      className={nu ? "relative -mx-4 max-h-[330px] min-h-[200px] flex-1 overflow-hidden lg:-m-[clamp(24px,2.6vw,48px)] lg:rounded-[36px] lg:max-h-none lg:min-h-[300px]" : "carte-forte relative max-h-[320px] min-h-[220px] flex-1 overflow-hidden bg-nuit2 lg:max-h-none lg:min-h-[300px] lg:rounded-[32px] lg:shadow-[0_8px_0_var(--color-encre)]"}
+      className={nu ? "roue-nue relative -mx-4 max-h-[330px] min-h-[200px] flex-1 overflow-hidden lg:-m-[clamp(24px,2.6vw,48px)] lg:rounded-[36px] lg:max-h-none lg:min-h-[300px]" : "carte-forte relative max-h-[320px] min-h-[220px] flex-1 overflow-hidden bg-nuit2 lg:max-h-none lg:min-h-[300px] lg:rounded-[32px] lg:shadow-[0_8px_0_var(--color-encre)]"}
     >
       <canvas
         ref={toile}

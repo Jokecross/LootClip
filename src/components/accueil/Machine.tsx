@@ -17,7 +17,7 @@ const TEMPS = [3600, 2500, 5600];
 // À chaque tour, un autre clip : le même passe de la télé au téléphone.
 const CLIPS = ["drole", "defi", "mission"];
 
-export function Machine() {
+export function Machine({ nue = false }: { /** Sans les trois mots du sol (onboarding) : sur téléphone, la télé est cachée et son temps sauté. */ nue?: boolean }) {
   const [pas, setPas] = useState(0);
   const phase = pas % 3;
   const tour = Math.floor(pas / 3) % CLIPS.length;
@@ -33,9 +33,9 @@ export function Machine() {
   }, []);
   useEffect(() => {
     if (!vue || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setTimeout(() => setPas((p) => p + 1), TEMPS[phase]);
+    const id = setTimeout(() => setPas((p) => p + 1), nue && phase === 0 && innerWidth < 1024 ? 250 : TEMPS[phase]);
     return () => clearTimeout(id);
-  }, [phase, pas, vue]);
+  }, [phase, pas, vue, nue]);
   return (
     <>
     <div ref={boite} className="machine" data-phase={phase} aria-hidden="true">
@@ -101,13 +101,13 @@ export function Machine() {
         <Objet nom="pieces-3" className="m-pieces max-lg:hidden" bas />
       </div>
     </div>
-    <ol className="sol">
+    {!nue && <ol className="sol">
       {["Tu joues", "XPclip monte", "Tu postes"].map((x, i) => (
         <li key={x} className={phase === i ? "actif" : ""}>
           {x}
         </li>
       ))}
-    </ol>
+    </ol>}
     </>
   );
 }

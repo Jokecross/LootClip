@@ -4,7 +4,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Objet, Pieces, type NomObjet } from "@/components/objets/Objet";
-import { Montre } from "@/components/objets/Montre";
+import { Machine } from "@/components/accueil/Machine";
 import { Mots, Titre } from "@/components/ui/Duo";
 import { Coche } from "@/components/ui/Parcours";
 import { Roulette } from "@/components/ui/Roulette";
@@ -30,18 +30,25 @@ function palier(objectif: number) {
  * Chaque écran rend sa partie gauche (la question) et sa partie droite (la scène),
  * posées par <Duo> : l'une sous l'autre sur téléphone, côte à côte sur ordinateur.
  */
-export type Parties = { gauche: React.ReactNode; droite: React.ReactNode; fond?: string; large?: boolean };
+export type Parties = { gauche: React.ReactNode; droite: React.ReactNode; fond?: string; large?: boolean; centre?: boolean };
 
 export const MENTION_PRINCIPE = "Tout dépend de tes vues. Aucun revenu n'est garanti.";
 
-/** L'accroche : le téléphone qui joue une vidéo, la manette devant. */
-export function SceneAccroche() {
-  return (
-    <div className="relative mt-6 min-h-[300px] flex-1 rounded-[28px] bg-(--p-jaune) lg:mt-0 lg:min-h-0 lg:bg-transparent">
-      <Montre nom="plage" icones className="absolute inset-x-[20%] inset-y-[5%] lg:inset-x-[22%] lg:inset-y-[1%]" />
-      <Objet nom="manette" className="absolute bottom-[2%] left-[1%] h-[38%] w-[52%] lg:bottom-[0%] lg:left-[-3%] lg:h-[37%] lg:w-[49%]" />
-    </div>
-  );
+/** L'accroche : la promesse, et la machine posée sur le sol. */
+export function ecranAccroche(): Parties {
+  return {
+    gauche: (
+      <div className="arrivee relative z-10">
+        <h1 className="titre">
+          Tes parties de GTA&nbsp;6 peuvent te <span className="mot-fort">payer.</span>
+        </h1>
+        <p className="etape-sous">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
+      </div>
+    ),
+    droite: <Machine nue />,
+    fond: "jaune",
+    centre: true,
+  };
 }
 
 /** Le principe, avant les questions : ce sont ses parties à lui, pas les vidéos des autres. */
@@ -49,51 +56,59 @@ export function ecranPrincipe(): Parties {
   return {
     gauche: (
       <>
-        <span className="pastille w-fit bg-turquoise lg:min-h-9 lg:px-4 lg:text-[16px]">100 % tes propres clips</span>
-        <div className="mt-3 lg:mt-6">
-          <Titre sous="Pas de vidéo YouTube reprise. Que tes parties à toi.">
-            Ton jeu. <br className="hidden lg:block" />
-            Tes clips. <br className="hidden lg:block" />
-            Ton argent.
-          </Titre>
-        </div>
+<Titre sous="Pas de vidéo YouTube reprise. Que tes parties à toi.">
+          <span className="whitespace-nowrap">Ton jeu. <br className="max-lg:hidden" />Tes clips.</span> <br />Ton argent.
+        </Titre>
       </>
     ),
-    droite: <Machine />,
+    droite: <Gestes />,
     fond: "turquoise",
     large: true,
   };
 }
 
-/** La machine : la manette lance des clips dans le téléphone, les pièces s'empilent. */
-function Machine() {
-  const etapes = [
-    { titre: "Tu joues à GTA 6", texte: "Sur ta PS5 ou ta Xbox.", fond: "bg-blanc" },
-    { titre: "Tu gardes tes meilleurs moments", texte: "Un bouton sur ta manette.", fond: "bg-blanc" },
-    { titre: "XPclip monte tes vidéos", texte: "Prêtes en une minute environ.", fond: "bg-blanc" },
-    { titre: "Tu postes, tes vues peuvent payer", texte: "Sur TikTok et Instagram.", fond: "bg-jaune" },
-  ];
-  const scenes: React.ReactNode[] = [
-    <Objet key="a" nom="manette" className="absolute inset-x-[8%] inset-y-[6%]" />,
-    <span key="b">
-      <Objet nom="clip-b" className="absolute bottom-[10%] left-[6%] h-[58%] w-[58%]" />
-      <Objet nom="clip-a" className="absolute right-[4%] top-[4%] h-[58%] w-[58%]" />
-    </span>,
-    <Montre key="c" nom="route" fixe className="absolute inset-x-[4%] inset-y-[-2%] lg:inset-y-[-3%]" />,
-    <Pieces key="d" part={0.7} className="absolute inset-x-[10%] bottom-[8%] top-[10%]" />,
+/** Le principe en quatre vignettes. */
+function Gestes() {
+  const gestes: { titre: string; fond: string; vue: React.ReactNode }[] = [
+    { titre: "Tu joues à GTA 6", fond: "bg-jaune", vue: <Objet nom="manette" className="absolute inset-x-[16%] inset-y-[10%]" /> },
+    {
+      titre: "Tu gardes tes meilleurs moments",
+      fond: "bg-orange",
+      vue: (
+        <div className="pile">
+          {["chien", "canard", "saut"].map((n, i) => (
+            <span key={n} style={{ "--i": i } as React.CSSProperties}>
+              <img src={`/v4/${n}.webp`} alt="" width={480} height={270} />
+              <b>
+                <Coche className="h-full w-full" />
+              </b>
+            </span>
+          ))}
+        </div>
+      ),
+    },
+    {
+      titre: "XPclip monte tes vidéos",
+      fond: "bg-rose",
+      vue: (
+        <div className="tel-carte">
+          <div className="m-tel-ecran">
+            <img src="/v4/clips/drole.webp" alt="" width={432} height={768} className="absolute inset-0 h-full w-full object-cover" />
+          </div>
+        </div>
+      ),
+    },
+    { titre: "Tu postes, tes vues peuvent payer", fond: "bg-blanc", vue: <Pieces part={0.7} className="absolute inset-x-[14%] bottom-[14%] top-[16%]" /> },
   ];
   return (
-    <ol className="relative grid min-h-0 flex-1 grid-cols-2 gap-x-3 gap-y-2 lg:gap-x-8 lg:gap-y-4 lg:py-2">
-      {etapes.map((e, i) => (
-        <li key={e.titre} className="relative flex min-h-[150px] flex-col max-lg:[@media(max-height:720px)]:min-h-[128px] lg:min-h-0">
-          <span className="relative block flex-1">{scenes[i]}</span>
-          <span className={`surgit carte relative z-20 flex items-center gap-2.5 p-2.5 lg:gap-5 lg:rounded-2xl lg:px-5 lg:py-[min(16px,1.8vh)] ${e.fond}`} style={{ "--d": `${80 + i * 90}ms` } as React.CSSProperties}>
-            <span className="titre text-[26px] leading-none lg:text-[clamp(32px,3vw,60px)]">{i + 1}</span>
-            <span className="min-w-0">
-              <span className="titre block text-[14px] leading-[1.05] lg:text-[clamp(17px,1.4vw,28px)]">{e.titre}</span>
-              <span className="mt-1 hidden text-[clamp(14px,1.05vw,19px)] font-medium lg:block">{e.texte}</span>
-            </span>
-          </span>
+    <ol className="gestes">
+      {gestes.map((g, i) => (
+        <li key={g.titre} className="bloc surgit bg-blanc" style={{ "--d": `${60 + i * 80}ms` } as React.CSSProperties}>
+          <div className={`gestes-vue ${g.fond}`}>
+            <span className="numero titre">{i + 1}</span>
+            {g.vue}
+          </div>
+          <p>{g.titre}</p>
         </li>
       ))}
     </ol>
@@ -114,7 +129,7 @@ export function ecranConsole({ r, repondre }: Props): Parties {
         choisir={(v) => repondre({ plateforme: v as Profil["plateforme"] })}
       />
     ),
-    fond: "turquoise",
+    fond: "orange",
   };
 }
 
@@ -173,10 +188,9 @@ export function ecranObjectif({ r, repondre }: Props): Parties {
             </div>
           }
         />
-        <Pieces part={part} className="absolute bottom-[28%] left-[34%] right-[34%] hidden h-[16%] lg:block" />
       </>
     ),
-    fond: "rose",
+    fond: "orange",
   };
 }
 
@@ -187,15 +201,26 @@ export function ecranHeures({ r, repondre }: Props): Parties {
   return {
     gauche: (
       <>
-        <Titre sous="Plus tu joues, plus tu as de quoi poster.">Tu joues combien d&apos;heures par semaine ?</Titre>
-        <div className="my-auto flex items-center justify-between gap-4 pb-4 lg:mt-[min(40px,4.4vh)] lg:mb-0 lg:justify-start lg:gap-10 lg:pb-0">
-          <div>
-            <div className="lg:hidden">
-              <Grand cle={heures}>{heures}&nbsp;h</Grand>
+        <Titre
+          sous="Plus tu joues, plus tu as de quoi poster."
+          plus={
+            <div className="mt-6 hidden items-center gap-8 lg:flex">
+              <Semaine n={parSemaine} />
+              <p className="titre !mt-0 whitespace-nowrap !text-[clamp(28px,2.600vw,46px)] !text-encre">
+                {videos(parSemaine)}
+                <span className="mt-1 block text-[18px] font-medium tracking-normal [font-family:var(--font-texte)]">par semaine</span>
+              </p>
             </div>
-            <p className="mt-2.5 text-[15px] font-bold leading-tight lg:mt-0 lg:whitespace-nowrap lg:text-[clamp(30px,2.9vw,56px)] lg:[font-family:var(--font-titre)] lg:font-extrabold lg:tracking-[-0.03em]">
+          }
+        >
+          Tu joues combien d&apos;heures par semaine&nbsp;?
+        </Titre>
+        <div className="my-auto flex items-center justify-between gap-4 py-3 lg:hidden">
+          <div>
+            <Grand cle={heures}>{heures}&nbsp;h</Grand>
+            <p className="mt-2 text-[16px] font-bold leading-tight">
               {videos(parSemaine)}
-              <span className="block text-[13px] font-normal text-encre2 lg:mt-1 lg:text-[20px] lg:font-medium lg:tracking-normal lg:[font-family:var(--font-texte)]">par semaine</span>
+              <span className="block text-[14px] font-medium">par semaine</span>
             </p>
           </div>
           <Semaine n={parSemaine} />
@@ -227,29 +252,25 @@ export function ecranPlan({ objectif, frequence }: { objectif: number; frequence
   const p = plan(objectif, frequence);
   const apparait = (ms: number) => ({ "--d": `${ms}ms` }) as React.CSSProperties;
   const signe = "surgit absolute z-30 grid h-10 w-10 place-items-center rounded-full border-2 border-encre bg-fond text-[24px] font-extrabold leading-none lg:h-[56px] lg:w-[56px] lg:text-[34px]";
-  const carte = "surgit carte relative z-20 flex flex-col justify-center px-3.5 py-3 lg:rounded-3xl lg:px-8 lg:py-5";
+  const carte = "surgit bloc relative z-20 flex flex-col justify-center px-3.5 py-3 lg:px-8 lg:py-5";
   const petit = "text-[12px] font-bold leading-tight lg:text-[clamp(16px,1.35vw,24px)]";
-  const gros = "titre mt-1 whitespace-nowrap text-[26px] tabular-nums lg:mt-[min(8px,1vh)] lg:text-[clamp(38px,min(4vw,7.4vh),84px)]";
+  const gros = "titre mt-1 whitespace-nowrap text-[26px] tabular-nums lg:mt-[min(8px,1vh)] lg:text-[clamp(34px,min(3.600vw,7.200vh),62px)]";
   const note = "mt-1 text-[11px] leading-snug lg:mt-[min(8px,1vh)] lg:text-[clamp(14px,1.15vw,20px)] font-medium";
   return {
     gauche: (
       <>
-        <span className="pastille w-fit bg-turquoise lg:min-h-9 lg:px-4 lg:text-[16px]">Ton plan</span>
-        <h1 className="titre mt-3 text-[28px] lg:mt-6 lg:text-[clamp(40px,min(4.5vw,7.6vh),88px)]">
-          <Mots>{`Voilà comment viser ${nombre(objectif)}\u00a0€ par mois.`}</Mots>
-        </h1>
-        <p className="mt-2 text-[14px] font-medium leading-snug text-encre2 max-lg:[@media(max-height:720px)]:hidden lg:mt-6 lg:max-w-[34ch] lg:text-[clamp(18px,1.5vw,26px)]">On place la barre 6 % plus haut, pour dépasser ton objectif.</p>
+        <Titre sous="On place la barre 6 % plus haut, pour dépasser ton objectif.">{`Voilà comment viser ${nombre(objectif)}\u00a0€ par mois.`}</Titre>
       </>
     ),
     droite: (
-      <div className="mt-4 flex flex-1 flex-col max-lg:[@media(max-height:720px)]:mt-2 lg:mt-0 lg:min-h-0 lg:justify-center">
+      <div className="mt-5 flex flex-1 flex-col max-lg:[@media(max-height:720px)]:mt-3 lg:mt-0 lg:min-h-0 lg:justify-center">
         <div className="relative grid grid-cols-2 gap-3 lg:gap-7">
-          <div className={`${carte} bg-blanc lg:min-h-[min(210px,25vh)]`} style={apparait(250)}>
+          <div className={`${carte} bg-blanc lg:min-h-[min(210px,25vh)]`} style={apparait(120)}>
             <p className={petit}>Tu postes tes clips</p>
             <p className={gros}>{videos(p.parMois)}</p>
             <p className={note}>par mois, {frequence} par semaine</p>
           </div>
-          <div className={`${carte} bg-blanc lg:min-h-[min(210px,25vh)]`} style={apparait(800)}>
+          <div className={`${carte} bg-blanc lg:min-h-[min(210px,25vh)]`} style={apparait(260)}>
             <p className={petit}>Objectif par vidéo</p>
             <p className={gros}>
               <span className="text-[0.46em] font-bold tracking-normal">environ </span>
@@ -259,7 +280,7 @@ export function ecranPlan({ objectif, frequence }: { objectif: number; frequence
               avec {vuesLisibles(p.vuesParVideoMin)} à {vuesLisibles(p.vuesParVideoMax)} {p.vuesParVideoMax >= 1_000_000 ? "de vues" : "vues"}
             </p>
           </div>
-          <span className={`${signe} left-1/2 top-1/2 -ml-5 -mt-5 lg:-ml-7 lg:-mt-7`} style={apparait(800)} aria-label="fois">
+          <span className={`${signe} left-1/2 top-1/2 -ml-5 -mt-5 lg:-ml-7 lg:-mt-7`} style={apparait(260)} aria-label="fois">
             ×
           </span>
         </div>
@@ -277,14 +298,14 @@ export function ecranPlan({ objectif, frequence }: { objectif: number; frequence
 function Total({ objectif, booste, signe, carte, petit, note, children }: { objectif: number; booste: number; signe: string; carte: string; petit: string; note: string; children: React.ReactNode }) {
   return (
     <div className="relative mt-6 flex min-h-[170px] flex-1 flex-col justify-end lg:mt-10 lg:min-h-0 lg:max-h-[52vh]">
-            <div className={`${carte} bg-rose pb-4 pt-6 lg:pb-8 lg:pt-12`} style={{ "--d": "1350ms" } as React.CSSProperties}>
-        <Pieces part={0.3 + booste / 4000} className="absolute bottom-full left-[30%] right-[6%] -mb-2 h-[88px] lg:left-[40%] lg:-mb-3 lg:h-[min(22vh,200px)]" />
-        <span className={signe} style={{ "--d": "1350ms" } as React.CSSProperties} aria-label="égale">
+            <div className={`${carte} bg-rose pb-4 pt-6 lg:pb-8 lg:pt-12`} style={{ "--d": "420ms" } as React.CSSProperties}>
+        <Pieces part={0.3 + booste / 4000} className="plan-pieces absolute bottom-full left-[30%] right-[6%] -mb-2 h-[88px] lg:left-[40%] lg:-mb-3 lg:h-[min(22vh,200px)]" />
+        <span className={signe} style={{ "--d": "420ms" } as React.CSSProperties} aria-label="égale">
           =
         </span>
         <p className={petit}>Ton objectif par mois</p>
         <p className="titre mt-1 whitespace-nowrap text-[52px] leading-[0.9] tabular-nums lg:mt-[min(10px,1.2vh)] lg:text-[clamp(60px,min(8vw,15vh),170px)]">
-          <Compteur de={objectif} vers={booste} attente={1700} />&nbsp;€
+          <Compteur de={objectif} vers={booste} attente={800} />&nbsp;€
         </p>
         <p className={note}>{children}</p>
       </div>
@@ -295,11 +316,11 @@ function Total({ objectif, booste, signe, carte, petit, note, children }: { obje
 /** 75,7 → « 76 € » ; 1,4 → « 1,40 € » */
 const euros = (n: number) => (n >= 10 ? `${nombre(Math.round(n))} €` : `${n.toFixed(2).replace(".", ",")} €`);
 
-/** Cartes de choix : l'objet déborde de la carte, le choisi bondit, les autres se couchent. */
+/** Cartes de choix : la carte choisie s'enfonce, comme une touche. */
 function Choix({ options, valeur, choisir, label }: { options: { valeur: string; libelle: string; indice?: string; scene: React.ReactNode; fond: string }[]; valeur?: string; choisir: (v: string) => void; label: string }) {
   const trois = options.length > 2;
   return (
-    <div className={`grid min-h-[270px] flex-1 gap-2.5 pt-4 lg:min-h-0 lg:gap-6 lg:py-[min(5vh,56px)] ${trois ? "my-auto max-h-[430px] w-full grid-cols-3 lg:my-0 lg:max-h-none" : "max-lg:max-h-[480px] auto-rows-fr lg:auto-rows-auto lg:grid-cols-2"}`} role="radiogroup" aria-label={label}>
+    <div className={`grid min-h-[250px] flex-1 gap-3 pt-5 lg:min-h-0 lg:gap-7 lg:py-0 ${trois ? "w-full grid-cols-3" : "auto-rows-fr lg:auto-rows-auto lg:grid-cols-2"}`} role="radiogroup" aria-label={label}>
       {options.map((o, i) => {
         const actif = valeur === o.valeur;
         return (
@@ -313,9 +334,7 @@ function Choix({ options, valeur, choisir, label }: { options: { valeur: string;
               choisir(o.valeur);
             }}
             style={{ "--d": `${i * 110}ms` } as React.CSSProperties}
-            className={`surgit relative flex min-w-0 flex-col overflow-hidden rounded-[20px] border-2 border-encre text-left transition-[transform,box-shadow,background-color] duration-200 ease-out lg:rounded-[28px] ${
-              actif ? "bg-jaune shadow-[0_5px_0_var(--color-encre)] lg:shadow-[0_8px_0_var(--color-encre)]" : `${o.fond} hover:-translate-y-1`
-            }`}
+            className={`choix surgit ${actif ? "" : o.fond}`}
           >
             <span className={`block min-h-0 flex-1 ${trois ? "relative" : "absolute inset-0 left-[38%] lg:relative lg:inset-auto"}`}>{o.scene}</span>
             <span className={`relative z-20 ${trois ? "" : "mt-auto"} block px-3 pb-3.5 lg:px-7 lg:pb-7 ${trois ? "min-h-[74px] lg:min-h-[120px]" : ""}`}>
@@ -341,7 +360,7 @@ function Grand({ children, cle }: { children: React.ReactNode; cle: number }) {
     ref.current?.animate([{ transform: "scale(1.09)" }, { transform: "scale(1)" }], { duration: 160, easing: "ease-out" });
   }, [cle]);
   return (
-    <p ref={ref} className="titre whitespace-nowrap text-[64px] tabular-nums [@media(min-height:780px)]:text-[min(84px,21vw)] lg:!text-[clamp(52px,min(5.6vw,10vh),112px)]" aria-live="off">
+    <p ref={ref} className="titre whitespace-nowrap text-[64px] tabular-nums [@media(min-height:780px)]:text-[min(84px,21vw)] max-lg:[@media(max-height:720px)]:!text-[52px] lg:!text-[clamp(52px,min(5.200vw,9.400vh),88px)]" aria-live="off">
       {children}
     </p>
   );

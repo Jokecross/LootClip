@@ -56,17 +56,21 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
       entete={<Entete n={n} total={total} />}
       fond="turquoise"
       gauche={
-        <>
-          <Titre sous={etat.compte?.profil?.tiktok === "non" && !relies.length ? "Pas encore de page ? Touche « Plus tard »." : "Tes vidéos partiront à l'heure que tu choisis."}>Relie tes comptes.</Titre>
-          {probleme && (
-            <p role="alert" className="carte-forte mb-4 bg-rose p-3.5 text-[15px] font-bold lg:mb-0 lg:mt-5">
-              {probleme}
-            </p>
-          )}
-        </>
+        <Titre
+          sous={etat.compte?.profil?.tiktok === "non" && !relies.length ? "Pas encore de page ? Touche « Plus tard »." : "Tes vidéos partiront à l'heure que tu choisis."}
+          plus={
+            probleme && (
+              <p role="alert" className="mt-3 rounded-2xl border-2 border-encre bg-rose p-3 !text-[15px] font-bold !text-encre">
+                {probleme}
+              </p>
+            )
+          }
+        >
+          Relie tes comptes.
+        </Titre>
       }
       droite={
-        <div className="grid min-h-[300px] flex-1 grid-cols-2 gap-2.5 pt-3 lg:min-h-0 lg:gap-6 lg:py-[min(5vh,56px)]">
+        <div className="grid min-h-[300px] flex-1 grid-cols-2 gap-2.5 pt-5 lg:min-h-0 lg:gap-7 lg:pt-0">
           {(["tiktok", "instagram"] as Reseau[]).map((r, i) => {
             const c = relies.find((x) => x.reseau === r);
             return (
@@ -76,7 +80,7 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
                 disabled={!!c || attente !== null}
                 onClick={() => choisir(r)}
                 style={{ "--d": `${i * 110}ms` } as React.CSSProperties}
-                className={`surgit relative flex min-w-0 flex-col overflow-hidden rounded-[20px] border-2 border-encre text-left transition-[transform,box-shadow] duration-200 ease-out lg:rounded-[28px] ${c ? "bg-jaune shadow-[0_5px_0_var(--color-encre)] lg:shadow-[0_8px_0_var(--color-encre)]" : "bg-blanc hover:-translate-y-1"}`}
+                className={`choix surgit ${c ? "!bg-jaune" : ""}`}
               >
                 <span className="relative block min-h-0 flex-1">
                   <Objet nom={c ? "abonnes" : "non"} className="absolute inset-x-[10%] top-[6%] bottom-[4%]" />
@@ -86,7 +90,7 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
                     {c?.photo ? <Photo url={c.photo} secours={<PictoReseau r={r} />} /> : c ? <PictoReseau r={r} /> : null}
                     <span className={`titre block min-w-0 truncate pb-0.5 ${c ? "text-[15px] lg:text-[clamp(24px,2vw,38px)]" : "text-[19px] lg:text-[clamp(34px,3.2vw,60px)]"}`}>{c ? `@${c.pseudo ?? NOMS[r]}` : NOMS[r]}</span>
                   </span>
-                  <span className="mt-1 block min-h-[34px] text-[12px] font-medium leading-tight lg:mt-2 lg:min-h-0 lg:text-[19px]">{c ? `${NOMS[r]} est relié.` : AIDE[r]}</span>
+                  <span className="mt-1 block min-h-[34px] text-[13px] font-medium leading-tight lg:mt-2 lg:min-h-[50px] lg:text-[19px]">{c ? `${NOMS[r]} est relié.` : AIDE[r]}</span>
                   {!c && <span className="pastille mt-2 w-full justify-center bg-rose py-2 text-[14px] lg:mt-4 lg:min-h-12 lg:text-[19px]">{attente === r ? "Un instant…" : "Relier"}</span>}
                 </span>
                 {c && <Coche className="absolute right-3 top-3 z-30 h-7 w-7 lg:right-5 lg:top-5 lg:h-11 lg:w-11" />}
@@ -110,8 +114,8 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
       }
       pied={
         <>
-          <p className="mt-3 text-center text-[13px] font-bold">Rien n&apos;est posté sans ton accord.</p>
-          <p className="mt-1.5 text-center text-[11px] text-encre2">On ne voit jamais ton mot de passe. « Post for Me » est notre service d&apos;envoi.</p>
+          <p className="font-bold">Rien n&apos;est posté sans ton accord.</p>
+          <p>On ne voit jamais ton mot de passe. « Post for Me » est notre service d&apos;envoi.</p>
         </>
       }
     />

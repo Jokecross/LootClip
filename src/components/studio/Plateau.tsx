@@ -6,7 +6,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/marque/Logo";
-import { SceneAccroche, ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
+import { ecranAccroche, ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
 import { Objet, precharger } from "@/components/objets/Objet";
 import { Confettis } from "@/components/studio/Confettis";
 import { Montage } from "@/components/studio/Montage";
@@ -178,7 +178,7 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
       </header>
     );
 
-  let contenu: { gauche: React.ReactNode; droite: React.ReactNode; fond?: string; large?: boolean } = { gauche: null, droite: null };
+  let contenu: { gauche: React.ReactNode; droite: React.ReactNode; fond?: string; large?: boolean; centre?: boolean } = { gauche: null, droite: null };
   let bouton: { libelle: string; faire: () => void; actif?: boolean } | false | null = null;
   let second: { libelle: string; faire: () => void } | null = null;
   let pied: React.ReactNode = null;
@@ -276,27 +276,15 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
       break;
 
     case "accroche":
-      contenu = {
-        gauche: (
-          <>
-            <h1 className="titre text-[38px] lg:text-[clamp(52px,min(5.6vw,10.4vh),112px)]">
-              <Mots>Tes parties de GTA 6 peuvent te payer.</Mots>
-            </h1>
-            <p className="mt-3 text-[16px] font-medium leading-snug text-encre2 lg:mt-7 lg:max-w-[28ch] lg:text-[clamp(20px,1.8vw,32px)]">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
-          </>
-        ),
-        droite: <SceneAccroche />,
-        fond: "jaune",
-        large: true,
-      };
+      contenu = ecranAccroche();
       bouton = { libelle: "Commencer", faire: suivant };
-      pied = <p className="mt-3 text-center text-[11px] text-encre2">{NON_AFFILIATION}</p>;
+      pied = <p>{NON_AFFILIATION}</p>;
       break;
 
     case "principe":
       contenu = ecranPrincipe();
       bouton = { libelle: "C'est parti", faire: suivant };
-      pied = <p className="mt-3 text-center text-[11px] text-encre2">{MENTION_PRINCIPE}</p>;
+      pied = <p>{MENTION_PRINCIPE}</p>;
       break;
 
     case "console":
@@ -314,12 +302,12 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
     case "heures":
       contenu = ecranHeures({ r, repondre });
       bouton = { libelle: "Voir mon plan", faire: suivant };
-      pied = <p className="mt-3 text-center text-[11px] text-encre2">{REPERE_HEURES}</p>;
+      pied = <p>{REPERE_HEURES}</p>;
       break;
     case "plan":
       contenu = ecranPlan({ objectif, frequence });
       bouton = { libelle: "Créer ma première vidéo", faire: suivant };
-      pied = <p className="mt-3 text-center text-[11px] text-encre2">{MENTION_OBJECTIF}</p>;
+      pied = <p>{MENTION_OBJECTIF}</p>;
       break;
 
     case "clips":
@@ -354,7 +342,7 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
               <span className={`titre relative z-20 text-[20px] ${clips.length ? "lg:text-[26px]" : "lg:text-[clamp(32px,3vw,58px)]"}`}>{clips.length ? "Ajouter des clips" : <><span className="lg:hidden">Choisir dans ma galerie</span><span className="hidden lg:inline">Glisse tes clips ici</span></>}</span>
             </button>
             {clips.length > 0 && (
-              <div className={`relative mt-4 grid gap-3 lg:mt-7 lg:min-h-0 lg:flex-1 lg:auto-rows-fr lg:gap-7 ${clips.length <= 4 ? "grid-cols-2" : "grid-cols-3"} ${clips.length <= 3 ? COLONNES[clips.length] : ""}`}>
+              <div className={`relative mt-4 grid gap-3 lg:mt-7 lg:min-h-0 lg:flex-1 lg:auto-rows-fr lg:gap-7 ${clips.length <= 2 || clips.length === 4 ? "grid-cols-2" : "grid-cols-3"} ${clips.length <= 3 ? COLONNES[clips.length] : ""}`}>
                 {clips.map((c, i) => (
                   <div key={c.url} className="surgit relative aspect-[4/5] overflow-hidden rounded-[18px] border-2 border-encre bg-encre shadow-[0_4px_0_var(--color-encre)] lg:aspect-auto lg:min-h-0 lg:rounded-[28px]">
                     <video src={`${c.url}#t=0.5`} muted playsInline autoPlay={i === clips.length - 1} loop preload="auto" className="h-full w-full object-cover lg:absolute lg:inset-0" />
@@ -375,11 +363,18 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
       contenu = {
         gauche: (
           <>
-            <Titre>Titre et style.</Titre>
+            <Titre
+              plus={
+                <>
             <label htmlFor="titre-studio" className="mt-1 block text-[14px] font-bold lg:mt-9 lg:text-[20px]">
               Ton titre
             </label>
             <input id="titre-studio" maxLength={TITRE_MAX} placeholder="Ex. Mon chien conduit mieux que moi" className="champ mt-2 lg:mt-3 lg:h-[72px] lg:rounded-2xl lg:px-6 lg:text-[22px]" value={titre} onChange={(e) => setTitre(e.target.value)} />
+                </>
+              }
+            >
+              Titre et style.
+            </Titre>
           </>
         ),
         droite: (
