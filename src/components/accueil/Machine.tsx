@@ -13,10 +13,17 @@ const Coeur = ({ i }: { i: number }) => (
   </svg>
 );
 
-const TEMPS = [3400, 2500, 5600];
+const TEMPS = [3600, 2500, 5600];
+// À chaque tour, un autre clip : le même passe de la télé au téléphone.
+const CLIPS = ["drole", "defi", "mission"];
 
 export function Machine() {
-  const [phase, setPhase] = useState(0);
+  const [pas, setPas] = useState(0);
+  const phase = pas % 3;
+  const tour = Math.floor(pas / 3) % CLIPS.length;
+  const clip = CLIPS[tour];
+  // Le téléphone garde la vidéo d'avant jusqu'à l'arrivée de la nouvelle.
+  const montre = phase === 2 || pas < 3 ? tour : (tour + CLIPS.length - 1) % CLIPS.length;
   const [vue, setVue] = useState(true);
   const boite = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -26,15 +33,17 @@ export function Machine() {
   }, []);
   useEffect(() => {
     if (!vue || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setTimeout(() => setPhase((p) => (p + 1) % 3), TEMPS[phase]);
+    const id = setTimeout(() => setPas((p) => p + 1), TEMPS[phase]);
     return () => clearTimeout(id);
-  }, [phase, vue]);
+  }, [phase, pas, vue]);
   return (
     <>
     <div ref={boite} className="machine" data-phase={phase} aria-hidden="true">
       <div className="m-tele">
         <div className="m-ecran">
-          <Boucle nom="brut" actif={phase === 0} reprise />
+          {CLIPS.map((c, i) => (
+            <Boucle key={c} nom={`clips/brut-${c}`} actif={phase === 0 && tour === i} suivante={phase === 2 && tour === (i + CLIPS.length - 1) % CLIPS.length} className={tour === i ? "" : "opacity-0"} />
+          ))}
           <span className="m-flash" />
           <span className="m-rec">
             {phase === 0 ? <i /> : <svg viewBox="0 0 24 24"><path d="M5 12.800l4.400 4.400L19 7.400" fill="none" stroke="currentColor" strokeWidth="3.600" strokeLinecap="round" strokeLinejoin="round" /></svg>}
@@ -47,7 +56,7 @@ export function Machine() {
 
       <div className="m-tube m-tube-1">
         <span className="m-passe">
-          <img src="/v4/chien.webp" alt="" width={480} height={270} />
+          <img src={`/v4/clips/brut-${clip}.webp`} alt="" width={800} height={450} />
         </span>
       </div>
 
@@ -72,14 +81,16 @@ export function Machine() {
 
       <div className="m-tube m-tube-2">
         <span className="m-passe">
-          <img src="/v4/defi.webp" alt="" width={432} height={768} />
+          <img src={`/v4/clips/${clip}.webp`} alt="" width={432} height={768} />
         </span>
       </div>
 
       <div className="m-tel">
         <div className="m-tel-cadre">
           <div className="m-tel-ecran">
-            <Boucle nom="defi" actif={phase === 2} />
+            {CLIPS.map((c, i) => (
+              <Boucle key={c} nom={`clips/${c}`} actif={phase === 2 && tour === i} suivante={phase === 0 && tour === i} className={montre === i ? "" : "opacity-0"} />
+            ))}
           </div>
         </div>
         <div className="m-coeurs">

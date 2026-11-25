@@ -45,7 +45,7 @@ export function Styles() {
         <div className="tel-grand">
           <div className="m-tel-ecran">
             {CHOIX.map(({ s }) => (
-              <Boucle key={s} nom={s} actif={actif === s} className={actif === s ? "" : "invisible"} />
+              <Boucle key={s} nom={`clips/${s}`} actif={actif === s} className={actif === s ? "" : "invisible"} />
             ))}
           </div>
         </div>
