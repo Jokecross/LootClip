@@ -342,3 +342,8 @@ body {
 .v3 .bouton-rose:active:not(:disabled) { transform: translateY(4px); box-shadow: 0 0 0 var(--color-encre); }
 /* Barre d'XP */
 .xp > span { display: block; height: 100%; border-radius: 999px; background: var(--color-jaune); border-right: 2px solid var(--color-encre); transition: width 600ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+
+/* Sans 3D (appareil trop ancien ou carte graphique absente) : une image à la place de l'objet. */
+.sans3d .secours {
+  background: var(--secours, none) center / contain no-repeat;
+}

@@ -32,7 +32,7 @@ const ressort = (x: number, v: number, cible: number, k: number, a: number, dt: 
 };
 
 export function demarrer(toile: HTMLCanvasElement) {
-  const rendu = new THREE.WebGLRenderer({ canvas: toile, alpha: true, antialias: true, powerPreference: "high-performance" });
+  const rendu = new THREE.WebGLRenderer({ canvas: toile, alpha: true, antialias: true, powerPreference: "high-performance", failIfMajorPerformanceCaveat: true });
   rendu.outputColorSpace = THREE.LinearSRGBColorSpace;
   rendu.setClearColor(0x000000, 0);
   const monde = new THREE.Scene();
