@@ -17,7 +17,7 @@ const TEMPS = [3600, 2500, 5600];
 // À chaque tour, un autre clip : le même passe de la télé au téléphone.
 const CLIPS = ["drole", "defi", "mission"];
 
-export function Machine({ nue = false }: { /** Sans les trois mots du sol (onboarding) : sur téléphone, la télé est cachée et son temps sauté. */ nue?: boolean }) {
+export function Machine() {
   const [pas, setPas] = useState(0);
   const phase = pas % 3;
   const tour = Math.floor(pas / 3) % CLIPS.length;
@@ -33,9 +33,9 @@ export function Machine({ nue = false }: { /** Sans les trois mots du sol (onboa
   }, []);
   useEffect(() => {
     if (!vue || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = setTimeout(() => setPas((p) => p + 1), nue && phase === 0 && innerWidth < 1024 ? 250 : TEMPS[phase]);
+    const id = setTimeout(() => setPas((p) => p + 1), TEMPS[phase]);
     return () => clearTimeout(id);
-  }, [phase, pas, vue, nue]);
+  }, [phase, pas, vue]);
   return (
     <>
     <div ref={boite} className="machine" data-phase={phase} aria-hidden="true">
@@ -101,13 +101,13 @@ export function Machine({ nue = false }: { /** Sans les trois mots du sol (onboa
         <Objet nom="pieces-3" className="m-pieces max-lg:hidden" bas />
       </div>
     </div>
-    {!nue && <ol className="sol">
+    <ol className="sol">
       {["Tu joues", "XPclip monte", "Tu postes"].map((x, i) => (
         <li key={x} className={phase === i ? "actif" : ""}>
           {x}
         </li>
       ))}
-    </ol>}
+    </ol>
     </>
   );
 }

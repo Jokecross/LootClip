@@ -1,3 +1,4 @@
+import type { Viewport } from "next";
 import Link from "next/link";
 import "./accueil.css";
 import { Machine } from "@/components/accueil/Machine";
@@ -13,6 +14,9 @@ import { PiedDePage } from "@/components/PiedDePage";
  * Accueil V4. Une idée : on voit la machine tourner. Ta partie entre, ta vidéo sort.
  * Les scènes de jeu sont dessinées par nous (outils/scenes) et montées par le vrai moteur.
  */
+// La barre du téléphone continue le jaune du haut de page.
+export const viewport: Viewport = { themeColor: "#F9D477", width: "device-width", initialScale: 1, viewportFit: "cover" };
+
 const FAQ = [
   { q: "Comment mes parties peuvent me payer ?", r: "Tu postes tes vidéos sur tes propres comptes. Plus elles font de vues, plus elles peuvent rapporter. Le montant dépend de tes vues : rien n'est garanti." },
   { q: "C'est du clipping ?", r: "Non. Le clipping reprend les vidéos des autres. Ici, tu postes tes propres parties, jouées sur ta console." },

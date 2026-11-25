@@ -3,8 +3,9 @@
  * Les écrans à réponses de l'onboarding. Servis par /commencer et par le studio de tournage (/studio).
  */
 import { useEffect, useRef, useState } from "react";
-import { Objet, Pieces, type NomObjet } from "@/components/objets/Objet";
-import { Machine } from "@/components/accueil/Machine";
+import { Objet, Pieces,  } from "@/components/objets/Objet";
+import { Eventail } from "@/components/accueil/Eventail";
+import { TelProfil } from "@/components/onboarding/TelProfil";
 import { Mots, Titre } from "@/components/ui/Duo";
 import { Coche } from "@/components/ui/Parcours";
 import { Roulette } from "@/components/ui/Roulette";
@@ -34,7 +35,7 @@ export type Parties = { gauche: React.ReactNode; droite: React.ReactNode; fond?:
 
 export const MENTION_PRINCIPE = "Tout dépend de tes vues. Aucun revenu n'est garanti.";
 
-/** L'accroche : la promesse, et la machine posée sur le sol. */
+/** L'accroche : la promesse, et trois vidéos en éventail posées sur le sol. */
 export function ecranAccroche(): Parties {
   return {
     gauche: (
@@ -45,7 +46,7 @@ export function ecranAccroche(): Parties {
         <p className="etape-sous">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
       </div>
     ),
-    droite: <Machine nue />,
+    droite: <Eventail />,
     fond: "jaune",
     centre: true,
   };
@@ -122,8 +123,8 @@ export function ecranConsole({ r, repondre }: Props): Parties {
       <Choix
         label="Ta console"
         options={[
-          { valeur: "ps5", libelle: "PS5", indice: "PlayStation 5", fond: "bg-blanc", scene: <Objet nom="manette" className="absolute inset-x-[6%] inset-y-[8%] lg:inset-x-[5%] lg:bottom-0 lg:top-[10%]" /> },
-          { valeur: "xbox", libelle: "Xbox", indice: "Series X ou S", fond: "bg-blanc", scene: <Objet nom="manette2" className="absolute inset-x-[6%] inset-y-[8%] lg:inset-x-[5%] lg:bottom-0 lg:top-[10%]" /> },
+          { valeur: "ps5", libelle: "PS5", indice: "PlayStation 5", fond: "bg-turquoise", scene: <Objet nom="manette" className="absolute inset-x-[7%] inset-y-[8%] lg:inset-x-[10%]" /> },
+          { valeur: "xbox", libelle: "Xbox", indice: "Series X ou S", fond: "bg-rose", scene: <Objet nom="manette2" className="absolute inset-x-[7%] inset-y-[8%] lg:inset-x-[10%]" /> },
         ]}
         valeur={r.plateforme}
         choisir={(v) => repondre({ plateforme: v as Profil["plateforme"] })}
@@ -134,19 +135,13 @@ export function ecranConsole({ r, repondre }: Props): Parties {
 }
 
 export function ecranTiktok({ r, repondre }: Props): Parties {
-  const place = "absolute inset-x-[7%] top-[6%] bottom-[2%] lg:inset-x-[8%] lg:top-[8%] lg:bottom-[2%]";
-  const option = (valeur: "abonnes" | "vide" | "non", libelle: string) => ({
-    valeur,
-    libelle,
-    fond: "bg-blanc",
-    scene: <Objet nom={valeur as NomObjet} className={place} />,
-  });
+  const option = (valeur: "abonnes" | "vide" | "non", libelle: string, fond: string) => ({ valeur, libelle, fond, scene: <TelProfil etat={valeur} /> });
   return {
     gauche: <Titre sous="Aucun souci si tu pars de zéro.">Tu as déjà une page TikTok ?</Titre>,
     droite: (
       <Choix
         label="Ta page TikTok"
-        options={[option("abonnes", "Oui, avec des abonnés"), option("vide", "Oui, mais elle est vide"), option("non", "Non, pas encore")]}
+        options={[option("abonnes", "Oui, avec des abonnés", "bg-orange"), option("vide", "Oui, mais elle est vide", "bg-turquoise"), option("non", "Non, pas encore", "bg-beige")]}
         valeur={r.tiktok}
         choisir={(v) => repondre({ tiktok: v as Profil["tiktok"] })}
       />
@@ -320,7 +315,7 @@ const euros = (n: number) => (n >= 10 ? `${nombre(Math.round(n))} €` : `${n.to
 function Choix({ options, valeur, choisir, label }: { options: { valeur: string; libelle: string; indice?: string; scene: React.ReactNode; fond: string }[]; valeur?: string; choisir: (v: string) => void; label: string }) {
   const trois = options.length > 2;
   return (
-    <div className={`grid min-h-[250px] flex-1 gap-3 pt-5 lg:min-h-0 lg:gap-7 lg:py-0 ${trois ? "w-full grid-cols-3" : "auto-rows-fr lg:auto-rows-auto lg:grid-cols-2"}`} role="radiogroup" aria-label={label}>
+    <div className={`choix-liste ${trois ? "choix-trois" : ""}`} role="radiogroup" aria-label={label}>
       {options.map((o, i) => {
         const actif = valeur === o.valeur;
         return (
@@ -333,19 +328,17 @@ function Choix({ options, valeur, choisir, label }: { options: { valeur: string;
               pop(0.4 + i * 0.25);
               choisir(o.valeur);
             }}
-            style={{ "--d": `${i * 110}ms` } as React.CSSProperties}
-            className={`choix surgit ${actif ? "" : o.fond}`}
+            style={{ "--d": `${i * 80}ms` } as React.CSSProperties}
+            className="choix surgit"
           >
-            <span className={`block min-h-0 flex-1 ${trois ? "relative" : "absolute inset-0 left-[38%] lg:relative lg:inset-auto"}`}>{o.scene}</span>
-            <span className={`relative z-20 ${trois ? "" : "mt-auto"} block px-3 pb-3.5 lg:px-7 lg:pb-7 ${trois ? "min-h-[74px] lg:min-h-[120px]" : ""}`}>
-              <span className={`titre block ${trois ? "text-[15px] leading-[1.02] lg:text-[clamp(21px,1.7vw,32px)]" : "text-[28px] lg:text-[clamp(44px,4.2vw,80px)]"}`}>{o.libelle}</span>
-              {o.indice && <span className="mt-1 block text-[13px] font-medium lg:mt-2 lg:text-[20px]">{o.indice}</span>}
-            </span>
-            {actif && (
-              <span className="surgit absolute right-3 top-3 z-30 lg:right-5 lg:top-5">
-                <Coche className="h-7 w-7 lg:h-11 lg:w-11" />
+            <span className={`choix-vue ${o.fond}`}>{o.scene}</span>
+            <span className="choix-nom">
+              <span className="min-w-0 flex-1">
+                <span className="titre block">{o.libelle}</span>
+                {o.indice && <small>{o.indice}</small>}
               </span>
-            )}
+              <span className={`choix-rond ${actif ? "choix-rond-oui" : ""}`}>{actif && <Coche className="h-full w-full" />}</span>
+            </span>
           </button>
         );
       })}

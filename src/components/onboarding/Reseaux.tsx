@@ -1,7 +1,7 @@
 "use client";
 /* Dernier écran avant les offres : relier TikTok et Instagram. Facultatif, et passé si la publication est fermée. */
 import { useEffect, useState } from "react";
-import { Objet } from "@/components/objets/Objet";
+import { TelProfil } from "@/components/onboarding/TelProfil";
 import { NOMS, PictoReseau } from "@/components/studio/Publier";
 import { Duo, Titre } from "@/components/ui/Duo";
 import { Coche, Entete } from "@/components/ui/Parcours";
@@ -80,12 +80,12 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
                 disabled={!!c || attente !== null}
                 onClick={() => choisir(r)}
                 style={{ "--d": `${i * 110}ms` } as React.CSSProperties}
-                className={`choix surgit ${c ? "!bg-jaune" : ""}`}
+                className={`choix choix-haut surgit ${c ? "!bg-jaune" : ""}`}
               >
-                <span className="relative block min-h-0 flex-1">
-                  <Objet nom={c ? "abonnes" : "non"} className="absolute inset-x-[10%] top-[6%] bottom-[4%]" />
+                <span className={`choix-vue ${i ? "bg-orange" : "bg-rose"}`}>
+                  <TelProfil etat={c ? "abonnes" : "non"} />
                 </span>
-                <span className="relative z-20 block min-w-0 px-3 pb-3.5 lg:px-7 lg:pb-7">
+                <span className="relative z-20 block min-w-0 px-3 pb-3.5 pt-3 lg:px-7 lg:pb-7 lg:pt-5">
                   <span className="flex min-w-0 items-center gap-2 lg:gap-3">
                     {c?.photo ? <Photo url={c.photo} secours={<PictoReseau r={r} />} /> : c ? <PictoReseau r={r} /> : null}
                     <span className={`titre block min-w-0 truncate pb-0.5 ${c ? "text-[15px] lg:text-[clamp(24px,2vw,38px)]" : "text-[19px] lg:text-[clamp(34px,3.2vw,60px)]"}`}>{c ? `@${c.pseudo ?? NOMS[r]}` : NOMS[r]}</span>

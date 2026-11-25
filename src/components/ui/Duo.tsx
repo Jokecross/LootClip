@@ -6,11 +6,12 @@
  */
 import "@/app/accueil.css";
 import "./parcours.css";
-import { createContext, isValidElement, useContext, type ReactNode } from "react";
+import { createContext, isValidElement, useContext, useEffect, type ReactNode } from "react";
 import { Robot } from "@/components/accueil/Robot";
 import { Logo } from "@/components/marque/Logo";
 
 const COULEURS = ["jaune", "rose", "turquoise", "orange"] as const;
+const CREME = "#FDF5EA";
 const Avance = createContext(1);
 
 export function Duo({
@@ -42,6 +43,17 @@ export function Duo({
   centre?: boolean;
 }) {
   const couleur = COULEURS.find((c) => fond.includes(c));
+  // La barre du téléphone (heure, batterie) prend la couleur de l'écran.
+  useEffect(() => {
+    const balise = document.querySelector<HTMLMetaElement>('meta[name="theme-color"]');
+    const teinte = couleur ? getComputedStyle(document.documentElement).getPropertyValue(`--color-${couleur}`).trim() : CREME;
+    if (balise) balise.content = teinte;
+    document.body.style.background = teinte;
+    return () => {
+      if (balise) balise.content = CREME;
+      document.body.style.background = "";
+    };
+  }, [couleur]);
   const p = isValidElement<{ n?: number; total?: number }>(entete) ? entete.props : {};
   return (
     <Avance.Provider value={p.n && p.total ? p.n / p.total : 1}>
