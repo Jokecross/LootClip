@@ -10,7 +10,7 @@ import { SceneAccroche, ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecr
 import { Reseaux } from "@/components/onboarding/Reseaux";
 import { FormulaireCompte } from "@/components/compte/FormulaireCompte";
 import { Paywall } from "@/components/app/Paywall";
-import { Ancre } from "@/components/monde/Ancre";
+import { Objet, precharger } from "@/components/objets/Objet";
 import { Logo } from "@/components/marque/Logo";
 import { Duo, Mots, Titre } from "@/components/ui/Duo";
 import { Entete } from "@/components/ui/Parcours";
@@ -87,7 +87,7 @@ function Onboarding() {
   // Le son n'est permis qu'après un toucher : on le réveille dès le premier bouton.
   useEffect(() => {
     const go = () => reveiller();
-    const son = setTimeout(preparer, 900);
+    const son = setTimeout(() => (preparer(), precharger()), 900);
     window.addEventListener("click", go);
     return () => {
       clearTimeout(son);
@@ -200,7 +200,7 @@ function Onboarding() {
         gauche: <Titre sous="Pour garder ton plan et tes vidéos.">Crée ton compte.</Titre>,
         droite: (
           <div className="relative flex flex-1 flex-col lg:m-auto lg:w-full lg:max-w-[560px] lg:flex-none lg:rounded-3xl lg:border-2 lg:border-encre lg:bg-fond lg:p-10">
-            <Ancre nom="cadenas" className="absolute -top-[84px] right-1 h-[84px] w-[70px] lg:-right-[70px] lg:-top-[96px] lg:h-[150px] lg:w-[120px]" pose={{ ry: -0.3, rz: 0.08, z: 60, flotte: 4 }} />
+            <Objet nom="cadenas" className="absolute -top-[84px] right-1 h-[84px] w-[70px] lg:-right-[70px] lg:-top-[96px] lg:h-[150px] lg:w-[120px]" />
             <FormulaireCompte mode="inscription" retour={`/commencer?e=${RESEAUX}`} valider={creerCompte} />
           </div>
         ),

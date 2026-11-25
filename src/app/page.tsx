@@ -2,8 +2,7 @@ import Link from "next/link";
 import { AvantApres } from "@/components/landing/AvantApres";
 import { BarreFixe } from "@/components/landing/BarreFixe";
 import { Logo } from "@/components/marque/Logo";
-import { Ancre } from "@/components/monde/Ancre";
-import { Pieces } from "@/components/landing/Pieces";
+import { Objet, Pieces } from "@/components/objets/Objet";
 import { SceneAccroche } from "@/components/onboarding/Ecrans";
 import { Mots } from "@/components/ui/Duo";
 import { PiedDePage } from "@/components/PiedDePage";
@@ -104,14 +103,14 @@ export default function Accueil() {
             {ETAPES.map((e, i) => (
               <li key={e.titre} className="carte flex flex-col overflow-hidden rounded-[24px] bg-blanc lg:rounded-[28px]">
                 <div className="relative h-[210px] lg:h-[300px]" style={{ background: `var(--p-${e.couleur})` }}>
-                  {i === 0 && <Ancre nom="manette" className="absolute inset-x-[12%] inset-y-[12%]" pose={{ ry: -0.25, rx: -0.3, rz: -0.05 }} />}
+                  {i === 0 && <Objet nom="manette" className="absolute inset-x-[12%] inset-y-[12%]" plusTard />}
                   {i === 1 && (
                     <>
-                      <Ancre nom="clip1" className="absolute left-[9%] top-[12%] h-[50%] w-[56%]" pose={{ ry: 0.25, rz: 0.07 }} />
-                      <Ancre nom="clip0" className="absolute bottom-[12%] right-[9%] h-[50%] w-[56%]" pose={{ ry: -0.25, rz: -0.06, z: 60 }} />
+                      <Objet nom="clip-a" className="absolute left-[9%] top-[12%] h-[50%] w-[56%]" plusTard />
+                      <Objet nom="clip-b" className="absolute bottom-[12%] right-[9%] h-[50%] w-[56%]" plusTard />
                     </>
                   )}
-                  {i === 2 && <Ancre nom="telephone" className="absolute inset-x-0 inset-y-[7%]" pose={{ ry: -0.25, rz: 0.03 }} donnees={{ ecran: "jeu", coupe: 2.2 }} />}
+                  {i === 2 && <Objet nom="telephone" className="absolute inset-x-0 inset-y-[7%]" plusTard />}
                 </div>
                 <div className="relative z-20 border-t-2 border-encre p-5 lg:p-7">
                   <p className="text-[13px] font-bold text-encre2 lg:text-[15px]">Étape {i + 1}</p>
@@ -186,7 +185,7 @@ export default function Accueil() {
               </div>
             </div>
             <div className="relative mt-6 h-[260px] lg:mt-0 lg:h-[400px]">
-              <Pieces />
+              <Pieces part={1} className="absolute inset-x-[4%] bottom-[4%] h-[88%]" />
             </div>
           </div>
         </section>

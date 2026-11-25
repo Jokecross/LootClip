@@ -4,8 +4,8 @@
  * Démo du studio : rien n'est envoyé. Le vrai écran est src/app/app/video/[id]/poster.
  */
 import { useState } from "react";
-import { Ancre } from "@/components/monde/Ancre";
-import { useLecteur } from "@/components/studio/lecteur";
+import { Telephone } from "@/components/studio/Telephone";
+import { VideoPortrait } from "@/components/studio/VideoPortrait";
 import { Duo, Mots } from "@/components/ui/Duo";
 import { Coche } from "@/components/ui/Parcours";
 import { Roulette } from "@/components/ui/Roulette";
@@ -40,7 +40,6 @@ export function nomsReseaux(l: Reseau[]) {
 }
 
 export function Publier({ entete, pseudo, url, titre, partir }: { url: string; titre: string; entete: React.ReactNode; pseudo: string; partir: (d: Depart) => void }) {
-  const { video } = useLecteur(url);
   const [reseaux, setReseaux] = useState<Reseau[]>([]);
   const [plus, setPlus] = useState(true);
   const [jour, setJour] = useState(0);
@@ -114,7 +113,9 @@ export function Publier({ entete, pseudo, url, titre, partir }: { url: string; t
           </>
         ) : (
           <div className="relative flex min-h-[260px] flex-1 flex-col items-center justify-end text-center">
-            <Ancre nom="telephone" className="absolute inset-x-0 bottom-[88px] top-2 lg:bottom-[17%] lg:top-0" pose={{ ry: -0.22, rz: 0.05, flotte: 8, z: 60 }} donnees={{ source: video, titre }} />
+            <Telephone className="absolute inset-x-0 bottom-[88px] top-2 lg:bottom-[19%] lg:top-0">
+              <VideoPortrait url={url} titre={titre} />
+            </Telephone>
             <p className="titre relative z-20 text-[30px] lg:text-[clamp(44px,4.2vw,84px)]">Ça part tout de suite.</p>
             <p className="relative z-20 mt-2 text-[15px] font-medium lg:mt-3 lg:text-[22px]">Une vidéo, {reseaux.length > 1 ? "deux comptes" : "un compte"}, un bouton.</p>
           </div>

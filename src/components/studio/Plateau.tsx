@@ -7,12 +7,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/marque/Logo";
 import { SceneAccroche, ecranConsole, ecranHeures, ecranObjectif, ecranPlan, ecranPrincipe, ecranTiktok, MENTION_PRINCIPE, REPERE_HEURES } from "@/components/onboarding/Ecrans";
-import { Ancre } from "@/components/monde/Ancre";
-import { prechauffer } from "@/components/monde/Monde";
+import { Objet, precharger } from "@/components/objets/Objet";
 import { Confettis } from "@/components/studio/Confettis";
 import { Montage } from "@/components/studio/Montage";
 import { nomsReseaux, PictoReseau, Publier, type Depart } from "@/components/studio/Publier";
-import { useLecteur } from "@/components/studio/lecteur";
+import { Telephone } from "@/components/studio/Telephone";
 import { VideoPortrait } from "@/components/studio/VideoPortrait";
 import { Duo, Mots, Titre } from "@/components/ui/Duo";
 import { Coche, Entete } from "@/components/ui/Parcours";
@@ -53,7 +52,7 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
   const appui = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
-    prechauffer();
+    precharger();
     const son = setTimeout(preparer, 900);
     const g = lireReglages();
     setRegl(g);
@@ -343,8 +342,8 @@ export function Plateau({ direct = false }: { direct?: boolean }) {
             >
               {!clips.length && (
                 <>
-                  <Ancre nom="clip0" className="absolute right-[5%] top-[7%] h-[21%] w-[32%]" pose={{ ry: -0.4, rz: -0.08, flotte: 8, z: 40 }} />
-                  <Ancre nom="manette" className="absolute bottom-[5%] left-[4%] h-[29%] w-[40%]" pose={{ ry: 0.3, rx: -0.34, rz: 0.08, z: 60 }} donnees={{ retard: 0.15 }} />
+                  <Objet nom="clip-b" className="absolute right-[5%] top-[7%] h-[21%] w-[32%]" />
+                  <Objet nom="manette" className="absolute bottom-[5%] left-[4%] h-[29%] w-[40%]" />
                 </>
               )}
               <span className={`relative z-20 grid place-items-center border-2 border-encre bg-rose shadow-[0_4px_0_var(--color-encre)] transition-all ${clips.length ? "h-12 w-12 rounded-2xl" : "h-20 w-20 rounded-[24px] lg:h-32 lg:w-32 lg:rounded-[36px]"}`} aria-hidden="true">
@@ -545,29 +544,48 @@ function Champ({ libelle, valeur, changer, numerique, exemple }: { exemple?: str
 
 /** Aperçu du rythme : le premier clip, coupé comme le fera le style choisi. */
 function Essai({ url, titre, style }: { url: string; titre: string; style: Style }) {
-  const { video } = useLecteur(url);
+  const ref = useRef<HTMLVideoElement>(null);
   useEffect(() => {
-    if (!video) return;
     const id = setInterval(() => {
-      const d = video.duration;
-      if (Number.isFinite(d) && d > 1) video.currentTime = Math.random() * (d - 0.9);
+      const video = ref.current;
+      const d = video?.duration ?? 0;
+      if (video && Number.isFinite(d) && d > 1) video.currentTime = Math.random() * (d - 0.9);
     }, { defi: 900, drole: 420, mission: 2600 }[style]);
     return () => clearInterval(id);
-  }, [video, style]);
-  const numero = (Object.keys(STYLES) as Style[]).indexOf(style) + 1;
+  }, [style]);
   return (
     <div className="relative min-h-0">
-      <Ancre nom="telephone" className="absolute inset-x-[-4%] inset-y-0" pose={{ ry: -0.28, rz: 0.04, flotte: 8, z: 60 }} donnees={{ source: video, titre: titre || "Ton titre", tour: numero }} />
+      <Telephone className="absolute inset-0">
+        <VideoPortrait url={url} titre={titre || "Ton titre"} lecteur={ref} muet />
+      </Telephone>
     </div>
   );
 }
 
 /** La vidéo finale dans le téléphone, avec le son si l'appareil l'autorise. */
 function Finale({ url, titre }: { url: string; titre: string }) {
-  const { video, muet, basculer } = useLecteur(url, true);
+  const ref = useRef<HTMLVideoElement>(null);
+  const [muet, setMuet] = useState(false);
+  useEffect(() => {
+    const v = ref.current!;
+    v.muted = false;
+    v.play().catch(() => {
+      v.muted = true;
+      setMuet(true);
+      v.play().catch(() => {});
+    });
+  }, []);
+  const basculer = () => {
+    const v = ref.current!;
+    v.muted = !v.muted;
+    setMuet(v.muted);
+    v.play().catch(() => {});
+  };
   return (
     <button type="button" onClick={basculer} aria-label={muet ? "Activer le son" : "Couper le son"} className="relative order-1 mt-4 min-h-[320px] flex-1 lg:order-none lg:mt-0 lg:min-h-0">
-      <Ancre nom="telephone" className="absolute inset-x-0 inset-y-0 lg:inset-y-[1%]" pose={{ ry: -0.2, rz: 0.035, flotte: 9, z: 80 }} donnees={{ source: video, titre, tour: 1 }} />
+      <Telephone className="surgit absolute inset-0">
+        <VideoPortrait url={url} titre={titre} lecteur={ref} />
+      </Telephone>
       {muet && <span className="pastille absolute bottom-[12%] left-1/2 z-20 -translate-x-1/2 bg-blanc lg:min-h-11 lg:px-5 lg:text-[16px]">Toucher pour le son</span>}
     </button>
   );
@@ -576,7 +594,6 @@ function Finale({ url, titre }: { url: string; titre: string }) {
 /** Le départ : la vidéo s'envole, les comptes se cochent, le tampon tombe. */
 function Fin({ entete, depart, url, titre, pseudo, fini, action }: { entete: React.ReactNode; depart: Depart; url: string; titre: string; pseudo: string; fini: () => void; action: React.ReactNode }) {
   const [t, setT] = useState(0);
-  const { video } = useLecteur(url);
   const fin = useRef(fini);
   fin.current = fini;
   useEffect(() => {
@@ -620,7 +637,11 @@ function Fin({ entete, depart, url, titre, pseudo, fini, action }: { entete: Rea
       }
       droite={
         <div className="relative flex min-h-[300px] flex-1 items-center justify-center lg:min-h-0">
-          {t < 4 && <Ancre nom="telephone" className="absolute inset-x-0 inset-y-[6%]" pose={{ ry: -0.15, flotte: 6, z: 120 }} donnees={{ source: video, titre, envol: t >= 1 }} />}
+          {t < 4 && (
+            <Telephone className={`absolute inset-x-0 inset-y-[3%] ${t >= 1 ? "envol" : ""}`}>
+              <VideoPortrait url={url} titre={titre} />
+            </Telephone>
+          )}
           {t >= 4 && (
             <>
               <p className="tampon titre relative z-30 whitespace-nowrap rounded-[22px] border-4 border-encre bg-rose px-5 py-3 text-[42px] shadow-[0_6px_0_var(--color-encre)] lg:rounded-[32px] lg:border-[6px] lg:px-9 lg:py-7 lg:text-[clamp(52px,5.8vw,112px)] lg:shadow-[0_12px_0_var(--color-encre)]">{depart.quand ? "Programmée !" : "Publiée !"}</p>

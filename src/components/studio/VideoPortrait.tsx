@@ -5,7 +5,7 @@
  */
 import { useState, type Ref } from "react";
 
-export function VideoPortrait({ url, titre = "", lecteur }: { url: string; titre?: string; lecteur?: Ref<HTMLVideoElement> }) {
+export function VideoPortrait({ url, titre = "", lecteur, muet = !lecteur }: { url: string; titre?: string; lecteur?: Ref<HTMLVideoElement>; muet?: boolean }) {
   const [entiere, setEntiere] = useState(true);
   return (
     <span className="absolute inset-0 block overflow-hidden bg-encre">
@@ -13,7 +13,7 @@ export function VideoPortrait({ url, titre = "", lecteur }: { url: string; titre
       <video
         ref={lecteur}
         src={url}
-        muted={!lecteur}
+        muted={muet}
         playsInline
         loop
         autoPlay
@@ -21,7 +21,7 @@ export function VideoPortrait({ url, titre = "", lecteur }: { url: string; titre
           const v = e.currentTarget;
           setEntiere(Math.abs(v.videoWidth / v.videoHeight - 9 / 16) < 0.03);
         }}
-        className="absolute inset-0 h-full w-full object-contain"
+        className={`absolute inset-0 h-full w-full ${entiere ? "object-cover" : "object-contain"}`}
       />
       {!entiere && titre && (
         <span className="absolute inset-x-[6%] top-[11%] text-center">

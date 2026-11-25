@@ -1,7 +1,7 @@
 "use client";
 /* Dernier écran avant les offres : relier TikTok et Instagram. Facultatif, et passé si la publication est fermée. */
 import { useEffect, useState } from "react";
-import { Ancre } from "@/components/monde/Ancre";
+import { Objet } from "@/components/objets/Objet";
 import { NOMS, PictoReseau } from "@/components/studio/Publier";
 import { Duo, Titre } from "@/components/ui/Duo";
 import { Coche, Entete } from "@/components/ui/Parcours";
@@ -79,7 +79,7 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
                 className={`surgit relative flex min-w-0 flex-col overflow-hidden rounded-[20px] border-2 border-encre text-left transition-[transform,box-shadow] duration-200 ease-out lg:rounded-[28px] ${c ? "bg-jaune shadow-[0_5px_0_var(--color-encre)] lg:shadow-[0_8px_0_var(--color-encre)]" : "bg-blanc hover:-translate-y-1"}`}
               >
                 <span className="relative block min-h-0 flex-1">
-                  <Ancre nom={i ? "telephone2" : "telephone"} className="absolute inset-x-[10%] top-[6%] bottom-[4%]" pose={{ ry: 0.14 - i * 0.28, rz: 0, z: 30, flotte: 5 }} donnees={{ ecran: c ? "relie" : "relier", etat: c ? "oui" : undefined, retard: i * 0.12 }} />
+                  <Objet nom={c ? "abonnes" : "non"} className="absolute inset-x-[10%] top-[6%] bottom-[4%]" />
                 </span>
                 <span className="relative z-20 block min-w-0 px-3 pb-3.5 lg:px-7 lg:pb-7">
                   <span className="flex min-w-0 items-center gap-2 lg:gap-3">

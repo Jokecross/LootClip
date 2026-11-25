@@ -1,4 +1,4 @@
-import { Ancre } from "@/components/monde/Ancre";
+import { Objet } from "@/components/objets/Objet";
 /*
  * Avant / après.
  * Avant : la douleur. Une pile de clips bruts, longs, à l'horizontale, où les bons moments sont rares.
@@ -68,7 +68,7 @@ export function AvantApres() {
         <p className="text-[14px] font-bold text-jaune">Après</p>
         <p className="titre mt-1 text-[26px] text-fond lg:text-[34px]">30 secondes qui accrochent.</p>
         <div className="relative mx-auto mt-8 w-[230px] pb-2 lg:mt-10 lg:w-[330px]">
-          <Ancre nom="telephone" className="aspect-[9/16] w-full scale-110" pose={{ ry: -0.3, rz: 0.04, flotte: 6, z: 60 }} donnees={{ ecran: "jeu", coupe: 0.9, tour: 2 }} />
+          <Objet nom="telephone" className="aspect-[9/16] w-full scale-110" plusTard />
           <Etiquette fond="bg-jaune" className="-left-10 -top-3 -rotate-6">
             Accroche dès la 1re seconde
           </Etiquette>

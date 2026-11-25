@@ -4,8 +4,7 @@
  * La durée est raccourcie (réglage du studio), d'où la mention « Séquence accélérée ».
  */
 import { useEffect, useRef, useState } from "react";
-import { Ancre } from "@/components/monde/Ancre";
-import { type Donnees } from "@/components/monde/store";
+import { Telephone } from "@/components/studio/Telephone";
 import { Duo } from "@/components/ui/Duo";
 import { Coche } from "@/components/ui/Parcours";
 import { ETAPES } from "@/lib/montage";
@@ -16,12 +15,8 @@ const COULEURS = ["bg-rose", "bg-jaune", "bg-turquoise", "bg-orange"];
 
 export function Montage({ entete, urls, titre, secondes, fini }: { entete: React.ReactNode; urls: string[]; titre: string; secondes: number; fini: () => void }) {
   const clips = useRef<(HTMLVideoElement | null)[]>([]);
-  // Lus par le moteur 3D à chaque image : l'écran du téléphone et les clips qui y volent.
-  const [ecran] = useState<Donnees>({ source: null, titre: "" });
-  const [cartes] = useState<Donnees[]>(() => [0].map(() => ({ flux: { de: "clip3", vers: "telephone", delai: 0, duree: 1.7 } })));
-  const titreRef = useRef(titre);
-  titreRef.current = titre;
-  const cadre = useRef<HTMLDivElement>(null);
+  const net = useRef<HTMLCanvasElement>(null);
+  const flou = useRef<HTMLCanvasElement>(null);
   const [k, setK] = useState(0);
   const fin = useRef(fini);
   fin.current = fini;
@@ -58,11 +53,19 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
         coupe();
       }
       const v = clips.current[actif];
-      if (v && v.readyState >= 2) ecran.source = v;
-      ecran.titre = x > 0.48 ? titreRef.current : "";
-      clips.current.slice(0, n).forEach((c, i) => {
-        if (c && cartes[i]) cartes[i].source = c;
-      });
+      const gn = net.current?.getContext("2d");
+      const gf = flou.current?.getContext("2d");
+      if (v && v.readyState >= 2 && gn && gf) {
+        const L = v.videoWidth;
+        const H = v.videoHeight;
+        const c = gn.canvas;
+        const e = Math.min(c.width / L, c.height / H);
+        gn.clearRect(0, 0, c.width, c.height);
+        gn.drawImage(v, (c.width - L * e) / 2, (c.height - H * e) / 2, L * e, H * e);
+        const f = gf.canvas;
+        const b = Math.max(f.width / L, f.height / H);
+        gf.drawImage(v, (f.width - L * b) / 2, (f.height - H * b) / 2, L * b, H * b);
+      }
       const m = Math.min(MORCEAUX, Math.floor(x * MORCEAUX * 1.02));
       if (m !== morceau) {
         morceau = m;
@@ -85,7 +88,7 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
       arrete = true;
       cancelAnimationFrame(image);
     };
-  }, [urls, secondes, ecran, cartes]);
+  }, [urls, secondes]);
 
   const etape = Math.min(ETAPES.length - 1, Math.floor((k / 100) * ETAPES.length));
   const poses = Math.min(MORCEAUX, Math.floor((k / 100) * MORCEAUX * 1.02));
@@ -121,12 +124,16 @@ export function Montage({ entete, urls, titre, secondes, fini }: { entete: React
       }
       droite={
         <>
-          <div ref={cadre} className="relative min-h-[260px] w-full flex-1 lg:min-h-0">
-            <Ancre nom="clip3" className="absolute left-[2%] top-[30%] h-[22%] w-[32%]" pose={{ ry: 0.45, rz: 0.05, flotte: 6, z: -20 }} donnees={ecran} />
-            {cartes.map((c, i) => (
-              <Ancre key={i} nom={`clip${i}` as "clip0"} className="absolute left-[2%] top-[34%] h-[20%] w-[30%]" pose={{ z: 240 }} donnees={c} />
-            ))}
-            <Ancre nom="telephone" className="absolute inset-y-[1%] left-[30%] right-[4%]" pose={{ ry: -0.22, rz: 0.03, flotte: 4, z: 40 }} donnees={ecran} />
+          <div className="relative min-h-[260px] w-full flex-1 lg:min-h-0">
+            <Telephone className="absolute inset-0">
+              <canvas ref={flou} width={18} height={32} className="absolute inset-0 h-full w-full scale-125 opacity-80" />
+              <canvas ref={net} width={540} height={960} className="absolute inset-0 h-full w-full" />
+              {titre && k > 48 && (
+                <span className="surgit absolute inset-x-3 top-[11%] text-center">
+                  <span className="titre box-decoration-clone rounded-md border-2 border-encre bg-jaune px-2 py-0.5 text-[18px] leading-[1.5] lg:text-[28px]">{titre}</span>
+                </span>
+              )}
+            </Telephone>
             {k > 78 && <span className="surgit pastille absolute bottom-[8%] right-[6%] z-20 bg-turquoise lg:min-h-12 lg:px-5 lg:text-[20px]">1080 × 1920</span>}
           </div>
 

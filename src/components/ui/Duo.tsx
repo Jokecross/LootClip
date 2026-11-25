@@ -3,7 +3,7 @@
  * V3. Les écrans de l'onboarding et du studio.
  * Téléphone : une colonne crème, bouton en bas. Ordinateur : la question à gauche, la scène dans un panneau de couleur douce à droite.
  */
-import { Fragment, isValidElement, type ReactElement, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Logo } from "@/components/marque/Logo";
 
 const COULEURS = ["jaune", "rose", "turquoise", "orange"] as const;
@@ -63,30 +63,9 @@ export function Duo({
   );
 }
 
-/** Découpe un texte en mots qui jaillissent l'un après l'autre. */
+/** Un titre qui arrive d'un bloc. */
 export function Mots({ children }: { children: ReactNode }) {
-  let i = 0;
-  const passer = (n: ReactNode, cle: string): ReactNode => {
-    if (typeof n === "number" || typeof n === "string")
-      return String(n)
-        .split(/([ \n]+)/)
-        .map((m, k) =>
-          m.trim() ? (
-            <span key={`${cle}-${k}`} className="mot" style={{ "--i": i++ } as React.CSSProperties}>
-              {m}
-            </span>
-          ) : (
-            m && " "
-          ),
-        );
-    if (Array.isArray(n)) return n.map((x, k) => <Fragment key={k}>{passer(x, `${cle}-${k}`)}</Fragment>);
-    if (isValidElement(n)) {
-      const e = n as ReactElement<{ children?: ReactNode }>;
-      if (e.type === Fragment) return passer(e.props.children, cle);
-    }
-    return n;
-  };
-  return <>{passer(children, "m")}</>;
+  return <span className="arrivee block">{children}</span>;
 }
 
 /** Le grand titre d'un écran. */

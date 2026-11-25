@@ -3,8 +3,7 @@
  * Les écrans à réponses de l'onboarding. Servis par /commencer et par le studio de tournage (/studio).
  */
 import { useEffect, useRef, useState } from "react";
-import { Ancre } from "@/components/monde/Ancre";
-import { type Nom } from "@/components/monde/store";
+import { Objet, Pieces, type NomObjet } from "@/components/objets/Objet";
 import { Mots, Titre } from "@/components/ui/Duo";
 import { Coche } from "@/components/ui/Parcours";
 import { Roulette } from "@/components/ui/Roulette";
@@ -29,7 +28,6 @@ function palier(objectif: number) {
 /*
  * Chaque écran rend sa partie gauche (la question) et sa partie droite (la scène),
  * posées par <Duo> : l'une sous l'autre sur téléphone, côte à côte sur ordinateur.
- * Les <Ancre> sont les places des objets 3D : d'un écran à l'autre, ils voyagent.
  */
 export type Parties = { gauche: React.ReactNode; droite: React.ReactNode; fond?: string; large?: boolean };
 
@@ -39,8 +37,8 @@ export const MENTION_PRINCIPE = "Tout dépend de tes vues. Aucun revenu n'est ga
 export function SceneAccroche() {
   return (
     <div className="relative mt-6 min-h-[300px] flex-1 rounded-[28px] bg-(--p-jaune) lg:mt-0 lg:min-h-0 lg:bg-transparent">
-      <Ancre nom="telephone" className="absolute inset-x-[20%] inset-y-[5%] lg:inset-x-[22%] lg:inset-y-[1%]" pose={{ ry: -0.24, rz: 0.03, rx: 0.04, flotte: 6 }} donnees={{ ecran: "jeu", coupe: 2.2 }} />
-      <Ancre nom="manette" className="absolute bottom-[2%] left-[1%] h-[38%] w-[52%] lg:bottom-[0%] lg:left-[-3%] lg:h-[37%] lg:w-[49%]" pose={{ ry: 0.3, rz: 0.1, rx: -0.36, flotte: 6, z: 200 }} donnees={{ retard: 0.15 }} />
+      <Objet nom="telephone" className="absolute inset-x-[20%] inset-y-[5%] lg:inset-x-[22%] lg:inset-y-[1%]" />
+      <Objet nom="manette" className="absolute bottom-[2%] left-[1%] h-[38%] w-[52%] lg:bottom-[0%] lg:left-[-3%] lg:h-[37%] lg:w-[49%]" />
     </div>
   );
 }
@@ -68,11 +66,6 @@ export function ecranPrincipe(): Parties {
 
 /** La machine : la manette lance des clips dans le téléphone, les pièces s'empilent. */
 function Machine() {
-  const [plein, setPlein] = useState(0.3);
-  useEffect(() => {
-    const id = setInterval(() => setPlein((v) => Math.min(0.6, v + 0.02)), 1200);
-    return () => clearInterval(id);
-  }, []);
   const etapes = [
     { titre: "Tu joues à GTA 6", texte: "Sur ta PS5 ou ta Xbox.", fond: "bg-blanc" },
     { titre: "Tu gardes tes meilleurs moments", texte: "Un bouton sur ta manette.", fond: "bg-blanc" },
@@ -80,21 +73,20 @@ function Machine() {
     { titre: "Tu postes, tes vues peuvent payer", texte: "Sur TikTok et Instagram.", fond: "bg-jaune" },
   ];
   const scenes: React.ReactNode[] = [
-    <Ancre key="a" nom="manette" className="absolute inset-x-[6%] inset-y-[2%]" pose={{ ry: 0.3, rx: -0.3, rz: 0.06, flotte: 6, z: 60 }} donnees={{ valeur: 0.5 }} />,
+    <Objet key="a" nom="manette" className="absolute inset-x-[8%] inset-y-[6%]" />,
     <span key="b">
-      <Ancre nom="clip2" className="absolute bottom-[16%] left-[6%] h-[58%] w-[58%]" pose={{ ry: 0.4, rz: 0.12, rx: 0.1 }} donnees={{ retard: 0.5 }} />
-      <Ancre nom="clip1" className="absolute right-[4%] top-[4%] h-[58%] w-[58%]" pose={{ ry: -0.35, rz: -0.1, rx: 0.1, z: 60 }} donnees={{ retard: 0.65 }} />
+      <Objet nom="clip-b" className="absolute bottom-[10%] left-[6%] h-[58%] w-[58%]" />
+      <Objet nom="clip-a" className="absolute right-[4%] top-[4%] h-[58%] w-[58%]" />
     </span>,
-    <Ancre key="c" nom="telephone" className="absolute inset-x-[4%] inset-y-[-12%] lg:inset-y-[-8%]" pose={{ ry: -0.35, rz: 0.06, flotte: 5, z: 30 }} donnees={{ ecran: "jeu", coupe: 2.2 }} />,
-    <Ancre key="d" nom="pieces" className="absolute inset-x-[4%] inset-y-[2%]" pose={{ rx: 0.42, flotte: 0, suit: 0.5 }} donnees={{ valeur: plein }} />,
+    <Objet key="c" nom="telephone" className="absolute inset-x-[4%] inset-y-[-2%] lg:inset-y-[-3%]" />,
+    <Pieces key="d" part={0.7} className="absolute inset-x-[10%] bottom-[8%] top-[10%]" />,
   ];
   return (
     <ol className="relative grid min-h-0 flex-1 grid-cols-2 gap-x-3 gap-y-2 lg:gap-x-8 lg:gap-y-4 lg:py-2">
-      <Ancre nom="clip0" className="absolute left-[40%] top-[38%] h-[14%] w-[22%] lg:h-[15%] lg:w-[16%]" pose={{ z: 300 }} donnees={{ flux: { de: "manette", vers: "telephone", delai: 0, duree: 4.6 } }} />
       {etapes.map((e, i) => (
         <li key={e.titre} className="relative flex min-h-[150px] flex-col max-lg:[@media(max-height:720px)]:min-h-[128px] lg:min-h-0">
           <span className="relative block flex-1">{scenes[i]}</span>
-          <span className={`surgit carte relative z-20 flex items-center gap-2.5 p-2.5 lg:gap-5 lg:rounded-2xl lg:px-5 lg:py-[min(16px,1.8vh)] ${e.fond}`} style={{ "--d": `${300 + i * 260}ms` } as React.CSSProperties}>
+          <span className={`surgit carte relative z-20 flex items-center gap-2.5 p-2.5 lg:gap-5 lg:rounded-2xl lg:px-5 lg:py-[min(16px,1.8vh)] ${e.fond}`} style={{ "--d": `${80 + i * 90}ms` } as React.CSSProperties}>
             <span className="titre text-[26px] leading-none lg:text-[clamp(32px,3vw,60px)]">{i + 1}</span>
             <span className="min-w-0">
               <span className="titre block text-[14px] leading-[1.05] lg:text-[clamp(17px,1.4vw,28px)]">{e.titre}</span>
@@ -108,15 +100,14 @@ function Machine() {
 }
 
 export function ecranConsole({ r, repondre }: Props): Parties {
-  const etat = (v: string) => (r.plateforme ? (r.plateforme === v ? ("oui" as const) : ("non" as const)) : undefined);
   return {
     gauche: <Titre sous="Le tutoriel s'adapte à ta console.">Tu joues sur quoi ?</Titre>,
     droite: (
       <Choix
         label="Ta console"
         options={[
-          { valeur: "ps5", libelle: "PS5", indice: "PlayStation 5", fond: "bg-blanc", scene: <Ancre nom="manette" className="absolute inset-x-[6%] inset-y-[8%] lg:inset-x-[5%] lg:bottom-0 lg:top-[10%]" pose={{ ry: 0.25, rx: -0.28, rz: 0.05, z: 40 }} donnees={{ etat: etat("ps5") }} /> },
-          { valeur: "xbox", libelle: "Xbox", indice: "Series X ou S", fond: "bg-blanc", scene: <Ancre nom="manette2" className="absolute inset-x-[6%] inset-y-[8%] lg:inset-x-[5%] lg:bottom-0 lg:top-[10%]" pose={{ ry: -0.25, rx: -0.28, rz: -0.05, z: 40 }} donnees={{ retard: 0.1, etat: etat("xbox") }} /> },
+          { valeur: "ps5", libelle: "PS5", indice: "PlayStation 5", fond: "bg-blanc", scene: <Objet nom="manette" className="absolute inset-x-[6%] inset-y-[8%] lg:inset-x-[5%] lg:bottom-0 lg:top-[10%]" /> },
+          { valeur: "xbox", libelle: "Xbox", indice: "Series X ou S", fond: "bg-blanc", scene: <Objet nom="manette2" className="absolute inset-x-[6%] inset-y-[8%] lg:inset-x-[5%] lg:bottom-0 lg:top-[10%]" /> },
         ]}
         valeur={r.plateforme}
         choisir={(v) => repondre({ plateforme: v as Profil["plateforme"] })}
@@ -127,20 +118,19 @@ export function ecranConsole({ r, repondre }: Props): Parties {
 }
 
 export function ecranTiktok({ r, repondre }: Props): Parties {
-  const etat = (v: string) => (r.tiktok ? (r.tiktok === v ? ("oui" as const) : ("non" as const)) : undefined);
   const place = "absolute inset-x-[7%] top-[6%] bottom-[2%] lg:inset-x-[8%] lg:top-[8%] lg:bottom-[2%]";
-  const option = (valeur: "abonnes" | "vide" | "non", libelle: string, nom: Nom, fond: string, i: number) => ({
+  const option = (valeur: "abonnes" | "vide" | "non", libelle: string) => ({
     valeur,
     libelle,
-    fond,
-    scene: <Ancre nom={nom} className={place} pose={{ ry: 0.16 - i * 0.16, rz: 0, z: 30, flotte: 5 }} donnees={{ ecran: valeur, etat: etat(valeur), retard: i * 0.12 }} />,
+    fond: "bg-blanc",
+    scene: <Objet nom={valeur as NomObjet} className={place} />,
   });
   return {
     gauche: <Titre sous="Aucun souci si tu pars de zéro.">Tu as déjà une page TikTok ?</Titre>,
     droite: (
       <Choix
         label="Ta page TikTok"
-        options={[option("abonnes", "Oui, avec des abonnés", "telephone", "bg-blanc", 0), option("vide", "Oui, mais elle est vide", "telephone2", "bg-blanc", 1), option("non", "Non, pas encore", "telephone3", "bg-blanc", 2)]}
+        options={[option("abonnes", "Oui, avec des abonnés"), option("vide", "Oui, mais elle est vide"), option("non", "Non, pas encore")]}
         valeur={r.tiktok}
         choisir={(v) => repondre({ tiktok: v as Profil["tiktok"] })}
       />
@@ -160,7 +150,7 @@ export function ecranObjectif({ r, repondre }: Props): Parties {
       <>
         <Titre sous="Lance la roue et cale ton objectif.">Tu vises combien par mois ?</Titre>
         <div className="relative flex flex-1 flex-col items-center justify-end pb-3 lg:hidden">
-          <Ancre nom="pieces" className="mb-2 min-h-[90px] w-full flex-1" pose={{ rx: 0.4, flotte: 0 }} donnees={{ valeur: 0.04 + part * 0.6 }} />
+          <Pieces part={part} className="mb-2 min-h-[56px] w-full flex-1" />
           {montant}
           {etiquette}
         </div>
@@ -182,7 +172,7 @@ export function ecranObjectif({ r, repondre }: Props): Parties {
             </div>
           }
         />
-        <Ancre nom="pieces" className="absolute bottom-[28%] left-[34%] right-[34%] hidden h-[16%] lg:block" pose={{ rx: 0.36, flotte: 0, suit: 0.5 }} donnees={{ valeur: 0.06 + part * 0.6 }} />
+        <Pieces part={part} className="absolute bottom-[28%] left-[34%] right-[34%] hidden h-[16%] lg:block" />
       </>
     ),
     fond: "rose",
@@ -284,15 +274,10 @@ export function ecranPlan({ objectif, frequence }: { objectif: number; frequence
 
 /** Le total : il grimpe, et les pièces s'empilent derrière la carte. */
 function Total({ objectif, booste, signe, carte, petit, note, children }: { objectif: number; booste: number; signe: string; carte: string; petit: string; note: string; children: React.ReactNode }) {
-  const [plein, setPlein] = useState(0);
-  useEffect(() => {
-    const a = setTimeout(() => setPlein(0.4 + Math.min(0.35, booste / 8000)), 1500);
-    return () => clearTimeout(a);
-  }, [booste]);
   return (
     <div className="relative mt-6 flex min-h-[170px] flex-1 flex-col justify-end lg:mt-10 lg:min-h-0 lg:max-h-[52vh]">
             <div className={`${carte} bg-rose pb-4 pt-6 lg:pb-8 lg:pt-12`} style={{ "--d": "1350ms" } as React.CSSProperties}>
-        <Ancre nom="pieces" className="absolute bottom-[calc(100%-12px)] left-[26%] right-[2%] h-[110px] lg:bottom-[calc(100%-26px)] lg:left-[30%] lg:h-[min(26vh,250px)]" pose={{ rx: 0.3, flotte: 0, suit: 0.6 }} donnees={{ valeur: plein }} />
+        <Pieces part={0.3 + booste / 4000} className="absolute bottom-full left-[30%] right-[6%] -mb-2 h-[88px] lg:left-[40%] lg:-mb-3 lg:h-[min(22vh,200px)]" />
         <span className={signe} style={{ "--d": "1350ms" } as React.CSSProperties} aria-label="égale">
           =
         </span>

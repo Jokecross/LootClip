@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Bricolage_Grotesque, DM_Sans } from "next/font/google";
 import { EnregistrerSW } from "@/components/EnregistrerSW";
-import { Monde } from "@/components/monde/Monde";
 import { Session } from "@/components/Session";
 import { Statistiques } from "@/components/Statistiques";
 import "./globals.css";
@@ -31,7 +30,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="antialiased">
         <Session />
         {children}
-        <Monde />
         <EnregistrerSW />
         <Statistiques />
       </body>
