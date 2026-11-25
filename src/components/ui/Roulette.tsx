@@ -44,6 +44,9 @@ export function Roulette({
   const rappel = useRef({ changer, libelle });
   rappel.current = { changer, libelle };
   const depart = useRef(valeur);
+  const recaler = useRef(() => {});
+  // Un montant plus long doit tenir aussi.
+  useEffect(() => recaler.current(), [valeur]);
   const [touchee, setTouchee] = useState(false);
   const [son, setSon] = useState(true);
   useEffect(() => setSon(sonActif()), []);
@@ -67,6 +70,7 @@ export function Roulette({
     let L = 0;
     let H = 0;
     let R = 0;
+    let entiere = false; // toute la roue est visible
     let e = 1; // échelle des détails : 1 sur téléphone, plus sur ordinateur
     let image = 0;
     let avant = 0;
@@ -100,7 +104,7 @@ export function Roulette({
       g.arc(cx, cy + 6, R + 2, 0, Math.PI * 2);
       g.fill();
 
-      const visibles = Math.ceil((Math.PI * (e > 1 ? 1 : 0.62)) / PAS);
+      const visibles = Math.ceil((Math.PI * (entiere ? 1 : 0.62)) / PAS);
       const base = Math.round(p);
       for (let i = base - visibles; i <= base + visibles; i++) {
         const a = (i - p) * PAS - Math.PI / 2;
@@ -220,20 +224,40 @@ export function Roulette({
     }
     moteur.current = { aller: (i) => aller((cible ?? courant) + i) };
 
+    function ajusterCentre() {
+      const m = moyeu.current;
+      const c = m?.firstElementChild as HTMLElement | null;
+      if (!m || !c || m.offsetParent === null) return;
+      // Largeur du moyeu à la hauteur du texte.
+      const r = R * 0.56;
+      const dy = Math.min(r * 0.9, Math.max(0, HAUT + R - (m.offsetTop + m.clientHeight * 0.3)));
+      const corde = 2 * Math.sqrt(r * r - dy * dy) * 0.9;
+      const place = Math.min(1, m.clientHeight / c.offsetHeight, corde / Math.max(1, c.offsetWidth));
+      c.style.transform = place < 1 ? `scale(${place})` : "";
+    }
+    recaler.current = ajusterCentre;
+
     function taille() {
       L = bx.clientWidth;
       H = bx.clientHeight;
       R = Math.max(290, Math.min(380, L * 0.9));
       e = 1;
       // Ordinateur : la roue remplit le panneau, et le choix s'affiche en son centre.
-      if (H > 420 && L > 480) {
-        R = Math.max(290, Math.min(L * 0.53, H * 0.78));
-        e = Math.min(1.7, Math.max(1.15, R / 340));
-        if (moyeu.current) {
-          const r = R * 0.56;
-          moyeu.current.style.top = `${HAUT + R - r * 0.62}px`;
-          moyeu.current.style.height = `${Math.min(r * 1.3, H - 64 - (HAUT + R - r * 0.62))}px`;
-        }
+      const m = moyeu.current;
+      const auCentre = !!m && m.offsetParent !== null;
+      entiere = auCentre || (L > 480 && H > 420);
+      if (entiere) {
+        R = Math.max(Math.min(230, L * 0.488), Math.min(L * (page ? 0.53 : 0.488), H * 0.78));
+        e = Math.min(1.7, Math.max(R < 290 ? 1 : 1.15, R / 340));
+      }
+      if (m && auCentre) {
+        // Le choix tient toujours dans la partie visible du moyeu : il rétrécit si la fenêtre est basse.
+        const r = R * 0.56;
+        const bas = Math.min(HAUT + R + r * 0.68, H - 70);
+        const haut = Math.min(HAUT + R - r * 0.62, Math.max(HAUT + R - r * 0.86, bas - 96));
+        m.style.top = `${haut}px`;
+        m.style.height = `${Math.max(40, bas - haut)}px`;
+        ajusterCentre();
       }
       const d = Math.min(nu && L > 480 ? 1.5 : 2, devicePixelRatio || 1);
       cv.width = L * d;
@@ -243,7 +267,7 @@ export function Roulette({
     }
     const obs = new ResizeObserver(taille);
     obs.observe(bx);
-    document.fonts?.ready.then(dessiner);
+    document.fonts?.ready.then(() => (dessiner(), ajusterCentre()));
 
     /* ---------- Doigt et souris ---------- */
     const angle = (e: PointerEvent) => {
@@ -344,7 +368,7 @@ export function Roulette({
   return (
     <div
       ref={boite}
-      className={nu ? "roue-nue relative -mx-4 max-h-[330px] min-h-[200px] flex-1 overflow-hidden lg:-m-[clamp(24px,2.6vw,48px)] lg:rounded-[36px] lg:max-h-none lg:min-h-[300px]" : "carte-forte relative max-h-[320px] min-h-[220px] flex-1 overflow-hidden bg-nuit2 lg:max-h-none lg:min-h-[300px] lg:rounded-[32px] lg:shadow-[0_8px_0_var(--color-encre)]"}
+      className={nu ? "roue-nue relative -mx-4 max-h-[330px] min-h-[200px] flex-1 overflow-hidden lg:-m-[clamp(24px,2.6vw,48px)] lg:rounded-[36px] lg:max-h-none lg:min-h-[210px]" : "carte-forte relative max-h-[320px] min-h-[220px] flex-1 overflow-hidden bg-nuit2 lg:max-h-none lg:min-h-[300px] lg:rounded-[32px] lg:shadow-[0_8px_0_var(--color-encre)]"}
     >
       <canvas
         ref={toile}

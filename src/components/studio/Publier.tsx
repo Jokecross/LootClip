@@ -57,6 +57,16 @@ export function Publier({ entete, pseudo, url, titre, partir }: { url: string; t
     </button>
   );
 
+  const moment = (
+    <div className="segment" role="radiogroup" aria-label="Moment de la publication">
+      {[true, false].map((v) => (
+        <button key={String(v)} type="button" role="radio" aria-checked={plus === v} onClick={() => (pop(0.5), setPlus(v))}>
+          {v ? "Programmer" : "Publier maintenant"}
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <Duo
       cle="publier"
@@ -70,16 +80,17 @@ export function Publier({ entete, pseudo, url, titre, partir }: { url: string; t
               {(["tiktok", "instagram"] as Reseau[]).map((r, i) => {
                 const actif = reseaux.includes(r);
                 return (
-                  <button key={r} type="button" aria-pressed={actif} onClick={() => bascule(r)} style={{ "--d": `${i * 90}ms` } as React.CSSProperties} className="choix surgit !rounded-[20px] items-start gap-2 p-3 lg:gap-3 lg:!rounded-[26px] lg:p-5">
+                  <button key={r} type="button" aria-pressed={actif} onClick={() => bascule(r)} style={{ "--d": `${i * 90}ms` } as React.CSSProperties} className="choix surgit !rounded-[20px] items-start gap-2 p-3 lg:gap-3 lg:!rounded-[26px] lg:p-4">
                     <PictoReseau r={r} />
                     <span className="min-w-0 max-w-full">
-                      <span className="titre block !text-[18px] lg:!text-[clamp(21px,1.700vw,28px)]">{NOMS[r]}</span>
+                      <span className="titre block !text-[18px] lg:!text-[clamp(17px,1.600vw,28px)]">{NOMS[r]}</span>
                       <span className="mt-1 block truncate text-[12px] lg:text-[16px]">@{pseudo}</span>
                     </span>
                     {actif && <Coche className="absolute right-3 top-3 h-7 w-7 lg:right-4 lg:top-4 lg:h-9 lg:w-9" />}
                   </button>
                 );
               })}
+              <div className="col-span-2 hidden lg:block">{moment}</div>
             </div>
           }
         >
@@ -89,15 +100,9 @@ export function Publier({ entete, pseudo, url, titre, partir }: { url: string; t
       droite={
         <>
           <div className="pt-4 lg:pt-0">
-            <div className="segment" role="radiogroup" aria-label="Moment de la publication">
-              {[true, false].map((v) => (
-                <button key={String(v)} type="button" role="radio" aria-checked={plus === v} onClick={() => (pop(0.5), setPlus(v))}>
-                  {v ? "Programmer" : "Publier maintenant"}
-                </button>
-              ))}
-            </div>
+            <div className="lg:hidden">{moment}</div>
             {plus && (
-              <div className="mt-3 grid grid-cols-7 gap-1.5 lg:mt-4 lg:gap-2.5" role="radiogroup" aria-label="Jour">
+              <div className="mt-3 grid grid-cols-7 gap-1.5 lg:mt-0 lg:gap-2.5" role="radiogroup" aria-label="Jour">
                 {l.map((j, i) => (
                   <button key={i} type="button" role="radio" aria-checked={jour === i} onClick={() => (pop(i / 7), setJour(i))} className={`flex min-h-[58px] flex-col items-center justify-center rounded-[14px] border-2 border-encre lg:min-h-[min(78px,9vh)] lg:rounded-[18px] ${jour === i ? "bg-rose" : "bg-blanc shadow-[0_3px_0_var(--color-encre)]"}`}>
                     <span className="text-[12px] font-bold lg:text-[14px]">{j.court}</span>
