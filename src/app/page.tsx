@@ -3,6 +3,7 @@ import { AvantApres } from "@/components/landing/AvantApres";
 import { BarreFixe } from "@/components/landing/BarreFixe";
 import { Logo } from "@/components/marque/Logo";
 import { Objet, Pieces } from "@/components/objets/Objet";
+import { Montre } from "@/components/objets/Montre";
 import { SceneAccroche } from "@/components/onboarding/Ecrans";
 import { Mots } from "@/components/ui/Duo";
 import { PiedDePage } from "@/components/PiedDePage";
@@ -110,7 +111,7 @@ export default function Accueil() {
                       <Objet nom="clip-b" className="absolute bottom-[12%] right-[9%] h-[50%] w-[56%]" plusTard />
                     </>
                   )}
-                  {i === 2 && <Objet nom="telephone" className="absolute inset-x-0 inset-y-[7%]" plusTard />}
+                  {i === 2 && <Montre nom="route" fixe className="absolute inset-x-0 inset-y-[7%]" />}
                 </div>
                 <div className="relative z-20 border-t-2 border-encre p-5 lg:p-7">
                   <p className="text-[13px] font-bold text-encre2 lg:text-[15px]">Étape {i + 1}</p>

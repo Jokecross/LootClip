@@ -2,12 +2,11 @@
  * Les objets illustrés du site : des images fixes (public/objets), posées dans la page.
  * Elles tiennent dans la case donnée par className et ne bougent pas toutes seules.
  */
-export type NomObjet = "manette" | "manette2" | "telephone" | "abonnes" | "vide" | "non" | "clip-a" | "clip-b" | "cadenas" | "pieces-1" | "pieces-2" | "pieces-3" | "pieces-4";
+export type NomObjet = "manette" | "manette2" | "abonnes" | "vide" | "non" | "clip-a" | "clip-b" | "cadenas" | "pieces-1" | "pieces-2" | "pieces-3" | "pieces-4";
 
 const TAILLES: Record<NomObjet, [number, number]> = {
   manette: [720, 443],
   manette2: [720, 443],
-  telephone: [764, 1300],
   abonnes: [534, 900],
   vide: [546, 900],
   non: [534, 900],

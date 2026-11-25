@@ -17,7 +17,7 @@ SaaS mobile-first en français : les captures GTA 6 d'un joueur console devienne
 - Couleurs de la charte seulement (tokens dans `globals.css`). Dégradé réservé au hero, aux boutons principaux et au logo.
 - Titres Bricolage Grotesque 800, interlignage 1 ; texte DM Sans.
 - Tutoiement, phrases de 12 mots maximum, aucun emoji.
-- Aucun logo, typo, personnage ou visuel de GTA ou de Rockstar. « GTA 6 » seulement dans les textes.
+- Aucun logo, typo, personnage ou visuel de GTA ou de Rockstar. « GTA 6 » seulement dans les textes. Exception décidée par Martin (25/11/2026) : de vrais montages XPclip de ses parties (`public/montages`), jamais de bande-annonce ni de cinématique.
 - XPclip fait des clips, point : aucune mention des règles de monétisation TikTok (seuils, programme de récompenses). Pas de voix off ni de sous-titres en v1, seulement l'accroche écrite.
 - Le montant de l'onboarding et de l'écran des offres est toujours un « objectif » : jamais « estimation », « tu vas gagner », « gains prévus » ni « revenu estimé » à côté.
 - Pas d'essai gratuit (décision du 23/11/2026) : l'écran des offres (`Paywall`) s'affiche après l'onboarding, et bloque l'appli sans abonnement.

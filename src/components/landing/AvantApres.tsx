@@ -1,14 +1,14 @@
-import { Objet } from "@/components/objets/Objet";
+import { Montre } from "@/components/objets/Montre";
 /*
  * Avant / après.
  * Avant : la douleur. Une pile de clips bruts, longs, à l'horizontale, où les bons moments sont rares.
  * Après : un téléphone qui joue la vidéo montée par XPclip, avec ce qui a changé pointé par des étiquettes.
- * Illustré avec notre propre image (public/visuels/hero-*.jpg), en attendant les captures de Martin.
+ * Images tirées de vrais montages XPclip (public/montages).
  */
 const CLIPS = [
-  { cadre: "12% 60%", duree: "0:53", angle: -4 },
-  { cadre: "62% 40%", duree: "0:39", angle: 3 },
-  { cadre: "90% 70%", duree: "0:12", angle: -2 },
+  { image: "/montages/brut-1.jpg", duree: "0:53", angle: -4 },
+  { image: "/montages/brut-2.jpg", duree: "0:39", angle: 3 },
+  { image: "/montages/brut-3.jpg", duree: "0:12", angle: -2 },
 ];
 
 // Frise du jeu brut : les rares bons moments, en jaune. Positions en % de la durée totale.
@@ -34,11 +34,11 @@ export function AvantApres() {
         <div className="relative mt-6 aspect-[2/1] lg:mt-10">
           {CLIPS.map((c, i) => (
             <div
-              key={c.cadre}
+              key={c.image}
               className="absolute w-[62%] overflow-hidden rounded-xl border-2 border-fond/70 bg-encre shadow-[0_4px_0_rgb(0_0_0/0.5)]"
               style={{ left: `${i * 18}%`, top: `${i * 13}%`, transform: `rotate(${c.angle}deg)`, zIndex: 3 - i }}
             >
-              <span className="block aspect-video w-full bg-[url(/visuels/hero-900.jpg)] bg-[length:260%] opacity-70 grayscale-[0.5]" style={{ backgroundPosition: c.cadre }} />
+              <img src={c.image} alt="" width={480} height={268} loading="lazy" className="block aspect-video w-full object-cover opacity-80 grayscale-[0.5]" />
               <span className="absolute bottom-1.5 right-1.5 rounded-md bg-encre/85 px-1.5 py-0.5 text-[11px] font-bold tabular-nums text-fond">{c.duree}</span>
             </div>
           ))}
@@ -68,7 +68,7 @@ export function AvantApres() {
         <p className="text-[14px] font-bold text-jaune">Après</p>
         <p className="titre mt-1 text-[26px] text-fond lg:text-[34px]">30 secondes qui accrochent.</p>
         <div className="relative mx-auto mt-8 w-[230px] pb-2 lg:mt-10 lg:w-[330px]">
-          <Objet nom="telephone" className="aspect-[9/16] w-full scale-110" plusTard />
+          <Montre nom="route" className="aspect-[9/16] w-full scale-110" />
           <Etiquette fond="bg-jaune" className="-left-10 -top-3 -rotate-6">
             Accroche dès la 1re seconde
           </Etiquette>

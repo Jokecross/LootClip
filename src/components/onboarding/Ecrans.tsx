@@ -4,6 +4,7 @@
  */
 import { useEffect, useRef, useState } from "react";
 import { Objet, Pieces, type NomObjet } from "@/components/objets/Objet";
+import { Montre } from "@/components/objets/Montre";
 import { Mots, Titre } from "@/components/ui/Duo";
 import { Coche } from "@/components/ui/Parcours";
 import { Roulette } from "@/components/ui/Roulette";
@@ -37,7 +38,7 @@ export const MENTION_PRINCIPE = "Tout dépend de tes vues. Aucun revenu n'est ga
 export function SceneAccroche() {
   return (
     <div className="relative mt-6 min-h-[300px] flex-1 rounded-[28px] bg-(--p-jaune) lg:mt-0 lg:min-h-0 lg:bg-transparent">
-      <Objet nom="telephone" className="absolute inset-x-[20%] inset-y-[5%] lg:inset-x-[22%] lg:inset-y-[1%]" />
+      <Montre nom="plage" icones className="absolute inset-x-[20%] inset-y-[5%] lg:inset-x-[22%] lg:inset-y-[1%]" />
       <Objet nom="manette" className="absolute bottom-[2%] left-[1%] h-[38%] w-[52%] lg:bottom-[0%] lg:left-[-3%] lg:h-[37%] lg:w-[49%]" />
     </div>
   );
@@ -78,7 +79,7 @@ function Machine() {
       <Objet nom="clip-b" className="absolute bottom-[10%] left-[6%] h-[58%] w-[58%]" />
       <Objet nom="clip-a" className="absolute right-[4%] top-[4%] h-[58%] w-[58%]" />
     </span>,
-    <Objet key="c" nom="telephone" className="absolute inset-x-[4%] inset-y-[-2%] lg:inset-y-[-3%]" />,
+    <Montre key="c" nom="route" fixe className="absolute inset-x-[4%] inset-y-[-2%] lg:inset-y-[-3%]" />,
     <Pieces key="d" part={0.7} className="absolute inset-x-[10%] bottom-[8%] top-[10%]" />,
   ];
   return (
