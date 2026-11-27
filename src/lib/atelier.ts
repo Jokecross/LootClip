@@ -7,7 +7,7 @@
  *   que Supabase et XPclip.
  */
 import "server-only";
-import { Sandbox } from "@vercel/sandbox";
+import { Sandbox, Snapshot } from "@vercel/sandbox";
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -47,7 +47,7 @@ type Tache = {
 async function moteur() {
   const racine = join(process.cwd(), "moteur");
   const fichiers = await Promise.all(FICHIERS.map(async (f) => ({ path: `${DOSSIER}/${f}`, content: await readFile(join(racine, f)) })));
-  const h = createHash("sha256");
+  const h = createHash("sha256").update("modele-v2"); // v2 : sauvegarde explicite (les anciens modèles avaient des sauvegardes vides)
   for (const f of fichiers) h.update(f.path).update(f.content);
   return { fichiers, base: PREFIXE_BASE + h.digest("hex").slice(0, 12) };
 }
@@ -70,6 +70,22 @@ export const champsEchec = (m: { video_chemin?: string | null }, erreur: string)
 
 const nomMachine = (id: string) => `xpclip-${id}`;
 
+/**
+ * La sauvegarde (snapshot) du modèle : moteur, ffmpeg, Python et yt-dlp déjà installés.
+ * Une machine créée depuis elle démarre en 1 s, prête. (Copier la machine modèle par « fork »
+ * donnait une machine vide : on passe par une sauvegarde explicite, voir preparerBase.)
+ */
+async function sauvegardeModele(base: string) {
+  try {
+    const liste = await Snapshot.list({ name: base });
+    let meilleure: { id: string; createdAt: number } | null = null;
+    for await (const s of liste) if (s.status === "created" && (!meilleure || s.createdAt > meilleure.createdAt)) meilleure = { id: s.id, createdAt: s.createdAt };
+    return meilleure?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /** Démarre le montage et rend la main tout de suite : la machine préviendra XPclip de la suite. */
 export async function demarrer(tache: Tache, hotes: string[]) {
   const { fichiers, base } = await moteur();
@@ -77,9 +93,9 @@ export async function demarrer(tache: Tache, hotes: string[]) {
 
   let machine: Sandbox;
   let prete = false;
-  const modele = await Sandbox.get({ name: base }).catch(() => null);
-  if (modele?.currentSnapshotId) {
-    machine = await Sandbox.fork({ sourceSandbox: base, ...reglages, networkPolicy: { allow: hotes } });
+  const sauvegarde = await sauvegardeModele(base);
+  if (sauvegarde) {
+    machine = await Sandbox.create({ source: { type: "snapshot", snapshotId: sauvegarde }, ...reglages, networkPolicy: { allow: hotes } });
     prete = true;
   } else {
     machine = await Sandbox.create({ image: "vercel/sandbox/node:24", ...reglages });
@@ -103,8 +119,8 @@ export async function demarrer(tache: Tache, hotes: string[]) {
 /** Prépare la base du moteur actuel (une fois par version), et jette les anciennes. */
 export async function preparerBase() {
   const { fichiers, base } = await moteur();
+  if (await sauvegardeModele(base)) return { base, creee: false };
   const existante = await Sandbox.get({ name: base }).catch(() => null);
-  if (existante?.currentSnapshotId) return { base, creee: false };
   // Une base en préparation depuis moins de 10 min : quelqu'un d'autre s'en occupe.
   if (existante) {
     if (Date.now() - new Date(existante.createdAt).getTime() < 10 * 60_000) return { base, creee: false };
@@ -116,8 +132,8 @@ export async function preparerBase() {
     region: REGION,
     resources: { vcpus: 4 },
     timeout: 8 * 60_000,
-    snapshotExpiration: 0,
-    keepLastSnapshots: { count: 1, deleteEvicted: true },
+    // Pas de sauvegarde automatique : la seule sauvegarde est celle faite à la fin, une fois tout installé.
+    persistent: false,
   });
   await machine.mkDir(DOSSIER).catch(() => {});
   await machine.mkDir(`${DOSSIER}/polices`).catch(() => {});
@@ -129,9 +145,13 @@ export async function preparerBase() {
     await machine.delete().catch(() => {});
     throw new Error(`préparation de la base : ${err.slice(-500)}`);
   }
-  await machine.stop(); // l'arrêt enregistre la machine : c'est le modèle à copier
+  // Sauvegarde explicite (arrête la machine) : c'est elle que copient les montages et les lots.
+  await machine.snapshot({ expiration: 0 });
+  // Les anciens modèles et leurs sauvegardes partent (stockage payé au Go).
   for await (const s of await Sandbox.list({ namePrefix: PREFIXE_BASE, sortBy: "name" })) {
-    if (s.name !== base) await Sandbox.get({ name: s.name }).then((x) => x.delete()).catch(() => {});
+    if (s.name === base) continue;
+    for await (const v of await Snapshot.list({ name: s.name }).catch(() => [])) await Snapshot.get({ snapshotId: v.id }).then((x) => x.delete()).catch(() => {});
+    await Sandbox.get({ name: s.name }).then((x) => x.delete()).catch(() => {});
   }
   return { base, creee: true };
 }
@@ -177,10 +197,10 @@ export async function demarrerClips(tache: TacheClips) {
   const reglages = { name: nomLot(tache.id), persistent: false, region: REGION, resources: { vcpus: 4 }, timeout: DELAI_MAX_MIN * 60_000 };
   let machine: Sandbox;
   let prete = false;
-  const modele = await Sandbox.get({ name: base }).catch(() => null);
-  if (modele?.currentSnapshotId) {
-    machine = await Sandbox.fork({ sourceSandbox: base, ...reglages });
-    // La copie doit contenir le moteur déjà installé ; sinon (copie vide), on l'installe comme une machine neuve.
+  const sauvegarde = await sauvegardeModele(base);
+  if (sauvegarde) {
+    machine = await Sandbox.create({ source: { type: "snapshot", snapshotId: sauvegarde }, ...reglages });
+    // Garde-fou : la copie doit contenir le moteur ; sinon on l'installe comme une machine neuve.
     const test = await machine.runCommand({ cmd: "test", args: ["-f", `${DOSSIER}/bac-clips.mjs`] }).catch(() => null);
     prete = test?.exitCode === 0;
   } else {
