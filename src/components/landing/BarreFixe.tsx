@@ -28,7 +28,7 @@ export function BarreFixe() {
     >
       <div className="mx-auto max-w-[480px]">
         <Link href="/commencer" className="bouton bouton-rose w-full" tabIndex={visible ? 0 : -1}>
-          Créer mes clips
+          Créer mon premier clip
         </Link>
       </div>
     </div>

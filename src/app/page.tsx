@@ -96,15 +96,22 @@ export default function Accueil() {
       <header className="lp-hero">
         <p className="lp-badge">
           <span className="lp-point" aria-hidden="true" />
-          Clips IA pour streamers, podcasts et créateurs
+          🔥 GTA, c&apos;est la tendance n°1 sur TikTok
         </p>
-        <h1 className="titre">
-          Ta vidéo longue. <span className="lp-surligne">Tes meilleurs clips</span> en un clic.
+        <h1 className="titre lp-deux">
+          <span className="lp-t1">Tout le monde regarde GTA.</span>{" "}
+          <span className="lp-t2">
+            <span className="lp-surligne">
+              Encaisse sur <br className="sm:hidden" />
+              leurs vues.
+            </span>
+          </span>
         </h1>
-        <p className="lp-sous">L&apos;IA trouve les moments forts, cadre en vertical et sous-titre mot à mot.</p>
+        <p className="lp-sous">XPclip transforme n&apos;importe quelle vidéo GTA en clips viraux, prêts à poster. Zéro expérience requise.</p>
         <div id="cta-hero" className="lp-champ">
-          <ChampLien />
-          <small>Sans engagement. Résiliation en deux clics.</small>
+          <ChampLien libelle="Créer mon premier clip" />
+          <small>Aucun montage, aucune expérience. Résiliation en deux clics.</small>
+          <small className="lp-mention">Tes revenus dépendent de tes vues. Aucun n&apos;est garanti.</small>
         </div>
         <div className="lp-vitrine">
           <Interface />

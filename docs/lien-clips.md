@@ -30,6 +30,7 @@ et les clés `GROQ_API_KEY` + `ANTHROPIC_API_KEY` dans `~/LootClip/moteur/.env`.
 - Taille maximale d'un fichier envoyé : celle du projet Supabase (à vérifier pour les longues vidéos).
 - Transcription : 2 h de vidéo au plus (25 Mo de son pour Groq).
 
-## Démo de l'onboarding (écrans 1 et 2)
-- En ligne : les clips de Martin (`src/components/onboarding/demo.ts`). Démo Michou (« J'ai brisé tous les mythes de GTA 6 ») prête hors dépôt dans `~/.xpclip-modeles/demo-michou` (fichiers + `demo-michou.ts` à recopier dans `public/v4/demo` et `demo.ts`).
-- Vidéo d'un créateur tiers : **ne pas mettre en ligne sans son accord écrit** (droit d'auteur, droit à l'image). Sinon, refaire la démo avec une vidéo de Martin.
+## Démo du site (landing + écrans 1 et 2 de l'onboarding)
+- Vrais clips du moteur tirés de « J'ai brisé tous les mythes de GTA 6 » (MichouGaming) : `public/v4/demo` + `src/components/onboarding/demo.ts`.
+- Mis en ligne le 26/11/2026 sur décision de Martin, sans accord écrit du créateur (risque droit d'auteur et droit à l'image signalé).
+- Pour revenir aux clips de Martin : recopier `~/.xpclip-modeles/demo-michou/demo-martin.ts` dans `demo.ts` (ajouter `titreVideo` et `duree` par clip).

@@ -10,8 +10,8 @@ const bricolage = Bricolage_Grotesque({ subsets: ["latin"], weight: ["700", "800
 const dmSans = DM_Sans({ subsets: ["latin"], weight: ["400", "500", "700"], variable: "--font-dmsans", display: "swap" });
 
 export const metadata: Metadata = {
-  title: "XPclip · Colle un lien, récupère tes clips",
-  description: "Colle le lien de ta vidéo YouTube, Twitch, Kick ou X. XPclip trouve les meilleurs moments et les monte en clips verticaux sous-titrés.",
+  title: "XPclip · Tout le monde regarde GTA. Encaisse sur leurs vues.",
+  description: "XPclip transforme n'importe quelle vidéo GTA en clips viraux, prêts à poster. Zéro expérience requise.",
   applicationName: "XPclip",
   appleWebApp: { capable: true, title: "XPclip", statusBarStyle: "default" },
   formatDetection: { telephone: false },

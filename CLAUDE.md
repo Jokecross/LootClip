@@ -20,7 +20,7 @@ SaaS mobile-first en français : on colle le lien d'une vidéo (YouTube, Twitch,
 - Titres Bricolage Grotesque 800, interlignage 1 ; texte DM Sans.
 - Tutoiement, phrases de 12 mots maximum, aucun emoji.
 - Aucun logo, typo, personnage ou visuel de GTA ou de Rockstar. Exception décidée par Martin (25/11/2026) : de vrais montages XPclip de ses parties (`public/v4/clips`), jamais de bande-annonce ni de cinématique.
-- Visuels du site : uniquement les vidéos de Martin et nos dessins. Jamais de clips tirés de vidéos de tiers (droits d'auteur), même générés par notre moteur. Démo Michou prête hors dépôt (~/.xpclip-modeles/demo-michou), à brancher seulement avec son accord écrit.
+- Visuels du site : uniquement les vidéos de Martin et nos dessins. Jamais de clips tirés de vidéos de tiers (droits d'auteur), même générés par notre moteur. Exception décidée par Martin le 26/11/2026, malgré l'avertissement sur les droits : la démo MichouGaming (`public/v4/demo`, `src/components/onboarding/demo.ts`) sur la landing et l'onboarding. Retour aux clips de Martin : `~/.xpclip-modeles/demo-michou/demo-martin.ts`.
 - XPclip fait des clips, point : aucune mention des règles de monétisation TikTok (seuils, programme de récompenses).
 - Les sous-titres mot à mot sont le cœur du produit (réglables : type de clip, couleur, placement, format), avec l'accroche écrite. Pas de voix off.
 - Le montant de l'onboarding et de l'écran des offres est toujours un « objectif » : jamais « estimation », « tu vas gagner », « gains prévus » ni « revenu estimé » à côté.

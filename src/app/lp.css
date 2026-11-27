@@ -22,17 +22,20 @@
 .lp-badge { display: inline-flex; align-items: center; gap: 9px; padding: 7px 14px; border: 2px solid var(--color-encre); border-radius: 999px; background: var(--color-blanc); font-size: 13px; font-weight: 700; }
 .lp-point { width: 9px; height: 9px; border-radius: 50%; background: var(--color-rose); box-shadow: 0 0 0 2px var(--color-encre); animation: lp-clignote 1.6s ease-in-out infinite; }
 @keyframes lp-clignote { 50% { opacity: 0.35; } }
-.lp-hero h1 { max-width: 15ch; margin: 18px auto 0; font-size: clamp(40px, 11.4vw, 64px); line-height: 0.98; }
+.lp-hero h1 { max-width: 22ch; margin: 18px auto 0; font-size: clamp(38px, 10.4vw, 60px); line-height: 1.06; letter-spacing: -0.02em; }
 .lp-surligne { background: linear-gradient(transparent 60%, var(--color-jaune) 60%, var(--color-jaune) 92%, transparent 92%); padding: 0 0.06em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
-.lp-sous { max-width: 34ch; margin: 16px auto 0; font-size: 17px; font-weight: 500; line-height: 1.4; color: var(--color-encre2); text-wrap: balance; }
+.lp-sous { max-width: 40ch; margin: 16px auto 0; font-size: 17px; font-weight: 500; line-height: 1.4; color: var(--color-encre2); text-wrap: balance; }
 .lp-champ { max-width: 640px; margin: 26px auto 0; display: flex; flex-direction: column; align-items: center; gap: 12px; }
-.lp-champ small { font-size: 13px; font-weight: 500; color: var(--color-encre2); }
+.lp-champ small { font-size: 13px; font-weight: 500; line-height: 1.5; color: var(--color-encre2); }
+.lp-champ .lp-mention, .lp #cta-hero .lp-mention { margin-top: -6px; font-size: 12px; opacity: 0.75; }
+.lp #cta-hero small { font-size: 14px; }
+@media (min-width: 1024px) { .lp #cta-hero small { font-size: 15px; } .lp #cta-hero .lp-mention { font-size: 13px; } }
 .lp-vitrine { max-width: 1120px; margin: 40px auto 0; padding-bottom: 48px; }
 @media (min-width: 1024px) {
   .lp-hero { padding-top: 72px; }
   .lp-badge { font-size: 14px; padding: 8px 16px; }
-  .lp-hero h1 { margin-top: 24px; font-size: clamp(56px, 6.2vw, 92px); }
-  .lp-sous { margin-top: 22px; font-size: 21px; }
+  .lp-hero h1 { max-width: none; margin-top: 24px; font-size: clamp(52px, 5.2vw, 82px); line-height: 1.04; }
+  .lp-sous { max-width: 46ch; margin-top: 22px; font-size: 21px; }
   .lp-champ { margin-top: 34px; }
   .lp-vitrine { margin-top: 64px; padding-bottom: 80px; }
 }
@@ -234,4 +237,32 @@
   .lp-fin h2 { font-size: clamp(56px, 5.6vw, 84px); }
   .lp-fin .lp-champ { margin-top: 40px; }
 }
+}
+
+/* Hero sur téléphone : texte aligné à gauche, titre plus grand, lignes du dessous resserrées */
+@layer components {
+  .lp-badge .lp-point { display: none; }
+  @media (max-width: 639px) {
+    .lp-hero { padding-top: 36px; text-align: left; }
+    .lp-hero h1 { max-width: none; margin: 26px 0 0; font-size: clamp(38px, 10.6vw, 44px); line-height: 1.08; letter-spacing: -0.02em; }
+    .lp-hero .lp-sous { max-width: none; margin: 30px 0 0; font-size: 17px; line-height: 1.5; text-wrap: pretty; }
+    .lp #cta-hero { align-items: stretch; gap: 10px; margin-top: 30px; }
+    .lp-hero .cl-sous { margin-top: 16px; font-size: 13px; }
+    .lp #cta-hero small { font-size: 12px; line-height: 1.5; }
+    .lp #cta-hero .lp-mention { margin-top: 0; font-size: 11.5px; }
+    .lp-vitrine { margin-top: 48px; }
+  }
+}
+
+/* Titre « deux tailles » : le constat en moyen, l'action en très gros avec un trait jaune */
+@layer components {
+  .lp-hero h1.lp-deux { max-width: none; font-size: clamp(46px, 13.4vw, 58px); line-height: 1; }
+  .lp-deux .lp-t1 { display: block; font-size: 0.52em; line-height: 1.1; letter-spacing: -0.02em; }
+  .lp-deux .lp-t2 { display: block; margin-top: 0.14em; letter-spacing: -0.035em; }
+  .lp-deux .lp-surligne { background: linear-gradient(transparent 66%, var(--color-jaune) 66%, var(--color-jaune) 94%, transparent 94%); }
+  @media (min-width: 640px) { .lp-hero h1.lp-deux { font-size: clamp(64px, 9vw, 84px); } }
+  @media (min-width: 1024px) {
+    .lp-hero h1.lp-deux { font-size: clamp(72px, 7vw, 104px); }
+    .lp-deux .lp-t1 { font-size: 0.46em; }
+  }
 }

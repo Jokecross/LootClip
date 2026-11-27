@@ -2,17 +2,14 @@
 /*
  * L'interface d'XPclip, en vitrine sous le hero : la vidéo longue à gauche, les clips trouvés à droite.
  * Trois temps en boucle : analyse, moments repérés, clips prêts. Une seule vidéo joue à la fois.
- * Vidéos : vrais montages XPclip des parties de Martin.
+ * Vidéos : la démo de demo.ts (vrais clips sortis du moteur).
  */
 import { useEffect, useRef, useState } from "react";
 import { Boucle } from "./Boucle";
+import { DEMO } from "@/components/onboarding/demo";
 import { SousTitres } from "./SousTitres";
 
-const CLIPS = [
-  { nom: "defi", titre: "Il n'aurait jamais dû me chercher", score: 94, duree: "0:38", debut: 9, largeur: 14 },
-  { nom: "drole", titre: "Mon chien conduit mieux que moi", score: 89, duree: "0:27", debut: 43, largeur: 11 },
-  { nom: "mission", titre: "Je voulais juste rentrer chez moi", score: 83, duree: "0:45", debut: 71, largeur: 16 },
-];
+const CLIPS = DEMO.clips.slice(0, 3);
 const ETAPES = ["Vidéo récupérée", "Transcription", "Moments forts", "Montage 9:16"];
 const TEMPS = [3400, 2400, 7000];
 // Hauteurs fixes de la piste son (pas d'aléatoire : même rendu serveur et client)
@@ -56,11 +53,11 @@ export function Interface() {
         {/* La vidéo longue */}
         <div className="ui-source">
           <div className="ui-lecteur">
-            <Boucle nom={`clips/brut-${CLIPS[devant].nom}`} actif={phase !== 2 && vue} suivante />
-            <span className="ui-plateforme">Twitch</span>
-            <span className="ui-temps">1:42:08</span>
+            <Boucle nom={DEMO.avant} actif={phase !== 2 && vue} suivante />
+            <span className="ui-plateforme">{DEMO.plateforme}</span>
+            <span className="ui-temps">{DEMO.duree}</span>
           </div>
-          <p className="ui-nom">Live du dimanche soir</p>
+          <p className="ui-nom">{DEMO.titreVideo}</p>
           <div className="ui-frise">
             {PISTE.map((h, i) => (
               <i key={i} style={{ height: `${h}%` }} />
@@ -99,11 +96,11 @@ export function Interface() {
                   <div className="ui-vignette">
                     {i === devant ? (
                       <>
-                        <Boucle nom={`clips/${c.nom}`} actif={joue} suivante />
-                        <SousTitres phrase={c.titre} joue={joue} place="bas" className="ui-st" />
+                        <Boucle nom={c.nom} actif={joue} suivante />
+                        {DEMO.sousTitresDessines && <SousTitres phrase={c.titre} joue={joue} place="bas" className="ui-st" />}
                       </>
                     ) : (
-                      <img src={`/v4/clips/${c.nom}.webp`} alt="" width={432} height={768} loading="lazy" />
+                      <img src={`/v4/${c.nom}.webp`} alt="" width={432} height={768} loading="lazy" />
                     )}
                   </div>
                   <div className="ui-infos">

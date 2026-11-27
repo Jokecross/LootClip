@@ -9,7 +9,7 @@ import { mettreLienEnAttente } from "@/lib/onboarding";
 
 const RE_LIEN = /^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}(\/\S*)?$/i;
 
-export function ChampLien({ id }: { id?: string }) {
+export function ChampLien({ id, libelle = "Créer mes clips" }: { id?: string; libelle?: string }) {
   const router = useRouter();
   const [lien, setLien] = useState("");
   const [erreur, setErreur] = useState("");
@@ -44,7 +44,7 @@ export function ChampLien({ id }: { id?: string }) {
           className="cl-champ"
         />
         <button type="submit" className="gros gros-rose cl-go">
-          Créer mes clips
+          {libelle}
         </button>
       </div>
       {erreur ? (
