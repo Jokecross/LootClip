@@ -11,13 +11,12 @@ import { useEffect, useRef, useState } from "react";
 import { Boucle } from "@/components/accueil/Boucle";
 import { LancerLien } from "@/components/accueil/ChampLien";
 import { Landing } from "@/components/accueil/Landing";
-import { CarteClip } from "@/components/clips/CarteClip";
 import { ReglagesCompacts } from "@/components/clips/ReglagesCompacts";
 import { Cadre, Progression, Question } from "@/components/onboarding/Cadre";
 import { DEMO } from "@/components/onboarding/demo";
 import { ecranActivite, ecranDestinations, ecranObjectif, ecranPlan, ecranRythme, ecranStyle, ecranTiktok, REPERE_RYTHME } from "@/components/onboarding/Ecrans";
 import { Confettis } from "@/components/studio/Confettis";
-import { HEURES, heure, jours } from "@/components/studio/Publier";
+import { Programmation, PUBLICATION_DEFAUT, quand, Recommandation, recommander, VitrineClips, type Publication } from "@/components/studio/EcransStudio";
 import { Logo } from "@/components/marque/Logo";
 import { OPTIONS_PAR_DEFAUT, type OptionsClips } from "@/lib/clips-options";
 import { MENTION_OBJECTIF, ONBOARDING } from "@/lib/config";
@@ -31,8 +30,6 @@ type Etape = (typeof SUITE)[number];
 /** Les écrans de l'onboarding, numérotés comme sur le vrai site. */
 const PARCOURS: Etape[] = ["lp", "activite", "destinations", "tiktok", "style", "rythme", "objectif", "plan"];
 const ETAPES_MONTAGE = ["Vidéo récupérée", "Transcription", "Moments forts", "Montage 9:16"];
-const RESEAUX = ["TikTok", "YouTube Shorts", "Instagram Reels"];
-const secondes = (d: string) => d.split(":").reduce((s, x) => s * 60 + Number(x), 0);
 
 /** `direct` : on arrive sur le premier écran (xpclip.com), sans passer par la régie. */
 export function PlateauClips({ direct = false }: { direct?: boolean }) {
@@ -43,7 +40,8 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
   const [credits, setCredits] = useState(REGLAGES_DEFAUT.credits);
   const [hasard, setHasard] = useState("");
   const [lienColle, setLienColle] = useState("");
-  const [pub, setPub] = useState<Publication>({ reseaux: ["TikTok"], programme: false, jour: 1, minutes: 19 * 60 });
+  const [pub, setPub] = useState<Publication>(PUBLICATION_DEFAUT);
+  const [perso, setPerso] = useState(false);
   const appui = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -88,7 +86,8 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
     setCredits(regl.credits);
     setHasard(pseudoAuHasard());
     setLienColle("");
-    setPub({ reseaux: ["TikTok"], programme: false, jour: 1, minutes: 19 * 60 });
+    setPub(PUBLICATION_DEFAUT);
+    setPerso(false);
     aller(depuis);
   }
 
@@ -188,7 +187,7 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
       break;
     case "plan":
       contenu = ecranPlan({ objectif, frequence });
-      bouton = { libelle: "Régler mes clips", faire: suivant };
+      bouton = { libelle: "Voir mes réglages", faire: () => (setOptions(recommander(r)), setPerso(false), suivant()) };
       pied = <p>{MENTION_OBJECTIF}</p>;
       break;
 
@@ -197,12 +196,12 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
         gauche: (
           <div className="max-lg:[&_.ob-sous]:hidden max-lg:[&_.ob-sur]:hidden">
             <Question avant="Ton style" sous={`Vidéo : ${(lienColle || lien).split("?")[0]}`}>
-              Règle tes clips.
+              {perso ? "Règle tes clips." : "On s'occupe de tout."}
             </Question>
           </div>
         ),
-        droite: <ReglagesCompacts options={options} changer={(o) => setOptions((v) => ({ ...v, ...o }))} />,
-        large: true,
+        droite: perso ? <ReglagesCompacts options={options} changer={(o) => setOptions((v) => ({ ...v, ...o }))} /> : <Recommandation options={options} personnaliser={() => setPerso(true)} />,
+        large: perso,
       };
       bouton = { libelle: `Créer mes ${options.nombre} clips`, faire: suivant };
       break;
@@ -223,34 +222,26 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
       };
       break;
 
-    case "clips": {
-      const clips = DEMO.clips.slice(0, Math.min(options.nombre, DEMO.clips.length));
+    case "clips":
       contenu = {
         gauche: (
           <>
             <Confettis />
-            <Question avant="C'est prêt" sous={`${clips.length} clips sous-titrés, notés sur 100, prêts à poster.`}>
+            <Question avant="C'est prêt" sous="Chaque clip est noté sur 100. Touche-en un pour voir pourquoi.">
               Tes clips sont prêts.
             </Question>
           </>
         ),
-        droite: (
-          <div className="ap-clips w-full lg:grid-cols-4">
-            {clips.map((c) => (
-              <CarteClip key={c.nom} url={`/v4/${c.nom}.mp4`} titre={c.titre} score={c.score} duree={secondes(c.duree)} telecharger={`/v4/${c.nom}.mp4`} />
-            ))}
-          </div>
-        ),
+        droite: <VitrineClips nombre={options.nombre} />,
         large: true,
       };
       bouton = { libelle: "Poster mes clips", faire: suivant };
       break;
-    }
 
     case "poster":
       contenu = {
         gauche: <Question avant="Publication" sous="Tes clips partent sur tes comptes, au format vertical.">Où tu postes ?</Question>,
-        droite: <Poster pseudo={pseudo} pub={pub} changer={(x) => setPub((v) => ({ ...v, ...x }))} />,
+        droite: <Programmation pseudo={pseudo} pub={pub} changer={(x) => setPub((v) => ({ ...v, ...x }))} />,
         fond: "turquoise",
       };
       bouton = { libelle: pub.programme ? "Programmer mes clips" : "Poster maintenant", faire: suivant, actif: pub.reseaux.length > 0 };
@@ -364,71 +355,3 @@ function Montage({ secondes, fini }: { secondes: number; fini: () => void }) {
   );
 }
 
-type Publication = { reseaux: string[]; programme: boolean; jour: number; minutes: number };
-
-/** « demain à 19 h 00 », « jeudi à 12 h 30 ». */
-function quand(p: Publication) {
-  const j = jours()[p.jour];
-  return `${p.jour === 0 ? "aujourd'hui" : p.jour === 1 ? "demain" : j.long} à ${heure(p.minutes)}`;
-}
-
-/** Les réseaux, puis maintenant ou programmé (jour et heure). Pour la caméra : rien ne part vraiment. */
-function Poster({ pseudo, pub, changer }: { pseudo: string; pub: Publication; changer: (x: Partial<Publication>) => void }) {
-  const [liste] = useState(jours);
-  return (
-    <div className="ob-carte surgit">
-      <p className="text-[14px] font-bold text-encre2">Compte : @{pseudo}</p>
-      {RESEAUX.map((x) => {
-        const oui = pub.reseaux.includes(x);
-        return (
-          <button
-            key={x}
-            type="button"
-            role="checkbox"
-            aria-checked={oui}
-            onClick={() => changer({ reseaux: oui ? pub.reseaux.filter((y) => y !== x) : [...pub.reseaux, x] })}
-            className={`flex min-h-14 items-center justify-between rounded-2xl border-2 border-encre px-4 text-[17px] font-extrabold ${oui ? "bg-jaune" : "bg-blanc"}`}
-          >
-            {x}
-            <span className={`grid h-7 w-7 place-items-center rounded-lg border-2 border-encre ${oui ? "bg-encre text-fond" : "bg-blanc"}`}>{oui ? "✓" : ""}</span>
-          </button>
-        );
-      })}
-
-      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Quand">
-        {[
-          [false, "Maintenant"],
-          [true, "Programmer"],
-        ].map(([v, nom]) => (
-          <button key={String(v)} type="button" role="radio" aria-checked={pub.programme === v} onClick={() => changer({ programme: v as boolean })} className={`min-h-12 rounded-xl border-2 border-encre text-[16px] font-extrabold ${pub.programme === v ? "bg-encre text-fond" : "bg-blanc"}`}>
-            {nom as string}
-          </button>
-        ))}
-      </div>
-
-      {pub.programme && (
-        <div className="surgit flex flex-col gap-3">
-          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" role="radiogroup" aria-label="Jour">
-            {liste.map((j, i) => (
-              <button key={i} type="button" role="radio" aria-checked={pub.jour === i} onClick={() => changer({ jour: i })} className={`flex min-h-14 min-w-14 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-encre text-[12px] font-bold capitalize ${pub.jour === i ? "bg-rose" : "bg-blanc"}`}>
-                {j.court}
-                <b className="titre text-[20px]">{j.num}</b>
-              </button>
-            ))}
-          </div>
-          <label className="flex items-center justify-between gap-3 text-[15px] font-extrabold">
-            Heure
-            <select value={pub.minutes} onChange={(e) => changer({ minutes: Number(e.target.value) })} className="min-h-12 rounded-xl border-2 border-encre bg-blanc px-3 text-[16px] font-bold">
-              {HEURES.map((m) => (
-                <option key={m} value={m}>
-                  {heure(m)}
-                </option>
-              ))}
-            </select>
-          </label>
-          <p className="rounded-xl border-2 border-encre bg-fond px-3 py-2 text-[14px] font-bold">XPclip poste {quand(pub)}.</p>
-        </div>
-      )}
-    </div>
-  );
-}
