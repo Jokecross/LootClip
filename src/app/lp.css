@@ -46,7 +46,8 @@
   display: grid; grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: 6px 4px; padding: 6px;
   border: var(--ep) solid var(--color-encre); border-radius: 20px; background: var(--color-blanc); box-shadow: 0 6px 0 var(--color-encre);
 }
-.cl-boite:focus-within { box-shadow: 0 6px 0 var(--color-encre), 0 0 0 4px var(--color-turquoise); }
+.cl-boite { transition: transform 150ms ease-out, box-shadow 150ms ease-out; }
+.cl-boite:focus-within { transform: translateY(-2px); box-shadow: 0 8px 0 var(--color-encre); }
 .cl-icone { width: 22px; height: 22px; margin-left: 10px; color: var(--color-encre2); }
 .cl-champ { width: 100%; height: 52px; padding: 0 10px; background: transparent; font-size: 17px; font-weight: 600; outline: none; }
 .cl-champ::placeholder { color: var(--color-encre2); font-weight: 500; }
@@ -266,3 +267,7 @@
     .lp-deux .lp-t1 { font-size: 0.46em; }
   }
 }
+
+/* Hors couche, pour passer devant le :focus-visible général de globals.css :
+   le champ du lien n'a pas de cadre à lui, c'est sa boîte entière qui s'allume. */
+.cl-champ:focus, .cl-champ:focus-visible, .ob-champ-lien input:focus, .ob-champ-lien input:focus-visible { outline: none; }

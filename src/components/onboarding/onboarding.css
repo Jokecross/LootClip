@@ -140,7 +140,7 @@
   .ob-palier .pastille { font-size: 14px; }
   .ob-label { font-family: var(--font-titre); font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
   .ob-champ-lien { display: flex; align-items: center; gap: 8px; padding: 0 12px; border: var(--ep) solid var(--color-encre); border-radius: 16px; background: var(--color-blanc); box-shadow: 0 4px 0 var(--color-encre); }
-  .ob-champ-lien:focus-within { box-shadow: 0 4px 0 var(--color-encre), 0 0 0 4px var(--color-turquoise); }
+  .ob-champ-lien:focus-within { box-shadow: 0 6px 0 var(--color-encre); transform: translateY(-2px); }
   .ob-champ-lien[data-faux="true"] { border-color: #b8235f; }
   .ob-champ-lien svg { width: 22px; height: 22px; flex: none; color: var(--color-encre2); }
   .ob-champ-lien input { width: 100%; min-width: 0; height: 56px; background: transparent; font-size: 16px; font-weight: 600; outline: none; }
