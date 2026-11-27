@@ -4,7 +4,7 @@
  * Le droit est vérifié derrière : sans compte de l'équipe, le vrai site revient.
  */
 import { useEffect } from "react";
-import { Plateau } from "@/components/studio/Plateau";
+import { PlateauClips as Plateau } from "@/components/studio/PlateauClips";
 import { droitStudio, poserTournage } from "@/lib/tournage";
 
 export default function Tournage() {
