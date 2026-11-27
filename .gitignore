@@ -12,3 +12,4 @@ next-env.d.ts
 # clips de test (vidéos lourdes, contenus de tiers)
 /CLIP/
 __pycache__/
+.sauvegarde-apify/

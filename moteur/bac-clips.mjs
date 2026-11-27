@@ -10,10 +10,12 @@
  * 3. Monte chaque clip, le dépose, prévient XPclip ; puis « fini ».
  */
 import { spawn } from "node:child_process";
-import { existsSync } from "node:fs";
+import { createWriteStream, existsSync } from "node:fs";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { Readable } from "node:stream";
+import { pipeline } from "node:stream/promises";
 import { setTimeout as attendre } from "node:timers/promises";
 import { fabriquer } from "./clip.mjs";
 import { couperPlage, extraireSon } from "./clip/ia.mjs";
@@ -83,6 +85,26 @@ function telecharger(lien, fichier, surAvancement, plage) {
   });
 }
 
+/** Lien direct vers un MP4 (YouTube via Apify, déjà coupé au passage choisi). */
+async function telechargerDirect(lien, fichier, surAvancement) {
+  const rep = await fetch(lien);
+  if (!rep.ok || !rep.body) throw new Error(`fichier source introuvable (${rep.status})`);
+  const total = Number(rep.headers.get("content-length")) || 0;
+  let recu = 0;
+  let dernier = 0;
+  const suivi = new TransformStream({
+    transform(morceau, c) {
+      recu += morceau.length;
+      if (total && recu / total - dernier >= 0.05) {
+        dernier = recu / total;
+        surAvancement(dernier);
+      }
+      c.enqueue(morceau);
+    },
+  });
+  await pipeline(Readable.fromWeb(rep.body.pipeThrough(suivi)), createWriteStream(fichier));
+}
+
 function cause(e) {
   const m = String(e?.message || e);
   if (/not a bot|Sign in to confirm/i.test(m)) return "bloque";
@@ -98,7 +120,9 @@ try {
   // Seulement le passage choisi (20 min au plus). Si la plateforme ne sait pas, la vidéo entière, puis on coupe.
   let source = join(dossier, "source.mp4");
   const avancer = (v) => nouvelle({ phase: "progres", etape: "telechargement", avancement: v });
-  if (t.plage) {
+  if (t.direct) {
+    await telechargerDirect(t.source, source, avancer);
+  } else if (t.plage) {
     try {
       await telecharger(t.source, source, avancer, t.plage);
       journal("passage récupéré");

@@ -26,3 +26,9 @@ SaaS mobile-first en français : on colle le lien d'une vidéo (YouTube, Twitch,
 - Le montant de l'onboarding et de l'écran des offres est toujours un « objectif » : jamais « estimation », « tu vas gagner », « gains prévus » ni « revenu estimé » à côté.
 - Pas d'essai gratuit (décision du 23/11/2026) : l'écran des offres (`Paywall`) s'affiche après l'onboarding, et bloque l'appli sans abonnement.
 - Zones tactiles de 48 px minimum, colonne de 480 px max dans l'appli.
+
+## Liens YouTube (décision de Martin du 27/11/2026)
+- Décision produit prise par Martin en connaissance de cause : pour les liens YouTube, XPclip passe par l'acteur Apify `lurkapi/youtube-video-clipper` (service commercial tiers appelé par API). Martin assume le risque lié aux CGU de YouTube.
+- Branché le 27/11/2026 : `src/lib/apify-youtube.ts` (lancement + résultat), webhook `src/app/api/clips/apify/route.ts` → `apresApify` dans `src/lib/clips-en-ligne.ts`, téléchargement direct (`t.direct`) dans `moteur/bac-clips.mjs`. Sans `APIFY_TOKEN`, l'ancien comportement (envoi de fichier) revient tout seul. Fiche : `docs/youtube-apify.md`.
+- Token : `APIFY_TOKEN` dans Vercel, type Sensitive, jamais dans le code (dépôt public).
+- Toujours tester le parcours complet en ligne avant la mise en ligne.

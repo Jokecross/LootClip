@@ -146,7 +146,17 @@ export async function eteindre(id: string) {
 
 /* ---------- « Lien → clips » ---------- */
 
-export type TacheClips = { id: string; source: string; depotSon: string; suivi: string; jeton: string; /** Passage à analyser (secondes). */ plage?: { debut: number; fin: number } };
+export type TacheClips = {
+  id: string;
+  source: string;
+  depotSon: string;
+  suivi: string;
+  jeton: string;
+  /** Passage à analyser (secondes). */
+  plage?: { debut: number; fin: number };
+  /** Lien direct vers un MP4 déjà coupé (YouTube via Apify) : téléchargé tel quel, sans yt-dlp. */
+  direct?: boolean;
+};
 export type RenduClips = {
   moments: { titre: string; parties: [number, number][] }[];
   mots: { texte: string; debut: number; fin: number }[];

@@ -11,7 +11,8 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
 import { admin } from "./admin";
-import { demarrerClips, envoyerRendu, eteindreLot, jetonLot, preparerBase } from "./atelier";
+import { apifyActif, estYoutube, lancerApify, resultatApify } from "./apify-youtube";
+import { demarrerClips, envoyerRendu, eteindreLot, jetonLot, preparerBase, type TacheClips } from "./atelier";
 import type { EtatClips } from "./clips-local";
 import type { OptionsClips } from "./clips-options";
 import { OFFRES_PAYANTES, type Offre } from "./config";
@@ -24,7 +25,7 @@ export const idValide = (id: string) => ID.test(id);
 const chemin = (user: string, id: string, f: string) => `lots/${user}/${id}/${f}`;
 const moisCourant = () => new Date().toISOString().slice(0, 7);
 
-export type EtatLot = EtatClips & { options: OptionsClips; source: string; user: string };
+export type EtatLot = EtatClips & { options: OptionsClips; source: string; user: string; /** Run Apify en cours (liens YouTube). */ apify?: string };
 
 /**
  * Lit un petit fichier d'état. Toujours par un lien signé neuf (adresse unique) et sans cache :
@@ -88,16 +89,46 @@ export async function lancerLot({ user, source, options, site }: { user: { id: s
   await ecrireEtatLot(user.id, id, etat);
   await compter(user.id, 1);
   try {
-    const { data: depot, error } = await admin().storage.from(BUCKET).createSignedUploadUrl(chemin(user.id, id, "son.mp4"), { upsert: true });
-    if (error) throw error;
-    const { prete } = await demarrerClips({ id, source, depotSon: depot.signedUrl, suivi: `${site}/api/clips/suivi?u=${user.id}`, jeton: jetonLot(`${id}:${user.id}`), plage: options.plage });
-    if (!prete) preparerBase().catch((e) => console.error("base :", e));
+    if (apifyActif() && estYoutube(source)) {
+      // YouTube : Apify récupère le passage, puis /api/clips/apify lance la machine (apresApify).
+      const webhook = `${site}/api/clips/apify?u=${user.id}&id=${id}&j=${jetonLot(`apify:${id}:${user.id}`)}`;
+      const run = await lancerApify(source, options.plage, webhook);
+      await ecrireEtatLot(user.id, id, { ...etat, apify: run });
+    } else {
+      await demarrerMachine(user.id, id, source, options.plage, site);
+    }
   } catch (e) {
     console.error("lancement du lot", id, e);
     await compter(user.id, -1);
     await ecrireEtatLot(user.id, id, { ...etat, erreur: "Le lancement a échoué. Réessaie dans un instant." });
   }
   return id;
+}
+
+async function demarrerMachine(user: string, id: string, source: string, plage: TacheClips["plage"], site: string, direct = false) {
+  const { data: depot, error } = await admin().storage.from(BUCKET).createSignedUploadUrl(chemin(user, id, "son.mp4"), { upsert: true });
+  if (error) throw error;
+  const { prete } = await demarrerClips({ id, source, depotSon: depot.signedUrl, suivi: `${site}/api/clips/suivi?u=${user}`, jeton: jetonLot(`${id}:${user}`), plage, ...(direct ? { direct: true } : {}) });
+  if (!prete) preparerBase().catch((e) => console.error("base :", e));
+}
+
+/** Apify a fini (webhook) : on relit le résultat et on lance la machine avec le MP4 du passage. */
+export async function apresApify(user: string, id: string, run: string, site: string) {
+  const etat = await lireEtatLot(user, id);
+  if (!etat || etat.erreur || etat.apify !== run) return; // déjà traité, ou appel inconnu
+  await ecrireEtatLot(user, id, { ...etat, apify: `${run}:lance` });
+  try {
+    const res = await resultatApify(run);
+    if (!res.ok) {
+      console.error("apify", id, res.raison);
+      throw new Erreur("Je n'ai pas pu récupérer cette vidéo YouTube. Réessaie, ou envoie le fichier.");
+    }
+    await demarrerMachine(user, id, res.url, undefined, site, true);
+  } catch (e) {
+    console.error("après apify", id, e);
+    await compter(user, -1);
+    await ecrireEtatLot(user, id, { ...etat, erreur: e instanceof Erreur ? e.message : "Le lancement a échoué. Réessaie dans un instant." });
+  }
 }
 
 /** Le son est déposé : transcription, choix des moments, puis la machine monte. */
