@@ -14,6 +14,8 @@
  */
 import { spawn } from "node:child_process";
 import { createWriteStream, existsSync } from "node:fs";
+import http from "node:http";
+import net from "node:net";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
@@ -76,7 +78,7 @@ function telecharger(lien, fichier, surAvancement, plage, o = {}) {
       ...(o.proxy ? ["--proxy", o.proxy, "--js-runtimes", "node", "--retries", "3"] : []),
       // ffmpeg (coupe du passage) ne reprend pas --proxy de yt-dlp, et ignore http_proxy pour le https :
       // on lui donne le proxy en option, sinon il va chercher le lien YouTube (lié à l'IP du proxy) en direct.
-      ...(o.proxy && plage ? ["--downloader-args", `ffmpeg_i:-http_proxy '${o.proxy}'`] : []),
+      ...(o.proxy && plage ? ["--downloader-args", `ffmpeg_i:-http_proxy ${o.relais ?? `'${o.proxy}'`}`] : []),
       ...(o.format?.startsWith("ba") ? [] : ["--merge-output-format", "mp4"]),
       "-o", fichier, lien,
     ]);
@@ -95,6 +97,52 @@ function telecharger(lien, fichier, surAvancement, plage, o = {}) {
     p.on("error", ko);
     p.on("close", (c) => (c === 0 ? ok() : ko(new Error(err.trim() || `yt-dlp code ${c}`))));
   });
+}
+
+/**
+ * Relais local sans mot de passe vers le proxy YouTube : ffmpeg gère mal un proxy avec identifiants
+ * pour le https. Il parle au relais (127.0.0.1), qui ouvre le tunnel chez Decodo avec les identifiants.
+ */
+async function relaisProxy(adresse) {
+  // Lecture tolérante (un mot de passe peut contenir + / : …) : identifiants avant le dernier @.
+  const sansSchema = adresse.replace(/^[a-z]+:\/\//i, "");
+  const at = sansSchema.lastIndexOf("@");
+  const ident = sansSchema.slice(0, at);
+  const [hote, port] = sansSchema.slice(at + 1).replace(/\/.*$/, "").split(":");
+  const lire = (x) => { try { return decodeURIComponent(x); } catch { return x; } };
+  const deux = ident.indexOf(":");
+  const auth = "Basic " + Buffer.from(`${lire(ident.slice(0, deux))}:${lire(ident.slice(deux + 1))}`).toString("base64");
+  const u = { hostname: hote, port };
+  const serveur = http.createServer((_, res) => res.writeHead(405).end());
+  serveur.on("connect", (req, client, head) => {
+    const amont = net.connect(Number(u.port) || 80, u.hostname, () =>
+      amont.write(`CONNECT ${req.url} HTTP/1.1\r\nHost: ${req.url}\r\nProxy-Authorization: ${auth}\r\n\r\n`),
+    );
+    let tampon = Buffer.alloc(0);
+    const reponse = (d) => {
+      tampon = Buffer.concat([tampon, d]);
+      const fin = tampon.indexOf("\r\n\r\n");
+      if (fin < 0) return;
+      amont.off("data", reponse);
+      if (!/^HTTP\/1\.[01] 200/.test(tampon.toString("latin1", 0, 20))) {
+        journal("relais : tunnel refusé", tampon.toString("latin1", 0, 60).split("\r\n")[0]);
+        client.end("HTTP/1.1 502 Bad Gateway\r\n\r\n");
+        amont.destroy();
+        return;
+      }
+      client.write("HTTP/1.1 200 Connection Established\r\n\r\n");
+      if (tampon.length > fin + 4) client.write(tampon.subarray(fin + 4));
+      if (head?.length) amont.write(head);
+      amont.pipe(client);
+      client.pipe(amont);
+    };
+    amont.on("data", reponse);
+    amont.on("error", () => client.destroy());
+    client.on("error", () => amont.destroy());
+  });
+  await new Promise((ok) => serveur.listen(0, "127.0.0.1", ok));
+  serveur.unref();
+  return `http://127.0.0.1:${serveur.address().port}`;
 }
 
 /** Lien direct vers un MP4 (YouTube via Apify, déjà coupé au passage choisi). */
@@ -134,16 +182,19 @@ try {
   const avancer = (v) => nouvelle({ phase: "progres", etape: "telechargement", avancement: v });
   // YouTube par proxy : le son seul du passage (quelques Mo), la vidéo viendra moment par moment.
   const parProxy = Boolean(t.proxy && t.plage);
+  const relais = parProxy ? await relaisProxy(t.proxy) : undefined;
   const son = join(dossier, "son.mp4");
   if (parProxy) {
-    const brut = join(dossier, "son-brut.m4a");
+    let brut = join(dossier, "son-brut.m4a");
     try {
-      await telecharger(t.source, brut, avancer, t.plage, { format: "ba[ext=m4a]/ba", proxy: t.proxy });
+      await telecharger(t.source, brut, avancer, t.plage, { format: "ba[ext=m4a]/ba", proxy: t.proxy, relais });
     } catch (e) {
       // Plan B : tout le son, sans ffmpeg (petit format, environ 25 Mo par heure), puis on coupe ici.
       journal("son du passage impossible, son entier :", String(e?.message || e).slice(0, 200));
       const entier = join(dossier, "son-entier.webm");
       await telecharger(t.source, entier, avancer, undefined, { format: "ba[abr<=80]/ba", proxy: t.proxy });
+      // .mka : accepte l'Opus que YouTube fournit souvent (le .m4a le refuse). extraireSon convertit ensuite.
+      brut = join(dossier, "son-coupe.mka");
       await couperPlage(entier, brut, t.plage);
       await rm(entier, { force: true });
     }
@@ -201,6 +252,7 @@ try {
       await telecharger(t.source, morceau, () => {}, { debut: t.plage.debut + debut, fin: t.plage.debut + fin }, {
         format: "bv*[height<=720][ext=mp4]+ba[ext=m4a]/b[height<=720]/b",
         proxy: t.proxy,
+        relais,
         precis: true,
       });
       const recale = { ...moment, parties: moment.parties.map(([a, b]) => [a - debut, b - debut]) };
