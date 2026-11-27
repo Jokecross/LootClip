@@ -1,6 +1,7 @@
 "use client";
 /*
- * Onboarding « lien → clips » en 11 écrans. L'inscription est le tout premier écran (choix de Martin du 26/11), puis l'accroche et les questions.
+ * Onboarding « lien → clips » en 12 écrans. L'inscription est le tout premier écran (choix de Martin du 26/11), puis l'accroche,
+ * les questions, et « ta vidéo » (lien collé, préparation, clips sous cadenas) juste avant les offres (27/11).
  * L'écran des offres s'affiche après les comptes à relier,
  * avant le premier lien.
  * Une action par écran, bouton principal en bas, barre de progression en haut, retour possible.
@@ -10,6 +11,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { ecranAccroche, ecranActivite, ecranDestinations, ecranObjectif, ecranPlan, ecranRythme, ecranStyle, ecranTiktok, REPERE_RYTHME } from "@/components/onboarding/Ecrans";
 import { AccrocheCompte } from "@/components/onboarding/AccrocheCompte";
+import { AnalyseVideo, lireApercu, RE_LIEN_VIDEO, ResultatVideo, SaisieVideo, type Apercu, type PhaseVideo } from "@/components/onboarding/EtapeVideo";
 import { Reseaux } from "@/components/onboarding/Reseaux";
 import { FormulaireCompte } from "@/components/compte/FormulaireCompte";
 import { Paywall } from "@/components/app/Paywall";
@@ -21,11 +23,12 @@ import { CLIPS_SEMAINE_DEFAUT, ecrirePreferences, ecrireReponses, effacerReponse
 import { preparer, reveiller } from "@/lib/sons";
 import { suivre } from "@/lib/suivi";
 
-const ECRANS = ["compte", "accroche", "activite", "destinations", "tiktok", "style", "rythme", "objectif", "plan", "reseaux", "lien"] as const;
+const ECRANS = ["compte", "accroche", "activite", "destinations", "tiktok", "style", "rythme", "objectif", "plan", "video", "reseaux", "lien"] as const;
 const TOTAL = ECRANS.length;
 const COMPTE = ECRANS.indexOf("compte") + 1;
 const RESEAUX = ECRANS.indexOf("reseaux") + 1;
 const PLAN = ECRANS.indexOf("plan") + 1;
+const VIDEO = ECRANS.indexOf("video") + 1;
 const LIEN = ECRANS.indexOf("lien") + 1;
 const place = (e: (typeof ECRANS)[number]) => ECRANS.indexOf(e) + 1;
 /** L'étape de l'adresse : un numéro (?e=3) ou un nom d'écran (?e=lien). */
@@ -50,6 +53,8 @@ function Onboarding() {
   const [pret, setPret] = useState(false);
   const [lien, setLien] = useState("");
   const [lienFaux, setLienFaux] = useState(false);
+  const [phaseVideo, setPhaseVideo] = useState<PhaseVideo>("saisie");
+  const [apercu, setApercu] = useState<Apercu | null | undefined>(undefined);
   const champLien = useRef<HTMLInputElement>(null);
   const aRepondre = sansOnboarding(etat);
 
@@ -70,7 +75,7 @@ function Onboarding() {
     }
     // Compte déjà profilé : plus de questions, direct à l'appli (les comptes à relier et le lien restent ouverts).
     if (!aRepondre) {
-      if (n < RESEAUX) router.replace("/app/creer");
+      if (n < VIDEO) router.replace("/app/creer");
       return;
     }
     if (n === COMPTE) return router.replace(`/commencer?e=${COMPTE + 1}`);
@@ -126,6 +131,21 @@ function Onboarding() {
     await rafraichir();
     suivre("inscription", { methode: "email" });
     router.replace(`/commencer?e=${COMPTE + 1}`);
+  }
+
+  /** L'étape « ta vidéo » : le lien est gardé (les clips partent après le paiement), puis la préparation. */
+  function analyserVideo() {
+    const brut = lien.trim();
+    const propre = /^https?:\/\//i.test(brut) ? brut : `https://${brut}`;
+    if (!RE_LIEN_VIDEO.test(brut)) {
+      setLienFaux(true);
+      return;
+    }
+    mettreLienEnAttente(propre);
+    suivre("onboarding_lien_colle", {});
+    setApercu(undefined);
+    setPhaseVideo("analyse");
+    lireApercu(propre).then((a) => setApercu(a));
   }
 
   /** Le premier lien : gardé pour la page Créer, qui lance les clips tout de suite. */
@@ -214,6 +234,50 @@ function Onboarding() {
         ),
         fond: "rose",
       };
+      break;
+
+    case "video":
+      if (phaseVideo === "saisie") {
+        contenu = {
+          gauche: <Question avant="Ta vidéo" sous="On prépare tes clips à partir d'elle.">Colle le lien de ta vidéo.</Question>,
+          droite: (
+            <SaisieVideo
+              lien={lien}
+              faux={lienFaux}
+              changer={(v) => {
+                setLien(v);
+                setLienFaux(false);
+              }}
+            />
+          ),
+          fond: "jaune",
+        };
+        action = { libelle: "Préparer mes clips", faire: analyserVideo, actif: lien.trim().length > 0 };
+        pied = (
+          <button type="button" onClick={suivant} className="ob-plus-tard">
+            Je n&apos;ai pas de lien sous la main
+          </button>
+        );
+      } else if (phaseVideo === "analyse") {
+        contenu = {
+          gauche: <Question avant="Ta vidéo" sous="Quelques secondes.">On prépare ton studio.</Question>,
+          droite: <AnalyseVideo apercu={apercu} r={r} fini={() => setPhaseVideo("resultat")} />,
+          fond: "jaune",
+        };
+        action = { libelle: "Un instant…", faire: () => {}, actif: false };
+      } else {
+        contenu = {
+          gauche: (
+            <Question avant="C'est prêt" sous="Débloque XPclip : tes clips se lancent tout de suite, puis XPclip les poste pour toi.">
+              Ta vidéo est prête à être clippée.
+            </Question>
+          ),
+          droite: <ResultatVideo apercu={apercu} r={r} />,
+          fond: "rose",
+          large: true,
+        };
+        action = { libelle: "Débloquer mes clips", faire: suivant, actif: true };
+      }
       break;
 
     case "lien":

@@ -3,7 +3,7 @@
  * Pour l'instant, on garde les événements dans le navigateur et on les pousse dans window.dataLayer
  * (prêt pour Google Tag Manager, Plausible ou PostHog). Côté serveur, on les écrira dans la table `evenements`.
  */
-export type Evenement = "onboarding_ecran" | "inscription" | "premiere_video" | "paywall_affiche" | "offre_choisie" | "paiement_reussi" | "partage_tiktok" | "reseaux";
+export type Evenement = "onboarding_ecran" | "onboarding_lien_colle" | "inscription" | "premiere_video" | "paywall_affiche" | "offre_choisie" | "paiement_reussi" | "partage_tiktok" | "reseaux";
 
 declare global {
   interface Window {
