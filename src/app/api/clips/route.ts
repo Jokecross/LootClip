@@ -36,9 +36,11 @@ export async function POST(req: Request) {
 
   if (!adminConfigure() || !process.env.GROQ_API_KEY || !process.env.ANTHROPIC_API_KEY) return Response.json({ erreur: "bientot" }, { status: 404 });
   if (!user) return Response.json({ erreur: "non_connecte" }, { status: 401 });
-  const { clipsRestants, lancerLot } = await import("@/lib/clips-en-ligne");
+  const { clipsRestants, lancerLot, secondesRestantes } = await import("@/lib/clips-en-ligne");
   const restants = await clipsRestants(user);
   if (restants !== null && restants < 1) return Response.json({ erreur: "quota" }, { status: 402 });
+  const secondes = await secondesRestantes(user);
+  if (secondes !== null && secondes < 60) return Response.json({ erreur: "heures" }, { status: 402 });
   if (restants !== null && restants < options.nombre) options.nombre = Math.max(1, restants) as typeof options.nombre;
 
   // Garde-fou : pas plus de quelques lots par heure et par compte

@@ -97,7 +97,7 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
     const json = await rep?.json().catch(() => null);
     if (rep?.ok && json?.id) return setLot({ id: json.id });
     const code = json?.erreur;
-    setLot({ id: "", erreur: code === "quota" ? "Plus de clips ce mois-ci sur ce compte." : code === "non_connecte" ? "Connecte-toi avec le compte de l'équipe." : code === "bientot" ? "L'analyse en ligne n'est pas encore ouverte." : json?.message || "Le lien n'a pas pu être lancé." });
+    setLot({ id: "", erreur: code === "quota" ? "Plus de clips ce mois-ci sur ce compte." : code === "heures" ? "Plus d'heures de vidéo ce mois-ci sur ce compte." : code === "non_connecte" ? "Connecte-toi avec le compte de l'équipe." : code === "bientot" ? "L'analyse en ligne n'est pas encore ouverte." : json?.message || "Le lien n'a pas pu être lancé." });
   }
 
   const regler = (x: Partial<Reglages>) => {

@@ -6,7 +6,7 @@
  *   videos/lots/<utilisateur>/<lot>/etat.json      état lu par l'écran
  *   videos/lots/<utilisateur>/<lot>/son.mp4        son compressé (pour la transcription)
  *   videos/lots/<utilisateur>/<lot>/clip_N.mp4     clips finis
- *   videos/lots/<utilisateur>/compteur-AAAA-MM.json clips lancés ce mois-ci
+ *   videos/lots/<utilisateur>/compteur-AAAA-MM.json clips lancés et secondes de vidéo analysées ce mois-ci
  */
 import "server-only";
 import { randomUUID } from "node:crypto";
@@ -46,18 +46,33 @@ export const lireEtatLot = (user: string, id: string) => lireJson<EtatLot>(chemi
 export const ecrireEtatLot = (user: string, id: string, etat: EtatLot) => ecrireJson(chemin(user, id, "etat.json"), etat);
 
 /** Clips restants ce mois-ci pour ce compte (null : illimité, équipe). */
+type Compteur = { clips: number; secondes?: number };
+const lireCompteur = async (user: string) => (await lireJson<Compteur>(`lots/${user}/compteur-${moisCourant()}.json`)) ?? { clips: 0, secondes: 0 };
+
+async function offreDe(user: string) {
+  const { data: profil } = await admin().from("profils").select("offre").eq("id", user).maybeSingle();
+  return (profil?.offre ?? "gratuit") as Offre;
+}
+
 export async function clipsRestants(user: { id: string; email?: string }) {
   if (estTesteur(user.email)) return null;
-  const { data: profil } = await admin().from("profils").select("offre").eq("id", user.id).maybeSingle();
-  const offre = (profil?.offre ?? "gratuit") as Offre;
+  const offre = await offreDe(user.id);
   if (offre === "gratuit") return 0;
-  const compteur = (await lireJson<{ clips: number }>(`lots/${user.id}/compteur-${moisCourant()}.json`))?.clips ?? 0;
-  return Math.max(0, OFFRES_PAYANTES[offre].videosParMois - compteur);
+  return Math.max(0, OFFRES_PAYANTES[offre].videosParMois - (await lireCompteur(user.id)).clips);
 }
-async function compter(user: string, n: number) {
+
+/** Secondes de vidéo qu'il reste à analyser ce mois-ci (null : sans limite, équipe). */
+export async function secondesRestantes(user: { id: string; email?: string }) {
+  if (estTesteur(user.email)) return null;
+  const offre = await offreDe(user.id);
+  if (offre === "gratuit") return 0;
+  return Math.max(0, OFFRES_PAYANTES[offre].heuresParMois * 3600 - ((await lireCompteur(user.id)).secondes ?? 0));
+}
+
+async function compter(user: string, n: number, secondes = 0) {
   const p = `lots/${user}/compteur-${moisCourant()}.json`;
-  const actuel = (await lireJson<{ clips: number }>(p))?.clips ?? 0;
-  await ecrireJson(p, { clips: Math.max(0, actuel + n) });
+  const actuel = await lireCompteur(user);
+  await ecrireJson(p, { clips: Math.max(0, actuel.clips + n), secondes: Math.max(0, (actuel.secondes ?? 0) + secondes) });
 }
 
 /** Lance un lot. Le nombre de clips demandé est réservé sur le mois, rendu si la machine en fait moins. */
@@ -89,6 +104,14 @@ export async function traiterSon(user: string, id: string) {
     if (!son) throw new Error("son introuvable");
     const transcription = await transcrireSon(new Uint8Array(await son.arrayBuffer()));
     if (!transcription.mots.length) throw new Erreur("Je n'ai entendu personne parler dans cette vidéo.");
+    // Les heures de vidéo du mois : la vidéo entière est comptée, une fois.
+    const { data: proprio } = await admin().auth.admin.getUserById(user);
+    const reste = await secondesRestantes({ id: user, email: proprio.user?.email });
+    if (reste !== null && transcription.duree > reste) {
+      const h = Math.round(reste / 360) / 10;
+      throw new Erreur(reste < 60 ? "Tu as utilisé toutes tes heures de vidéo du mois." : `Cette vidéo dépasse les ${String(h).replace(".", ",")} h de vidéo qu'il te reste ce mois-ci.`);
+    }
+    await compter(user, 0, Math.round(transcription.duree));
 
     await ecrireEtatLot(user, id, { ...etat, etape: "choix", avancement: 0 });
     const { nombre, type, duree, ...reglages } = etat.options;

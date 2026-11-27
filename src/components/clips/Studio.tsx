@@ -140,7 +140,7 @@ export function Studio({
     if (!rep?.ok) {
       const code = rep ? ((await rep.json().catch(() => ({}))) as { erreur?: string }).erreur : "";
       setErreur(
-        code === "bientot" ? "Cette fonction arrive bientôt en ligne." : code === "quota" ? "Tu as utilisé tous tes clips du mois." : code === "non_connecte" ? "Connecte-toi pour lancer tes clips." : "Le lien n'est pas passé. Réessaie.",
+        code === "bientot" ? "Cette fonction arrive bientôt en ligne." : code === "quota" ? "Tu as utilisé tous tes clips du mois." : code === "heures" ? "Tu as utilisé toutes tes heures de vidéo du mois." : code === "non_connecte" ? "Connecte-toi pour lancer tes clips." : "Le lien n'est pas passé. Réessaie.",
       );
       setEtape("lien");
       return;
