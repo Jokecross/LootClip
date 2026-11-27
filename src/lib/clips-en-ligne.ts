@@ -195,7 +195,10 @@ export async function traiterSon(user: string, id: string) {
 }
 
 /** Nouvelles de la machine. */
-export async function suivreLot(user: string, id: string, corps: { phase: string; etape?: string; avancement?: number; index?: number; cause?: string }) {
+/** Masque tout identifiant dans un message (ex. proxy « //utilisateur:motdepasse@hôte »). */
+const masquer = (t: string) => t.replace(/\/\/[^/\s:@]+:[^/\s@]+@/g, "//***:***@").replace(/(password|passwd|token|key)=[^&\s]+/gi, "$1=***");
+
+export async function suivreLot(user: string, id: string, corps: { phase: string; etape?: string; avancement?: number; index?: number; cause?: string; detail?: string }) {
   const etat = await lireEtatLot(user, id);
   if (!etat || etat.erreur) return;
   if (corps.phase === "progres" && corps.etape) {
@@ -210,6 +213,8 @@ export async function suivreLot(user: string, id: string, corps: { phase: string
     await admin().storage.from(BUCKET).remove([chemin(user, id, "son.mp4")]);
     await eteindreLot(id);
   } else if (corps.phase === "erreur") {
+    // Diagnostic : le détail technique envoyé par la machine, identifiants masqués.
+    console.error("lot erreur", id, corps.cause ?? "", masquer(String(corps.detail ?? "")).slice(0, 600));
     const phrases: Record<string, string> = {
       bloque: "Cette plateforme bloque le téléchargement. Envoie plutôt le fichier de ta vidéo.",
       illisible: "Ce lien ne mène pas à une vidéo que je peux lire.",
