@@ -107,11 +107,13 @@ export async function traiterSon(user: string, id: string) {
     // Les heures de vidéo du mois : la vidéo entière est comptée, une fois.
     const { data: proprio } = await admin().auth.admin.getUserById(user);
     const reste = await secondesRestantes({ id: user, email: proprio.user?.email });
-    if (reste !== null && transcription.duree > reste) {
+    // Durée de la vidéo : donnée par la transcription, sinon la fin du dernier passage parlé.
+    const dureeVideo = Number(transcription.duree) || transcription.segments.at(-1)?.fin || 0;
+    if (reste !== null && dureeVideo > reste) {
       const h = Math.round(reste / 360) / 10;
       throw new Erreur(reste < 60 ? "Tu as utilisé toutes tes heures de vidéo du mois." : `Cette vidéo dépasse les ${String(h).replace(".", ",")} h de vidéo qu'il te reste ce mois-ci.`);
     }
-    await compter(user, 0, Math.round(transcription.duree));
+    await compter(user, 0, Math.round(dureeVideo));
 
     await ecrireEtatLot(user, id, { ...etat, etape: "choix", avancement: 0 });
     const { nombre, type, duree, ...reglages } = etat.options;
@@ -125,7 +127,8 @@ export async function traiterSon(user: string, id: string) {
         return data.signedUrl;
       }),
     );
-    await envoyerRendu(id, { moments, mots: transcription.mots, reglages, depots });
+    // Les moments sont enregistrés AVANT d'être envoyés : la machine répond tout de suite,
+    // et ses nouvelles (suivreLot) relisent l'état ; sinon elles écraseraient les moments.
     if (moments.length < nombre) await compter(user, moments.length - nombre);
     await ecrireEtatLot(user, id, {
       ...etat,
@@ -133,6 +136,7 @@ export async function traiterSon(user: string, id: string) {
       avancement: 0,
       moments: moments.map((m) => ({ titre: m.titre, score: m.score, pourquoi: m.pourquoi, forces: m.forces ?? [], duree: Math.round(m.parties.reduce((s, [a, b]) => s + b - a, 0)) })),
     });
+    await envoyerRendu(id, { moments, mots: transcription.mots, reglages, depots });
   } catch (e) {
     console.error("traitement du son", id, e);
     await compter(user, -etat.options.nombre);
