@@ -4,8 +4,11 @@
  * Sans lien, le bouton démarre quand même (le fichier se dépose plus tard).
  */
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { createContext, useContext, useState } from "react";
 import { mettreLienEnAttente } from "@/lib/onboarding";
+
+/** Dans le studio de tournage : ce que fait le bouton à la place d'ouvrir /commencer. */
+export const LancerLien = createContext<((lien: string) => void) | null>(null);
 
 const RE_LIEN = /^(https?:\/\/)?([\w-]+\.)+[a-z]{2,}(\/\S*)?$/i;
 
@@ -13,12 +16,15 @@ export function ChampLien({ id, libelle = "Créer mes clips" }: { id?: string; l
   const router = useRouter();
   const [lien, setLien] = useState("");
   const [erreur, setErreur] = useState("");
+  const studio = useContext(LancerLien);
 
   function lancer(e: React.FormEvent) {
     e.preventDefault();
     const l = lien.trim();
     if (l && !RE_LIEN.test(l)) return setErreur("Ce lien ne marche pas. Vérifie-le.");
-    if (l) mettreLienEnAttente(/^https?:\/\//i.test(l) ? l : `https://${l}`);
+    const propre = l && (/^https?:\/\//i.test(l) ? l : `https://${l}`);
+    if (studio) return studio(propre || "");
+    if (propre) mettreLienEnAttente(propre);
     router.push("/commencer");
   }
 

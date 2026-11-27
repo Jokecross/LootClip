@@ -1,7 +1,7 @@
 "use client";
 /*
  * Studio de tournage « lien → clips » : le parcours du site, à faire soi-même devant la caméra (sans inscription).
- * Tu cliques à chaque écran : questions, lien (un tap le colle), réglages, montage, clips, publication.
+ * Tu cliques à chaque écran : l'accueil (tu colles le lien dans le champ du haut), les questions, réglages, montage, clips, publication.
  * Régie sur /studio. Une fois prêt, xpclip.com ouvre le premier écran sur cet appareil (cookie, lib/tournage.ts).
  * Réservé à l'équipe : rien n'est écrit dans un vrai compte, rien n'est envoyé au moteur.
  * Les clips montrés sont ceux de la démo (components/onboarding/demo.ts). Appui long sur le logo : retour à la régie.
@@ -9,12 +9,15 @@
 import "@/app/app/outil.css";
 import { useEffect, useRef, useState } from "react";
 import { Boucle } from "@/components/accueil/Boucle";
+import { LancerLien } from "@/components/accueil/ChampLien";
+import { Landing } from "@/components/accueil/Landing";
 import { CarteClip } from "@/components/clips/CarteClip";
 import { Reglages as ReglagesClips } from "@/components/clips/Reglages";
 import { Cadre, Progression, Question } from "@/components/onboarding/Cadre";
 import { DEMO } from "@/components/onboarding/demo";
-import { ecranAccroche, ecranActivite, ecranDestinations, ecranObjectif, ecranPlan, ecranRythme, ecranStyle, ecranTiktok, REPERE_RYTHME } from "@/components/onboarding/Ecrans";
+import { ecranActivite, ecranDestinations, ecranObjectif, ecranPlan, ecranRythme, ecranStyle, ecranTiktok, REPERE_RYTHME } from "@/components/onboarding/Ecrans";
 import { Confettis } from "@/components/studio/Confettis";
+import { HEURES, heure, jours } from "@/components/studio/Publier";
 import { Logo } from "@/components/marque/Logo";
 import { OPTIONS_PAR_DEFAUT, type OptionsClips } from "@/lib/clips-options";
 import { MENTION_OBJECTIF, ONBOARDING } from "@/lib/config";
@@ -23,23 +26,24 @@ import { bravo, preparer, reveiller } from "@/lib/sons";
 import { ecrireReglages, lireReglages, pseudoAuHasard, REGLAGES_DEFAUT, type Reglages } from "@/lib/studio";
 import { poserTournage } from "@/lib/tournage";
 
-const SUITE = ["regie", "accroche", "activite", "destinations", "tiktok", "style", "rythme", "objectif", "plan", "lien", "reglages", "montage", "clips", "poster", "fin"] as const;
+const SUITE = ["regie", "lp", "activite", "destinations", "tiktok", "style", "rythme", "objectif", "plan", "reglages", "montage", "clips", "poster", "fin"] as const;
 type Etape = (typeof SUITE)[number];
 /** Les écrans de l'onboarding, numérotés comme sur le vrai site. */
-const PARCOURS: Etape[] = ["accroche", "activite", "destinations", "tiktok", "style", "rythme", "objectif", "plan"];
+const PARCOURS: Etape[] = ["lp", "activite", "destinations", "tiktok", "style", "rythme", "objectif", "plan"];
 const ETAPES_MONTAGE = ["Vidéo récupérée", "Transcription", "Moments forts", "Montage 9:16"];
 const RESEAUX = ["TikTok", "YouTube Shorts", "Instagram Reels"];
 const secondes = (d: string) => d.split(":").reduce((s, x) => s * 60 + Number(x), 0);
 
 /** `direct` : on arrive sur le premier écran (xpclip.com), sans passer par la régie. */
 export function PlateauClips({ direct = false }: { direct?: boolean }) {
-  const [etape, setEtape] = useState<Etape>(direct ? "accroche" : "regie");
+  const [etape, setEtape] = useState<Etape>(direct ? "lp" : "regie");
   const [regl, setRegl] = useState<Reglages>(REGLAGES_DEFAUT);
   const [r, setR] = useState<Reponses>({});
   const [options, setOptions] = useState<OptionsClips>({ ...OPTIONS_PAR_DEFAUT, nombre: 4 });
   const [credits, setCredits] = useState(REGLAGES_DEFAUT.credits);
   const [hasard, setHasard] = useState("");
-  const [lienColle, setLienColle] = useState(false);
+  const [lienColle, setLienColle] = useState("");
+  const [pub, setPub] = useState<Publication>({ reseaux: ["TikTok"], programme: false, jour: 1, minutes: 19 * 60 });
   const appui = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -56,8 +60,14 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
     };
   }, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [etape]);
+
   // Prêt à filmer : taper xpclip.com ouvre directement le tournage, sur cet appareil seulement.
-  useEffect(() => poserTournage(regl.tournage), [regl.tournage]);
+  useEffect(() => {
+    poserTournage(regl.tournage);
+  }, [regl.tournage]);
 
   const lien = regl.lien?.trim() || DEMO.lien;
   const pseudo = regl.pseudo || hasard;
@@ -72,12 +82,13 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
   };
 
   /** Nouvelle prise : tout repart de zéro, sauf les réglages. */
-  function action(depuis: Etape = "accroche") {
+  function action(depuis: Etape = "lp") {
     setR({});
     setOptions({ ...OPTIONS_PAR_DEFAUT, nombre: 4 });
     setCredits(regl.credits);
     setHasard(pseudoAuHasard());
-    setLienColle(false);
+    setLienColle("");
+    setPub({ reseaux: ["TikTok"], programme: false, jour: 1, minutes: 19 * 60 });
     aller(depuis);
   }
 
@@ -103,7 +114,7 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
     ) : (
       <div className="ob-progression justify-between">
         {logo}
-        {SUITE.indexOf(etape) >= SUITE.indexOf("lien") && (
+        {SUITE.indexOf(etape) >= SUITE.indexOf("reglages") && (
           <span key={credits} className="pastille surgit bg-turquoise tabular-nums">
             {credits} clips restants
           </span>
@@ -138,11 +149,18 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
       bouton = { libelle: "Commencer à filmer", faire: () => action() };
       break;
 
-    case "accroche":
-      contenu = ecranAccroche();
-      bouton = { libelle: "C'est parti", faire: suivant };
-      pied = <p>Sans engagement. Résiliation en deux clics.</p>;
-      break;
+    case "lp":
+      // Le vrai accueil : on colle le lien dans le champ du haut, le bouton ouvre la première question.
+      return (
+        <LancerLien.Provider
+          value={(l) => {
+            setLienColle(l.replace(/^https?:\/\//, ""));
+            suivant();
+          }}
+        >
+          <Landing />
+        </LancerLien.Provider>
+      );
     case "activite":
       contenu = ecranActivite({ r, repondre });
       bouton = { libelle: "Continuer", faire: suivant, actif: !!r.activite };
@@ -170,22 +188,13 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
       break;
     case "plan":
       contenu = ecranPlan({ objectif, frequence });
-      bouton = { libelle: "Créer mon premier clip", faire: suivant };
+      bouton = { libelle: "Régler mes clips", faire: suivant };
       pied = <p>{MENTION_OBJECTIF}</p>;
-      break;
-
-    case "lien":
-      contenu = {
-        gauche: <Question avant="Ta vidéo" sous="YouTube, Twitch, Kick ou X. XPclip s'occupe du reste.">Colle le lien de ta vidéo.</Question>,
-        droite: <LienQuiSecrit lien={lien} fini={() => setLienColle(true)} />,
-        fond: "jaune",
-      };
-      bouton = { libelle: "Créer mes clips", faire: suivant, actif: lienColle };
       break;
 
     case "reglages":
       contenu = {
-        gauche: <Question avant="Ton style" sous="L'aperçu change en direct.">Règle tes clips.</Question>,
+        gauche: <Question avant="Ton style" sous={`Vidéo : ${lienColle || lien}. L'aperçu change en direct.`}>Règle tes clips.</Question>,
         droite: <ReglagesClips options={options} changer={(o) => setOptions((v) => ({ ...v, ...o }))} />,
         large: true,
       };
@@ -235,10 +244,10 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
     case "poster":
       contenu = {
         gauche: <Question avant="Publication" sous="Tes clips partent sur tes comptes, au format vertical.">Où tu postes ?</Question>,
-        droite: <Poster pseudo={pseudo} />,
+        droite: <Poster pseudo={pseudo} pub={pub} changer={(x) => setPub((v) => ({ ...v, ...x }))} />,
         fond: "turquoise",
       };
-      bouton = { libelle: "Poster maintenant", faire: suivant };
+      bouton = { libelle: pub.programme ? "Programmer mes clips" : "Poster maintenant", faire: suivant, actif: pub.reseaux.length > 0 };
       break;
 
     case "fin":
@@ -246,9 +255,15 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
         gauche: (
           <>
             <Confettis />
-            <Question avant="En ligne" sous={`Publié sur @${pseudo}. Les vues arrivent.`}>
-              Tes clips sont postés.
-            </Question>
+            {pub.programme ? (
+              <Question avant="Programmé" sous={`${pub.reseaux.join(", ")} · @${pseudo}. XPclip poste pour toi ${quand(pub)}.`}>
+                Tes clips sont programmés.
+              </Question>
+            ) : (
+              <Question avant="En ligne" sous={`${pub.reseaux.join(", ")} · @${pseudo}. Les vues arrivent.`}>
+                Tes clips sont postés.
+              </Question>
+            )}
           </>
         ),
         droite: (
@@ -265,7 +280,7 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
         ),
         fond: "rose",
       };
-      bouton = { libelle: "Créer d'autres clips", faire: () => (setLienColle(false), aller("lien")) };
+      bouton = { libelle: "Créer d'autres clips", faire: () => (setLienColle(""), aller("lp")) };
       break;
   }
 
@@ -292,50 +307,6 @@ function Champ({ libelle, valeur, changer, numerique, exemple }: { exemple?: str
       {libelle}
       <input placeholder={exemple} className="champ mt-1.5 font-normal" inputMode={numerique ? "numeric" : undefined} value={valeur} onChange={(e) => changer(e.target.value)} />
     </label>
-  );
-}
-
-/** Le champ du lien : un tap le colle, il s'écrit lettre par lettre, puis la vidéo est trouvée. */
-function LienQuiSecrit({ lien, fini: surFini }: { lien: string; fini: () => void }) {
-  const [colle, setColle] = useState(false);
-  const [n, setN] = useState(0);
-  useEffect(() => {
-    if (!colle) return;
-    if (n >= lien.length) return surFini();
-    const id = setTimeout(() => setN((x) => x + 1), 700 / lien.length);
-    return () => clearTimeout(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [colle, n, lien.length]);
-  const fini = colle && n >= lien.length;
-  return (
-    <div className="ob-carte surgit">
-      <span className="ob-label">Lien de la vidéo</span>
-      <button type="button" onClick={() => setColle(true)} className="ob-champ-lien w-full text-left">
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M10 14a4.500 4.500 0 006.400 0l3-3a4.500 4.500 0 00-6.400-6.400l-1 1M14 10a4.500 4.500 0 00-6.400 0l-3 3a4.500 4.500 0 006.400 6.400l1-1" fill="none" stroke="currentColor" strokeWidth="2.400" strokeLinecap="round" />
-        </svg>
-        <span className={`min-w-0 flex-1 truncate ${colle ? "font-bold" : "text-encre2"}`}>{colle ? `https://${lien.slice(0, n)}` : "Colle le lien de ta vidéo"}</span>
-        {!colle && <span className="rounded-lg border-2 border-encre bg-jaune px-2 py-0.5 text-[13px] font-extrabold">Coller</span>}
-      </button>
-      <ul className="ob-plateformes" aria-label="Liens acceptés">
-        {["YouTube", "Twitch", "Kick", "X"].map((x) => (
-          <li key={x} style={fini && lien.toLowerCase().includes(x === "YouTube" ? "youtu" : x.toLowerCase()) ? { background: "var(--color-jaune)" } : undefined}>
-            {x}
-          </li>
-        ))}
-      </ul>
-      {fini && (
-        <div className="surgit flex items-center gap-3 rounded-2xl border-2 border-encre bg-fond p-2">
-          <img src={`/v4/${DEMO.avant}.webp`} alt="" width={800} height={450} className="w-28 shrink-0 rounded-lg border-2 border-encre" />
-          <div className="min-w-0 text-[14px] font-bold">
-            <p className="truncate">{DEMO.titreVideo ?? "Ta vidéo"}</p>
-            <p className="text-encre2">
-              {DEMO.plateforme} · {DEMO.duree}
-            </p>
-          </div>
-        </div>
-      )}
-    </div>
   );
 }
 
@@ -387,21 +358,29 @@ function Montage({ secondes, fini }: { secondes: number; fini: () => void }) {
   );
 }
 
-/** Le choix des réseaux, pour la caméra : rien ne part vraiment. */
-function Poster({ pseudo }: { pseudo: string }) {
-  const [choisis, setChoisis] = useState<string[]>(["TikTok"]);
+type Publication = { reseaux: string[]; programme: boolean; jour: number; minutes: number };
+
+/** « demain à 19 h 00 », « jeudi à 12 h 30 ». */
+function quand(p: Publication) {
+  const j = jours()[p.jour];
+  return `${p.jour === 0 ? "aujourd'hui" : p.jour === 1 ? "demain" : j.long} à ${heure(p.minutes)}`;
+}
+
+/** Les réseaux, puis maintenant ou programmé (jour et heure). Pour la caméra : rien ne part vraiment. */
+function Poster({ pseudo, pub, changer }: { pseudo: string; pub: Publication; changer: (x: Partial<Publication>) => void }) {
+  const [liste] = useState(jours);
   return (
     <div className="ob-carte surgit">
       <p className="text-[14px] font-bold text-encre2">Compte : @{pseudo}</p>
       {RESEAUX.map((x) => {
-        const oui = choisis.includes(x);
+        const oui = pub.reseaux.includes(x);
         return (
           <button
             key={x}
             type="button"
             role="checkbox"
             aria-checked={oui}
-            onClick={() => setChoisis((l) => (oui ? l.filter((y) => y !== x) : [...l, x]))}
+            onClick={() => changer({ reseaux: oui ? pub.reseaux.filter((y) => y !== x) : [...pub.reseaux, x] })}
             className={`flex min-h-14 items-center justify-between rounded-2xl border-2 border-encre px-4 text-[17px] font-extrabold ${oui ? "bg-jaune" : "bg-blanc"}`}
           >
             {x}
@@ -409,6 +388,41 @@ function Poster({ pseudo }: { pseudo: string }) {
           </button>
         );
       })}
+
+      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Quand">
+        {[
+          [false, "Maintenant"],
+          [true, "Programmer"],
+        ].map(([v, nom]) => (
+          <button key={String(v)} type="button" role="radio" aria-checked={pub.programme === v} onClick={() => changer({ programme: v as boolean })} className={`min-h-12 rounded-xl border-2 border-encre text-[16px] font-extrabold ${pub.programme === v ? "bg-encre text-fond" : "bg-blanc"}`}>
+            {nom as string}
+          </button>
+        ))}
+      </div>
+
+      {pub.programme && (
+        <div className="surgit flex flex-col gap-3">
+          <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1" role="radiogroup" aria-label="Jour">
+            {liste.map((j, i) => (
+              <button key={i} type="button" role="radio" aria-checked={pub.jour === i} onClick={() => changer({ jour: i })} className={`flex min-h-14 min-w-14 shrink-0 flex-col items-center justify-center rounded-xl border-2 border-encre text-[12px] font-bold capitalize ${pub.jour === i ? "bg-rose" : "bg-blanc"}`}>
+                {j.court}
+                <b className="titre text-[20px]">{j.num}</b>
+              </button>
+            ))}
+          </div>
+          <label className="flex items-center justify-between gap-3 text-[15px] font-extrabold">
+            Heure
+            <select value={pub.minutes} onChange={(e) => changer({ minutes: Number(e.target.value) })} className="min-h-12 rounded-xl border-2 border-encre bg-blanc px-3 text-[16px] font-bold">
+              {HEURES.map((m) => (
+                <option key={m} value={m}>
+                  {heure(m)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <p className="rounded-xl border-2 border-encre bg-fond px-3 py-2 text-[14px] font-bold">XPclip poste {quand(pub)}.</p>
+        </div>
+      )}
     </div>
   );
 }

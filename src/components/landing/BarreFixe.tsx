@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
+import { LancerLien } from "@/components/accueil/ChampLien";
 
 /** Le bouton principal reste sous le pouce dès que celui du hero sort de l'écran. */
 export function BarreFixe() {
   const [visible, setVisible] = useState(false);
+  const studio = useContext(LancerLien);
 
   useEffect(() => {
     const hero = document.getElementById("cta-hero");
@@ -27,9 +29,15 @@ export function BarreFixe() {
       aria-hidden={!visible}
     >
       <div className="mx-auto max-w-[480px]">
-        <Link href="/commencer" className="bouton bouton-rose w-full" tabIndex={visible ? 0 : -1}>
-          Créer mon premier clip
-        </Link>
+        {studio ? (
+          <button type="button" onClick={() => studio("")} className="bouton bouton-rose w-full" tabIndex={visible ? 0 : -1}>
+            Créer mon premier clip
+          </button>
+        ) : (
+          <Link href="/commencer" className="bouton bouton-rose w-full" tabIndex={visible ? 0 : -1}>
+            Créer mon premier clip
+          </Link>
+        )}
       </div>
     </div>
   );
