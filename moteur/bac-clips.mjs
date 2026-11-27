@@ -120,7 +120,13 @@ try {
   // Seulement le passage choisi (20 min au plus). Si la plateforme ne sait pas, la vidéo entière, puis on coupe.
   let source = join(dossier, "source.mp4");
   const avancer = (v) => nouvelle({ phase: "progres", etape: "telechargement", avancement: v });
-  if (t.direct) {
+  if (t.direct && t.plage) {
+    // Vidéo entière (Apify) : on la récupère, puis on coupe le passage choisi.
+    const entiere = join(dossier, "entiere.mp4");
+    await telechargerDirect(t.source, entiere, avancer);
+    await couperPlage(entiere, source, t.plage);
+    await rm(entiere, { force: true });
+  } else if (t.direct) {
     await telechargerDirect(t.source, source, avancer);
   } else if (t.plage) {
     try {

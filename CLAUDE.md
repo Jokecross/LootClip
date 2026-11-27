@@ -28,7 +28,7 @@ SaaS mobile-first en français : on colle le lien d'une vidéo (YouTube, Twitch,
 - Zones tactiles de 48 px minimum, colonne de 480 px max dans l'appli.
 
 ## Liens YouTube (décision de Martin du 27/11/2026)
-- Décision produit prise par Martin en connaissance de cause : pour les liens YouTube, XPclip passe par l'acteur Apify `lurkapi/youtube-video-clipper` (service commercial tiers appelé par API). Martin assume le risque lié aux CGU de YouTube.
+- Décision produit prise par Martin en connaissance de cause : pour les liens YouTube, XPclip passe par Apify (services commerciaux tiers appelés par API) : `marielise.dev/youtube-video-downloader` en principal (2 essais), `lurkapi/youtube-video-clipper` en dernier secours (voir `ACTEURS` dans `src/lib/apify-youtube.ts`). Martin assume le risque lié aux CGU de YouTube.
 - Branché le 27/11/2026 : `src/lib/apify-youtube.ts` (lancement + résultat), webhook `src/app/api/clips/apify/route.ts` → `apresApify` dans `src/lib/clips-en-ligne.ts`, téléchargement direct (`t.direct`) dans `moteur/bac-clips.mjs`. Sans `APIFY_TOKEN`, l'ancien comportement (envoi de fichier) revient tout seul. Fiche : `docs/youtube-apify.md`.
 - Token : `APIFY_TOKEN` dans Vercel, type Sensitive, jamais dans le code (dépôt public).
 - Toujours tester le parcours complet en ligne avant la mise en ligne.

@@ -154,7 +154,7 @@ export type TacheClips = {
   jeton: string;
   /** Passage à analyser (secondes). */
   plage?: { debut: number; fin: number };
-  /** Lien direct vers un MP4 déjà coupé (YouTube via Apify) : téléchargé tel quel, sans yt-dlp. */
+  /** Lien direct vers un MP4 (YouTube via Apify), téléchargé sans yt-dlp ; avec `plage`, la machine coupe ensuite. */
   direct?: boolean;
 };
 export type RenduClips = {
