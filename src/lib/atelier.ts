@@ -168,7 +168,9 @@ export async function demarrerClips(tache: TacheClips) {
   const modele = await Sandbox.get({ name: base }).catch(() => null);
   if (modele?.currentSnapshotId) {
     machine = await Sandbox.fork({ sourceSandbox: base, ...reglages });
-    prete = true;
+    // La copie doit contenir le moteur déjà installé ; sinon (copie vide), on l'installe comme une machine neuve.
+    const test = await machine.runCommand({ cmd: "test", args: ["-f", `${DOSSIER}/bac-clips.mjs`] }).catch(() => null);
+    prete = test?.exitCode === 0;
   } else {
     machine = await Sandbox.create({ image: "vercel/sandbox/node:24", ...reglages });
   }
