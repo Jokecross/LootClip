@@ -74,13 +74,12 @@ function telecharger(lien, fichier, surAvancement, plage, o = {}) {
       ...(plage ? ["--download-sections", `*${plage.debut}-${plage.fin}`] : []),
       ...(o.precis ? ["--force-keyframes-at-cuts"] : []),
       ...(o.proxy ? ["--proxy", o.proxy, "--js-runtimes", "node", "--retries", "3"] : []),
+      // ffmpeg (coupe du passage) ne reprend pas --proxy de yt-dlp, et ignore http_proxy pour le https :
+      // on lui donne le proxy en option, sinon il va chercher le lien YouTube (lié à l'IP du proxy) en direct.
+      ...(o.proxy && plage ? ["--downloader-args", `ffmpeg_i:-http_proxy '${o.proxy}'`] : []),
       ...(o.format?.startsWith("ba") ? [] : ["--merge-output-format", "mp4"]),
       "-o", fichier, lien,
-    ], o.proxy ? {
-      // ffmpeg (coupe du passage) ne reprend pas --proxy de yt-dlp : il lit ces variables.
-      // Sans elles, il va chercher le lien YouTube (lié à l'IP du proxy) en direct et reçoit un fichier vide.
-      env: { ...process.env, http_proxy: o.proxy, https_proxy: o.proxy, HTTP_PROXY: o.proxy, HTTPS_PROXY: o.proxy },
-    } : undefined);
+    ]);
     let err = "";
     let dernier = 0;
     p.stdout.on("data", (d) => {
@@ -138,7 +137,16 @@ try {
   const son = join(dossier, "son.mp4");
   if (parProxy) {
     const brut = join(dossier, "son-brut.m4a");
-    await telecharger(t.source, brut, avancer, t.plage, { format: "ba[ext=m4a]/ba", proxy: t.proxy });
+    try {
+      await telecharger(t.source, brut, avancer, t.plage, { format: "ba[ext=m4a]/ba", proxy: t.proxy });
+    } catch (e) {
+      // Plan B : tout le son, sans ffmpeg (petit format, environ 25 Mo par heure), puis on coupe ici.
+      journal("son du passage impossible, son entier :", String(e?.message || e).slice(0, 200));
+      const entier = join(dossier, "son-entier.webm");
+      await telecharger(t.source, entier, avancer, undefined, { format: "ba[abr<=80]/ba", proxy: t.proxy });
+      await couperPlage(entier, brut, t.plage);
+      await rm(entier, { force: true });
+    }
     await extraireSon(brut, son);
     journal("son du passage récupéré (proxy)");
   } else if (t.direct && t.plage) {
