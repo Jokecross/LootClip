@@ -76,7 +76,11 @@ function telecharger(lien, fichier, surAvancement, plage, o = {}) {
       ...(o.proxy ? ["--proxy", o.proxy, "--js-runtimes", "node", "--retries", "3"] : []),
       ...(o.format?.startsWith("ba") ? [] : ["--merge-output-format", "mp4"]),
       "-o", fichier, lien,
-    ]);
+    ], o.proxy ? {
+      // ffmpeg (coupe du passage) ne reprend pas --proxy de yt-dlp : il lit ces variables.
+      // Sans elles, il va chercher le lien YouTube (lié à l'IP du proxy) en direct et reçoit un fichier vide.
+      env: { ...process.env, http_proxy: o.proxy, https_proxy: o.proxy, HTTP_PROXY: o.proxy, HTTPS_PROXY: o.proxy },
+    } : undefined);
     let err = "";
     let dernier = 0;
     p.stdout.on("data", (d) => {
