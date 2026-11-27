@@ -47,6 +47,7 @@ type LigneMontage = {
   video_chemin: string | null;
   erreur: string | null;
   partagee_le: string | null;
+  pris_par?: string | null;
   cree_le: string;
 };
 
@@ -93,7 +94,9 @@ function versVideo(m: LigneMontage, dejaNotifiees: Set<string>): Video {
     filigrane: m.filigrane,
     echec: m.statut === "echoue" ? m.erreur || "Le montage n'a pas pu aboutir." : undefined,
     partageeLe: m.partagee_le ?? undefined,
-    notifiee: dejaNotifiees.has(m.id),
+    // Un clip préparé pour la publication : déjà vu, pas un montage de l'ancien XPclip.
+    notifiee: dejaNotifiees.has(m.id) || m.pris_par === "clips",
+    deClip: m.pris_par === "clips" || undefined,
     statut: m.statut,
     etape: m.etape,
     avancement: m.avancement,

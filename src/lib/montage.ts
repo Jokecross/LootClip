@@ -59,7 +59,7 @@ export function useMaintenant(intervalle = 500) {
 
 export function quota(etat: Etat) {
   const compte = etat.compte;
-  const valides = etat.videos.filter((v) => !v.echec);
+  const valides = etat.videos.filter((v) => !v.echec && !v.deClip);
   if (!compte || compte.offre === "gratuit") {
     const total = GRATUIT.videos;
     return { utilise: valides.length, total, restant: Math.max(0, total - valides.length), periode: "en tout" };

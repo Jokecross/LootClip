@@ -13,6 +13,7 @@ const MESSAGES: Record<string, string> = {
   ferme: "La publication ouvre très bientôt.",
   offre_requise: "Il te faut une offre pour publier.",
   deja_relie: "Ce réseau est déjà relié.",
+  limite_comptes: "Ton offre permet 1 réseau. Passe en Pro pour relier TikTok et Instagram.",
   en_cours: "Une vidéo est en train de partir. Attends un instant.",
   heure: "Choisis une heure à venir.",
   options: "Choisis qui peut voir ta vidéo sur TikTok.",

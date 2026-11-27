@@ -5,6 +5,8 @@
  * envoyer son lien de connexion à quelqu'un d'autre ne donne donc pas accès à son compte.
  */
 import { admin, adminConfigure, utilisateurDe } from "@/lib/admin";
+import { OFFRES_PAYANTES, type OffrePayante } from "@/lib/config";
+import { estTesteur } from "@/lib/whop";
 import { adresseConnexion, annuler, comptesDe, effacerCompte, lireCompte, publicationOuverte, RESEAUX, type Publication, type Reseau } from "@/lib/postforme";
 
 const FRAICHEUR_MS = 10 * 60_000;
@@ -54,8 +56,16 @@ export async function POST(req: Request) {
   if (!RESEAUX.includes(reseau)) return Response.json({ erreur: "reseau" }, { status: 400 });
   // Relier est permis avant de payer (onboarding). Publier demande une offre : voir /api/publication.
   try {
-    const deja = (await lister(user.id)).find((c) => c.reseau === reseau && c.actif);
+    const comptes = await lister(user.id);
+    const deja = comptes.find((c) => c.reseau === reseau && c.actif);
     if (deja) return Response.json({ erreur: "deja_relie" }, { status: 409 });
+    // Nombre de comptes reliés selon l'offre (Starter : 1 réseau). Sans offre, l'onboarding peut relier les deux.
+    if (!estTesteur(user.email)) {
+      const { data: p } = await admin().from("profils").select("offre").eq("id", user.id).maybeSingle();
+      const offre = p?.offre as OffrePayante | "gratuit" | undefined;
+      const limite = offre && offre !== "gratuit" ? OFFRES_PAYANTES[offre].comptesReseaux : RESEAUX.length;
+      if (comptes.filter((c) => c.actif).length >= limite) return Response.json({ erreur: "limite_comptes" }, { status: 403 });
+    }
     return Response.json({ url: await adresseConnexion(user.id, reseau as Reseau) });
   } catch (e) {
     console.error("connexion", e);

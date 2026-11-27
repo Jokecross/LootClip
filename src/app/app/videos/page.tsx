@@ -18,6 +18,7 @@ const FOND: Record<Statut, string> = {
 
 export default function MesVideos() {
   const etat = useEtat();
+  const anciennes = etat.videos.filter((v) => !v.deClip);
   const t = useMaintenant(1000);
 
   const vide = (
@@ -39,10 +40,10 @@ export default function MesVideos() {
           </Link>
         }
       />
-      <MesClips vide={etat.videos.length ? null : vide} />
-      {etat.videos.length > 0 && <h2 className="titre mb-4 mt-12 text-[24px] lg:text-[32px]">Anciennes vidéos</h2>}
-      {etat.videos.length > 0 && <ul className="etagere">
-        {etat.videos.map((v) => {
+      <MesClips vide={anciennes.length ? null : vide} />
+      {anciennes.length > 0 && <h2 className="titre mb-4 mt-12 text-[24px] lg:text-[32px]">Anciennes vidéos</h2>}
+      {anciennes.length > 0 && <ul className="etagere">
+        {anciennes.map((v) => {
           const { statut, avancement } = statutDe(v, t);
           const enCours = statut === "en_cours" || statut === "en_attente";
           return (

@@ -222,8 +222,8 @@ export function Landing() {
               <article className="fn fn-large fn-sombre">
                 <div className="fn-texte">
                   <Icone d="M12 4v11M7 10l5 5 5-5M5 20h14" />
-                  <h3 className="titre">Prêt à poster, partout</h3>
-                  <p>1080 × 1920, son égalisé, sans filigrane. Tu télécharges et tu postes.</p>
+                  <h3 className="titre">Posté et programmé pour toi</h3>
+                  <p>1080 × 1920, sans filigrane. Télécharge, ou XPclip poste et programme pour toi.</p>
                 </div>
                 <ul className="fn-reseaux" aria-label="Formats">
                   {["TikTok", "YouTube Shorts", "Instagram Reels"].map((r) => (

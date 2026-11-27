@@ -29,27 +29,31 @@ export const OFFRES_PAYANTES = {
     videosParMois: 20,
     /** Heures de vidéo analysées par mois au plus (protège la marge des vidéos très longues). */
     heuresParMois: 5,
+    /** Comptes de réseaux reliés pour publier et programmer (TikTok, Instagram). */
+    comptesReseaux: 1,
     styles: ["defi", "drole"] as Style[],
     dureeMaxSec: 60,
-    avantages: ["20 clips par mois", "5 h de vidéo analysées par mois", "Tous les réglages de clips", "Sans filigrane"],
+    avantages: ["20 clips par mois", "5 h de vidéo analysées par mois", "Publie et programme sur 1 réseau", "Tous les réglages de clips"],
   },
   pro: {
     nom: "Pro",
     mensuel: 24.99,
     videosParMois: 60,
     heuresParMois: 15,
+    comptesReseaux: 2,
     styles: TOUS_LES_STYLES,
     dureeMaxSec: 180,
-    avantages: ["60 clips par mois", "15 h de vidéo analysées par mois", "Tous les réglages de clips", "Sans filigrane"],
+    avantages: ["60 clips par mois", "15 h de vidéo analysées par mois", "Publie et programme sur TikTok et Instagram", "Tous les réglages de clips"],
   },
   max: {
     nom: "Max",
     mensuel: 62.49,
     videosParMois: 200,
     heuresParMois: 50,
+    comptesReseaux: 2,
     styles: TOUS_LES_STYLES,
     dureeMaxSec: 180,
-    avantages: ["200 clips par mois", "50 h de vidéo analysées par mois", "Tout ce qu'il y a dans Pro"],
+    avantages: ["200 clips par mois", "50 h de vidéo analysées par mois", "Publie et programme sur TikTok et Instagram", "Tout ce qu'il y a dans Pro"],
   },
 } as const;
 

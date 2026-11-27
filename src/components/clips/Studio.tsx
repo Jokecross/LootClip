@@ -400,7 +400,7 @@ export function Studio({
         {clips.length || total ? (
           <div className="ap-clips">
             {clips.map((c) => (
-              <CarteClip key={c.fichier} url={c.url ?? `/api/clips/${id}/${c.fichier}`} titre={c.titre} score={c.score} duree={c.duree} telecharger={telecharger(c)} />
+              <CarteClip key={c.fichier} url={c.url ?? `/api/clips/${id}/${c.fichier}`} titre={c.titre} score={c.score} duree={c.duree} telecharger={telecharger(c)} lot={c.url && id ? id : undefined} fichier={c.fichier} />
             ))}
             {!fini &&
               moments.slice(clips.length).map((m, i) => (

@@ -49,7 +49,7 @@ export function MesClips({ vide }: { /** Affiché quand il n'y a encore aucun cl
             </div>
             <div className="ap-clips">
               {l.clips.map((c) => (
-                <CarteClip key={c.fichier} url={c.url} titre={c.titre} score={c.score} duree={c.duree} telecharger={lienTelechargement(c)} />
+                <CarteClip key={c.fichier} url={c.url} titre={c.titre} score={c.score} duree={c.duree} telecharger={lienTelechargement(c)} lot={c.url && !c.url.startsWith("/") ? l.id : undefined} fichier={c.fichier} />
               ))}
               {!fini && (
                 <Link href="/app/creer" className="ap-clip-attente">

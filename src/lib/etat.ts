@@ -58,6 +58,8 @@ export type Video = {
   etape?: number;
   avancement?: number;
   videoChemin?: string;
+  /** Clip du studio « lien → clips » préparé pour la publication (hors quota et hors « Anciennes vidéos »). */
+  deClip?: boolean;
 };
 
 export type Facture = { id: string; le: string; montant: number; libelle: string };
