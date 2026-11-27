@@ -34,6 +34,9 @@ export async function POST(req: Request) {
 
   if (clipsLocaux()) return Response.json({ id: await lancer(source, options) });
 
+  // En ligne, YouTube refuse la machine de montage : on ne lance rien, l'écran demande le fichier.
+  if (!corps.fichier && /(^|\.)(youtube\.com|youtu\.be)$/i.test(new URL(source).hostname)) return Response.json({ erreur: "youtube" }, { status: 422 });
+
   if (!adminConfigure() || !process.env.GROQ_API_KEY || !process.env.ANTHROPIC_API_KEY) return Response.json({ erreur: "bientot" }, { status: 404 });
   if (!user) return Response.json({ erreur: "non_connecte" }, { status: 401 });
   const { clipsRestants, lancerLot, secondesRestantes } = await import("@/lib/clips-en-ligne");

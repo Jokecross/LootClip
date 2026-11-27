@@ -89,6 +89,15 @@ export function Studio({
   const champ = useRef<HTMLInputElement>(null);
   const entreeFichier = useRef<HTMLInputElement>(null);
   const [fichier, setFichier] = useState<{ nom: string; chemin?: string; part: number } | null>(null);
+  /** En ligne, un lien YouTube passe par le fichier : on affiche sa vidéo et le guide, sans rien lancer. */
+  const [youtubeParLien, setYoutubeParLien] = useState(true);
+  const [youtube, setYoutube] = useState<{ titre: string | null; miniature: string | null; auteur: string | null } | null>(null);
+  useEffect(() => {
+    fetch("/api/clips/mode")
+      .then((r) => r.json())
+      .then((m) => setYoutubeParLien(Boolean(m.youtubeParLien)))
+      .catch(() => {});
+  }, []);
 
   // Ce que le joueur a dit à l'onboarding : son type de clip préféré, et le lien déjà collé
   useEffect(() => {
@@ -104,10 +113,19 @@ export function Studio({
   useEffect(() => {
     if (!id) return;
     let fini = false;
+    // Garde-fou : si rien ne bouge pendant 10 minutes, on le dit au lieu de tourner à vide.
+    let signature = "";
+    let bougeLe = Date.now();
     const tour = async () => {
       const rep = await fetch(`/api/clips/${id}`, { cache: "no-store", headers: await enTetes() }).catch(() => null);
       if (rep?.ok) {
         const e = (await rep.json()) as EtatClips;
+        const s = `${e.etape}:${e.avancement}:${e.moments.length}:${e.clips.length}`;
+        if (s !== signature) {
+          signature = s;
+          bougeLe = Date.now();
+        }
+        if (!e.erreur && e.etape !== "fini" && Date.now() - bougeLe > 10 * 60_000) e.erreur = "L'analyse ne répond plus. Réessaie, ou envoie le fichier de ta vidéo.";
         setEtat(e);
         if (e.etape === "fini" || e.erreur) fini = true;
       }
@@ -128,6 +146,14 @@ export function Studio({
       champ.current?.focus();
       return;
     }
+    if (!youtubeParLien && /(^|\.)(youtube\.com|youtu\.be)\//i.test(lien.trim().replace(/^https?:\/\//, ""))) {
+      setYoutube({ titre: null, miniature: null, auteur: null });
+      fetch(`/api/apercu?url=${encodeURIComponent(lien.trim())}`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((a) => a && setYoutube({ titre: a.titre, miniature: a.miniature, auteur: a.auteur }))
+        .catch(() => {});
+      return;
+    }
     setEtape("reglages");
   }
 
@@ -140,7 +166,7 @@ export function Studio({
     if (!rep?.ok) {
       const code = rep ? ((await rep.json().catch(() => ({}))) as { erreur?: string }).erreur : "";
       setErreur(
-        code === "bientot" ? "Cette fonction arrive bientôt en ligne." : code === "quota" ? "Tu as utilisé tous tes clips du mois." : code === "heures" ? "Tu as utilisé toutes tes heures de vidéo du mois." : code === "non_connecte" ? "Connecte-toi pour lancer tes clips." : "Le lien n'est pas passé. Réessaie.",
+        code === "youtube" ? "Pour une vidéo YouTube, envoie le fichier (2 clics dans YouTube Studio)." : code === "bientot" ? "Cette fonction arrive bientôt en ligne." : code === "quota" ? "Tu as utilisé tous tes clips du mois." : code === "heures" ? "Tu as utilisé toutes tes heures de vidéo du mois." : code === "non_connecte" ? "Connecte-toi pour lancer tes clips." : "Le lien n'est pas passé. Réessaie.",
       );
       setEtape("lien");
       return;
@@ -251,6 +277,7 @@ export function Studio({
                 onChange={(e) => {
                   setLien(e.target.value);
                   setErreur("");
+                  setYoutube(null);
                 }}
                 onKeyDown={(e) => e.key === "Enter" && continuer()}
               />
@@ -271,7 +298,28 @@ export function Studio({
               </li>
             ))}
           </ul>
-          <p className="ap-ou">ou</p>
+          {youtube && !fichier && (
+            <div className="ap-youtube surgit" role="status">
+              <div className="ap-youtube-video">
+                {youtube.miniature ? <img src={youtube.miniature} alt="" referrerPolicy="no-referrer" /> : <span className="titre">YouTube</span>}
+                <div className="min-w-0">
+                  <p className="ap-youtube-titre">{youtube.titre ?? "Ta vidéo YouTube"}</p>
+                  <p className="text-[12px] font-semibold text-encre2">YouTube{youtube.auteur ? ` · ${youtube.auteur}` : ""}</p>
+                </div>
+              </div>
+              <p className="text-[15px] font-extrabold">Pour YouTube, dépose ta vidéo : c&apos;est 2 clics.</p>
+              <ol className="ap-youtube-pas">
+                <li>
+                  Ouvre <b>YouTube Studio</b>, puis <b>Contenu</b>.
+                </li>
+                <li>
+                  Sur ta vidéo : <b>⋮</b>, puis <b>Télécharger</b>.
+                </li>
+                <li>Dépose le fichier juste en dessous. Tes clips partent tout de suite.</li>
+              </ol>
+            </div>
+          )}
+          <p className="ap-ou">{youtube && !fichier ? "dépose-la ici" : "ou"}</p>
           <input
             ref={entreeFichier}
             type="file"
