@@ -1,0 +1,94 @@
+/*
+ * La pub du studio de tournage : plein écran téléphone, fond crème quadrillé, une scène à la fois.
+ * On n'anime que transform et opacity.
+ */
+@layer components {
+  .pub { position: fixed; inset: 0; overflow: hidden; background: var(--color-fond); touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  .pub::before { content: ""; position: absolute; inset: 0; background-image: radial-gradient(color-mix(in srgb, var(--color-encre) 14%, transparent) 1.3px, transparent 1.5px); background-size: 22px 22px; }
+  .pub-scene { position: relative; display: flex; height: 100%; max-width: 520px; margin: 0 auto; flex-direction: column; justify-content: center; padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom)); animation: pub-entre 380ms cubic-bezier(0.3, 1.3, 0.5, 1) both; }
+  @keyframes pub-entre { from { opacity: 0; transform: translateY(18px) scale(0.98); } }
+  .pub-centre { display: flex; flex-direction: column; align-items: center; gap: 22px; text-align: center; }
+  .pub-titre { font-size: clamp(40px, 11.5vw, 56px); line-height: 1.02; }
+  .pub-surligne { background: linear-gradient(transparent 62%, var(--color-jaune) 62%, var(--color-jaune) 92%, transparent 92%); padding: 0 0.05em; }
+  .pub-pastille { display: inline-block; align-self: flex-start; padding: 5px 14px; border: 2px solid var(--color-encre); border-radius: 999px; background: var(--color-blanc); font-size: 14px; font-weight: 800; }
+
+  /* 1. Accroche */
+  .pub-accroche { display: flex; flex-direction: column; gap: 16px; }
+  .pub-accroche h1 { display: flex; flex-direction: column; gap: 6px; }
+  .pub-petit { font-size: clamp(26px, 7.4vw, 34px); line-height: 1.05; }
+  .pub-gros { font-size: clamp(50px, 14.5vw, 70px); line-height: 0.98; letter-spacing: -0.035em; background: linear-gradient(transparent 64%, var(--color-jaune) 64%, var(--color-jaune) 93%, transparent 93%); -webkit-box-decoration-break: clone; box-decoration-break: clone; align-self: flex-start; }
+  .pub-eventail { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+  .pub-tel { position: relative; aspect-ratio: 9 / 16; overflow: hidden; border: 2.5px solid var(--color-encre); border-radius: 14px; background: var(--color-encre); box-shadow: 0 5px 0 var(--color-encre); animation: pub-monte 500ms cubic-bezier(0.3, 1.4, 0.5, 1) both; animation-delay: calc(250ms + var(--i) * 120ms); }
+  .pub-tel:nth-child(1) { rotate: -4deg; translate: 0 10px; }
+  .pub-tel:nth-child(2) { z-index: 1; scale: 1.08; }
+  .pub-tel:nth-child(3) { rotate: 4deg; translate: 0 10px; }
+  .pub-tel img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  @keyframes pub-monte { from { opacity: 0; transform: translateY(60px); } }
+
+  /* 2. Lien */
+  .pub-champ-lien { display: flex; width: 100%; align-items: center; gap: 8px; padding: 8px 8px 8px 16px; border: 2.5px solid var(--color-encre); border-radius: 18px; background: var(--color-blanc); box-shadow: 0 6px 0 var(--color-encre); text-align: left; }
+  .pub-champ-lien span { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: clip; font-size: 18px; font-weight: 700; }
+  .pub-champ-lien b { padding: 8px 16px; border: 2px solid var(--color-encre); border-radius: 12px; background: var(--color-rose); font-family: var(--font-titre); font-size: 18px; }
+  .pub-champ-lien[data-fini="true"] b { background: var(--color-turquoise); }
+  .pub-video { position: relative; width: 100%; overflow: hidden; border: 2.5px solid var(--color-encre); border-radius: 18px; background: var(--color-blanc); box-shadow: 0 6px 0 var(--color-encre); animation: pub-monte 450ms cubic-bezier(0.3, 1.4, 0.5, 1) both; text-align: left; }
+  .pub-video img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-bottom: 2px solid var(--color-encre); }
+  .pub-video p { padding: 10px 14px 12px; font-size: 16px; font-weight: 800; }
+  .pub-video-plateforme, .pub-video-duree { position: absolute; padding: 2px 10px; border-radius: 8px; font-size: 13px; font-weight: 800; }
+  .pub-video-plateforme { left: 10px; top: 10px; border: 2px solid var(--color-encre); background: var(--color-rose); }
+  .pub-video-duree { right: 10px; top: calc(100% * 0 + 10px); background: color-mix(in srgb, var(--color-encre) 85%, transparent); color: var(--color-blanc); }
+
+  /* 3. Analyse */
+  .pub-frise { position: relative; display: flex; width: 100%; height: 120px; align-items: center; gap: 3px; padding: 0 10px; border: 2.5px solid var(--color-encre); border-radius: 18px; background: var(--color-blanc); box-shadow: 0 6px 0 var(--color-encre); }
+  .pub-frise i { flex: 1; border-radius: 2px; background: color-mix(in srgb, var(--color-encre) 22%, transparent); }
+  .pub-frise b { position: absolute; top: 18px; bottom: 18px; width: 12%; border: 2.5px solid var(--color-encre); border-radius: 10px; background: color-mix(in srgb, var(--color-rose) 45%, transparent); opacity: 0; transform: scale(0.4); animation: pub-pop 420ms cubic-bezier(0.3, 1.6, 0.5, 1) both; animation-delay: calc(var(--d) * 0.25 + var(--k) * var(--d) * 0.18); }
+  .pub-frise b span { position: absolute; left: 50%; top: -20px; translate: -50% 0; padding: 0 8px; border: 2px solid var(--color-encre); border-radius: 8px; background: var(--color-rose); font-size: 16px; font-weight: 800; line-height: 24px; }
+  @keyframes pub-pop { to { opacity: 1; transform: none; } }
+  .pub-frise em { position: absolute; inset: 0 10px; pointer-events: none; animation: pub-balaye var(--d) linear both; }
+  .pub-frise em::after { content: ""; position: absolute; left: 0; top: -4px; bottom: -4px; width: 4px; border-radius: 2px; background: var(--color-rose); }
+  @keyframes pub-balaye { from { transform: translateX(0); } to { transform: translateX(100%); } }
+  .pub-compte { font-size: 20px; font-weight: 800; opacity: 0; animation: pub-pop 400ms ease-out both; animation-delay: calc(var(--d) * 0.75); }
+  .pub-compte span { display: inline-grid; min-width: 40px; height: 40px; place-items: center; margin-right: 6px; border: 2px solid var(--color-encre); border-radius: 12px; background: var(--color-jaune); font-family: var(--font-titre); font-size: 24px; }
+
+  /* 4. Clips en plein écran */
+  .pub-clips { display: flex; height: 100%; align-items: center; justify-content: center; }
+  .pub-plein { position: relative; width: min(100%, calc((100dvh - 64px) * 9 / 16)); aspect-ratio: 9 / 16; overflow: hidden; border: 3px solid var(--color-encre); border-radius: 26px; background: var(--color-encre); box-shadow: 0 8px 0 var(--color-encre); animation: pub-glisse 420ms cubic-bezier(0.3, 1.2, 0.5, 1) both; }
+  @keyframes pub-glisse { from { opacity: 0.2; transform: translateY(70px) scale(0.96); } }
+  .pub-note { position: absolute; left: 12px; top: 12px; z-index: 2; padding: 2px 10px; border: 2px solid var(--color-encre); border-radius: 10px; background: var(--color-jaune); font-size: 14px; font-weight: 700; }
+  .pub-note b { font-size: 20px; font-weight: 800; }
+  .pub-num { position: absolute; right: 12px; top: 14px; z-index: 2; padding: 2px 10px; border: 2px solid var(--color-encre); border-radius: 999px; background: var(--color-blanc); font-size: 13px; font-weight: 800; }
+
+  /* 5. Style */
+  .pub-apercu { position: relative; width: min(64%, calc(48dvh * 9 / 16)); aspect-ratio: 9 / 16; overflow: hidden; border: 3px solid var(--color-encre); border-radius: 22px; background: var(--color-encre); box-shadow: 0 7px 0 var(--color-encre); container-type: inline-size; }
+  .pub-pastilles { display: flex; gap: 12px; }
+  .pub-pastilles span { width: 46px; height: 46px; border: 2.5px solid var(--color-encre); border-radius: 50%; transition: transform 200ms cubic-bezier(0.3, 1.6, 0.5, 1); }
+  .pub-pastilles [data-actif="true"] { transform: scale(1.22); box-shadow: 0 0 0 3px var(--color-fond), 0 0 0 6px var(--color-encre); }
+
+  /* 6. Objectif */
+  .pub-objectif { display: flex; width: 100%; flex-direction: column; align-items: center; gap: 4px; padding: 26px 16px 22px; border: 3px solid var(--color-encre); border-radius: 26px; background: var(--color-rose); box-shadow: 0 8px 0 var(--color-encre); }
+  .pub-objectif p { font-size: 18px; font-weight: 800; }
+  .pub-objectif b { font-size: clamp(64px, 19vw, 96px); line-height: 1; font-variant-numeric: tabular-nums; }
+  .pub-objectif span { font-size: 18px; font-weight: 700; }
+  .pub-mention { font-size: 12px; color: var(--color-encre2); }
+
+  /* 7. Fin */
+  .pub-fin { gap: 20px; }
+  .pub-site { padding: 6px 20px; border: 2.5px solid var(--color-encre); border-radius: 14px; background: var(--color-jaune); font-size: 30px; box-shadow: 0 5px 0 var(--color-encre); }
+  .pub-bouton { width: 100%; pointer-events: none; }
+
+  /* La régie */
+  .pub-regie { display: flex; max-width: 520px; min-height: 100dvh; margin: 0 auto; flex-direction: column; gap: 14px; padding: 16px 16px 28px; background: var(--color-fond); }
+  .pub-regie-tete { display: flex; align-items: center; justify-content: space-between; }
+  .pub-regie-tete .pub-pastille { align-self: center; }
+  .pub-regie h1 { font-size: 36px; }
+  .pub-gris { font-size: 14px; color: var(--color-encre2); }
+  .pub-carte { display: flex; flex-direction: column; gap: 6px; padding: 16px; border: 2px solid var(--color-encre); border-radius: 20px; background: var(--color-blanc); box-shadow: 0 5px 0 var(--color-encre); }
+  .pub-label { font-size: 14px; font-weight: 800; }
+  .pub-ligne { display: flex; min-height: 48px; align-items: center; justify-content: space-between; gap: 12px; font-size: 15px; font-weight: 700; }
+  .pub-ligne small { margin-left: 6px; font-weight: 600; color: var(--color-encre2); }
+  .pub-ligne input { width: 24px; height: 24px; flex: none; accent-color: var(--color-rose); }
+  .pub-choix { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .pub-choix button { min-height: 48px; border: 2px solid var(--color-encre); border-radius: 12px; background: var(--color-blanc); font-weight: 800; }
+  .pub-choix [aria-pressed="true"] { background: var(--color-jaune); }
+  .pub-champ { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; font-size: 14px; font-weight: 800; }
+  .pub-champ input { height: 50px; padding: 0 14px; border: 2px solid var(--color-encre); border-radius: 12px; background: var(--color-blanc); font-size: 16px; font-weight: 600; }
+}

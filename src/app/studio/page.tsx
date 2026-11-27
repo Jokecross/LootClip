@@ -2,7 +2,7 @@
 /* La régie du studio, réservée à l'équipe. */
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { PlateauClips as Plateau } from "@/components/studio/PlateauClips";
+import { PubStudio as Plateau } from "@/components/studio/PubStudio";
 import { useEtat } from "@/lib/etat";
 import { droitStudio, poserTournage } from "@/lib/tournage";
 
