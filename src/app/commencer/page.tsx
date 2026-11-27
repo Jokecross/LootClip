@@ -1,6 +1,6 @@
 "use client";
 /*
- * Onboarding « lien → clips » en 11 écrans : l'accroche, puis l'inscription (avant les questions, choix de Martin du 26/11).
+ * Onboarding « lien → clips » en 11 écrans. L'inscription est le tout premier écran (choix de Martin du 26/11), puis l'accroche et les questions.
  * L'écran des offres s'affiche après les comptes à relier,
  * avant le premier lien.
  * Une action par écran, bouton principal en bas, barre de progression en haut, retour possible.
@@ -21,7 +21,7 @@ import { CLIPS_SEMAINE_DEFAUT, ecrirePreferences, ecrireReponses, effacerReponse
 import { preparer, reveiller } from "@/lib/sons";
 import { suivre } from "@/lib/suivi";
 
-const ECRANS = ["accroche", "compte", "activite", "destinations", "tiktok", "style", "rythme", "objectif", "plan", "reseaux", "lien"] as const;
+const ECRANS = ["compte", "accroche", "activite", "destinations", "tiktok", "style", "rythme", "objectif", "plan", "reseaux", "lien"] as const;
 const TOTAL = ECRANS.length;
 const COMPTE = ECRANS.indexOf("compte") + 1;
 const RESEAUX = ECRANS.indexOf("reseaux") + 1;
@@ -163,7 +163,7 @@ function Onboarding() {
   switch (ECRANS[n - 1]) {
     case "accroche":
       contenu = ecranAccroche();
-      action = { libelle: "Commencer", faire: suivant, actif: true };
+      action = { libelle: "C'est parti", faire: suivant, actif: true };
       pied = <p>Sans engagement. Résiliation en deux clics.</p>;
       break;
 
