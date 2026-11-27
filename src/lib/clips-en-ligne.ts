@@ -26,11 +26,17 @@ const moisCourant = () => new Date().toISOString().slice(0, 7);
 
 export type EtatLot = EtatClips & { options: OptionsClips; source: string; user: string };
 
+/**
+ * Lit un petit fichier d'état. Toujours par un lien signé neuf (adresse unique) et sans cache :
+ * en ligne, le cache du stockage renvoyait une ancienne version juste après une écriture.
+ */
 async function lireJson<T>(p: string): Promise<T | null> {
-  const { data } = await admin().storage.from(BUCKET).download(p);
-  if (!data) return null;
+  const { data } = await admin().storage.from(BUCKET).createSignedUrl(p, 60);
+  if (!data?.signedUrl) return null;
+  const rep = await fetch(`${data.signedUrl}&frais=${Date.now()}`, { cache: "no-store" }).catch(() => null);
+  if (!rep?.ok) return null;
   try {
-    return JSON.parse(await data.text()) as T;
+    return (await rep.json()) as T;
   } catch {
     return null;
   }
