@@ -40,6 +40,11 @@ export async function transcrire(video, dossier, langue = "fr") {
  * Le son de la vidéo, compressé pour la transcription : AAC mono 16 kHz, 24 kb/s (environ 11 Mo par heure),
  * dans un fichier MP4 (le stockage n'accepte que des vidéos, et Groq lit le MP4).
  */
+/** Garde seulement le passage choisi (secondes), sans réencoder : rapide, coupe sur l'image clé la plus proche. */
+export async function couperPlage(video, sortie, plage) {
+  await lancer(FFMPEG, ["-v", "error", "-y", "-ss", String(plage.debut), "-to", String(plage.fin), "-i", video, "-c", "copy", "-avoid_negative_ts", "make_zero", "-movflags", "+faststart", sortie]);
+}
+
 export async function extraireSon(video, son) {
   await lancer(FFMPEG, ["-v", "error", "-y", "-i", video, "-vn", "-ac", "1", "-ar", "16000", "-c:a", "aac", "-b:a", "24k", "-movflags", "+faststart", "-f", "mp4", son]);
   if ((await stat(son)).size > LIMITE_GROQ) throw new Error("Vidéo trop longue pour la transcription (plus de 2 h environ)");

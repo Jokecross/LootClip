@@ -19,7 +19,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { fabriquer } from "./clip.mjs";
-import { choisirMoments, transcrire } from "./clip/ia.mjs";
+import { choisirMoments, couperPlage, transcrire } from "./clip/ia.mjs";
 
 const ICI = dirname(fileURLToPath(import.meta.url));
 for (const f of [join(ICI, ".env"), join(ICI, "..", ".env.local"), join(process.env.HOME || "", "LootClip", "moteur", ".env")])
@@ -32,12 +32,13 @@ const chrono = () => {
 };
 
 /** Télécharge la vidéo en suivant l'avancement (yt-dlp écrit une ligne par mise à jour). */
-function telecharger(lien, fichier, surAvancement) {
+function telecharger(lien, fichier, surAvancement, plage) {
   return new Promise((ok, ko) => {
     const p = spawn("yt-dlp", [
       "--no-warnings", "--no-playlist", "--newline",
       "--progress-template", "download:%(progress._percent_str)s",
       "-f", "bv*[height<=1080][ext=mp4]+ba[ext=m4a]/b[height<=1080]",
+      ...(plage ? ["--download-sections", `*${plage.debut}-${plage.fin}`] : []),
       "--merge-output-format", "mp4", "-o", fichier, lien,
     ]);
     let err = "";
@@ -107,10 +108,23 @@ async function principal() {
     await passer("telechargement");
     let t = chrono();
     const source = join(dossier, "source.mp4");
-    await telecharger(lien, source, (v) => {
+    const avancer = (v) => {
       etat.avancement = v;
       publier();
-    });
+    };
+    // Seulement le passage choisi (20 min au plus) ; sinon la vidéo entière, puis on coupe.
+    const plage = options.plage;
+    if (plage) {
+      try {
+        await telecharger(lien, source, avancer, plage);
+      } catch {
+        const entiere = join(dossier, "entiere.mp4");
+        await telecharger(lien, entiere, avancer);
+        await couperPlage(entiere, source, plage);
+      }
+    } else {
+      await telecharger(lien, source, avancer);
+    }
     journal(`téléchargé (${t()})`);
 
     await passer("transcription");

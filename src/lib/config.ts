@@ -26,34 +26,35 @@ export const OFFRES_PAYANTES = {
   starter: {
     nom: "Starter",
     mensuel: 12.49,
-    videosParMois: 20,
+    /** Vidéos analysées par mois (20 min au plus chacune, jusqu'à 8 clips). Calcul : 65 % de marge hors TVA, frais Whop compris (27/11/2026). */
+    videosParMois: 9,
     /** Heures de vidéo analysées par mois au plus (protège la marge des vidéos très longues). */
-    heuresParMois: 5,
+    heuresParMois: 3,
     /** Comptes de réseaux reliés pour publier et programmer (TikTok, Instagram). */
     comptesReseaux: 1,
     styles: ["defi", "drole"] as Style[],
     dureeMaxSec: 60,
-    avantages: ["20 clips par mois", "5 h de vidéo analysées par mois", "Publie et programme sur 1 réseau", "Tous les réglages de clips"],
+    avantages: ["9 vidéos par mois", "Jusqu'à 8 clips par vidéo", "Publie et programme sur 1 réseau", "Tous les réglages de clips"],
   },
   pro: {
     nom: "Pro",
     mensuel: 24.99,
-    videosParMois: 60,
-    heuresParMois: 15,
+    videosParMois: 19,
+    heuresParMois: 7,
     comptesReseaux: 2,
     styles: TOUS_LES_STYLES,
     dureeMaxSec: 180,
-    avantages: ["60 clips par mois", "15 h de vidéo analysées par mois", "Publie et programme sur TikTok et Instagram", "Tous les réglages de clips"],
+    avantages: ["19 vidéos par mois", "Jusqu'à 8 clips par vidéo", "Publie et programme sur TikTok et Instagram", "Tous les réglages de clips"],
   },
   max: {
     nom: "Max",
     mensuel: 62.49,
-    videosParMois: 200,
-    heuresParMois: 50,
+    videosParMois: 50,
+    heuresParMois: 17,
     comptesReseaux: 2,
     styles: TOUS_LES_STYLES,
     dureeMaxSec: 180,
-    avantages: ["200 clips par mois", "50 h de vidéo analysées par mois", "Publie et programme sur TikTok et Instagram", "Tout ce qu'il y a dans Pro"],
+    avantages: ["50 vidéos par mois", "Jusqu'à 8 clips par vidéo", "Publie et programme sur TikTok et Instagram", "Tout ce qu'il y a dans Pro"],
   },
 } as const;
 

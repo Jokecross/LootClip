@@ -79,7 +79,8 @@ export function plan(objectif: number, parSemaine: number) {
 
 /** L'offre dont le quota couvre le rythme de publication (sinon la plus grande). */
 export function offreConseillee(parSemaine: number): OffrePayante {
-  const besoin = videosParMois(parSemaine);
+  // Le rythme est en clips ; une vidéo en donne environ 4.
+  const besoin = Math.ceil(videosParMois(parSemaine) / 4);
   return ORDRE_OFFRES.find((o) => OFFRES_PAYANTES[o].videosParMois >= besoin) ?? "max";
 }
 

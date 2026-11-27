@@ -6,7 +6,7 @@
  *   videos/lots/<utilisateur>/<lot>/etat.json      état lu par l'écran
  *   videos/lots/<utilisateur>/<lot>/son.mp4        son compressé (pour la transcription)
  *   videos/lots/<utilisateur>/<lot>/clip_N.mp4     clips finis
- *   videos/lots/<utilisateur>/compteur-AAAA-MM.json clips lancés et secondes de vidéo analysées ce mois-ci
+ *   videos/lots/<utilisateur>/compteur-AAAA-MM.json vidéos lancées (champ clips, nom historique) et secondes analysées ce mois-ci
  */
 import "server-only";
 import { randomUUID } from "node:crypto";
@@ -81,20 +81,20 @@ async function compter(user: string, n: number, secondes = 0) {
   await ecrireJson(p, { clips: Math.max(0, actuel.clips + n), secondes: Math.max(0, (actuel.secondes ?? 0) + secondes) });
 }
 
-/** Lance un lot. Le nombre de clips demandé est réservé sur le mois, rendu si la machine en fait moins. */
+/** Lance un lot. Une vidéo est réservée sur le mois, rendue si rien n'est fabriqué. */
 export async function lancerLot({ user, source, options, site }: { user: { id: string; email?: string }; source: string; options: OptionsClips; site: string }) {
   const id = randomUUID();
   const etat: EtatLot = { etape: "telechargement", avancement: 0, moments: [], clips: [], erreur: null, debut: Date.now(), options, source, user: user.id };
   await ecrireEtatLot(user.id, id, etat);
-  await compter(user.id, options.nombre);
+  await compter(user.id, 1);
   try {
     const { data: depot, error } = await admin().storage.from(BUCKET).createSignedUploadUrl(chemin(user.id, id, "son.mp4"), { upsert: true });
     if (error) throw error;
-    const { prete } = await demarrerClips({ id, source, depotSon: depot.signedUrl, suivi: `${site}/api/clips/suivi?u=${user.id}`, jeton: jetonLot(`${id}:${user.id}`) });
+    const { prete } = await demarrerClips({ id, source, depotSon: depot.signedUrl, suivi: `${site}/api/clips/suivi?u=${user.id}`, jeton: jetonLot(`${id}:${user.id}`), plage: options.plage });
     if (!prete) preparerBase().catch((e) => console.error("base :", e));
   } catch (e) {
     console.error("lancement du lot", id, e);
-    await compter(user.id, -options.nombre);
+    await compter(user.id, -1);
     await ecrireEtatLot(user.id, id, { ...etat, erreur: "Le lancement a échoué. Réessaie dans un instant." });
   }
   return id;
@@ -122,7 +122,7 @@ export async function traiterSon(user: string, id: string) {
     await compter(user, 0, Math.round(dureeVideo));
 
     await ecrireEtatLot(user, id, { ...etat, etape: "choix", avancement: 0 });
-    const { nombre, type, duree, ...reglages } = etat.options;
+    const { nombre, type, duree, plage: _plage, ...reglages } = etat.options;
     const { moments } = await choisirMoments(transcription, { nombre, type, duree });
     if (!moments.length) throw new Erreur("Je n'ai pas trouvé de moment à couper dans cette vidéo.");
 
@@ -135,7 +135,6 @@ export async function traiterSon(user: string, id: string) {
     );
     // Les moments sont enregistrés AVANT d'être envoyés : la machine répond tout de suite,
     // et ses nouvelles (suivreLot) relisent l'état ; sinon elles écraseraient les moments.
-    if (moments.length < nombre) await compter(user, moments.length - nombre);
     await ecrireEtatLot(user, id, {
       ...etat,
       etape: "montage",
@@ -145,7 +144,7 @@ export async function traiterSon(user: string, id: string) {
     await envoyerRendu(id, { moments, mots: transcription.mots, reglages, depots });
   } catch (e) {
     console.error("traitement du son", id, e);
-    await compter(user, -etat.options.nombre);
+    await compter(user, -1);
     await ecrireEtatLot(user, id, { ...etat, erreur: e instanceof Erreur ? e.message : "Le montage a échoué. Réessaie dans un instant." });
     await envoyerRendu(id, { moments: [], mots: [], reglages: {}, depots: [], annule: true }).catch(() => {});
     await eteindreLot(id);
@@ -174,7 +173,7 @@ export async function suivreLot(user: string, id: string, corps: { phase: string
       privee: "Cette vidéo est privée ou n'existe plus.",
       trop_longue: "Cette vidéo est trop longue (2 h maximum).",
     };
-    await compter(user, -(etat.moments.length || etat.options.nombre) + etat.clips.length);
+    if (!etat.clips.length) await compter(user, -1);
     await ecrireEtatLot(user, id, { ...etat, erreur: phrases[corps.cause ?? ""] ?? "Le montage a échoué. Réessaie dans un instant." });
     await eteindreLot(id);
   }

@@ -12,7 +12,7 @@ const PLATEFORMES: { nom: string; hotes: RegExp }[] = [
   { nom: "X", hotes: /(^|\.)(x\.com|twitter\.com)$/i },
 ];
 
-type Apercu = { plateforme: string; titre: string | null; miniature: string | null; auteur: string | null };
+type Apercu = { plateforme: string; titre: string | null; miniature: string | null; auteur: string | null; duree?: number | null };
 
 async function lire(url: string, ms = 4000) {
   return fetch(url, { signal: AbortSignal.timeout(ms), headers: { "user-agent": "Mozilla/5.0 (compatible; XPclipApercu/1.0)", "accept-language": "fr-FR,fr;q=0.9" }, redirect: "follow" });
@@ -48,7 +48,8 @@ export async function GET(req: Request) {
       const r = await lire(u.toString());
       if (r.ok) {
         const html = (await r.text()).slice(0, 300_000);
-        Object.assign(apercu, { titre: propre(meta(html, "og:title")), miniature: meta(html, "og:image"), auteur: propre(meta(html, "og:site_name")) });
+        const d = Number(meta(html, "og:video:duration") ?? meta(html, "video:duration"));
+        Object.assign(apercu, { titre: propre(meta(html, "og:title")), miniature: meta(html, "og:image"), auteur: propre(meta(html, "og:site_name")), duree: d > 0 ? Math.round(d) : null });
       }
     }
   } catch {

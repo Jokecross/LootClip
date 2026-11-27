@@ -89,7 +89,7 @@ export default function CoquilleAppli({ children }: { children: React.ReactNode 
 
   const q = quota(etat);
   const estActif = (href: string) => chemin.startsWith(href) || (href === "/app/videos" && chemin.startsWith("/app/video/"));
-  const libelleQuota = `${q.restant} clip${q.restant > 1 ? "s" : ""} restant${q.restant > 1 ? "s" : ""}`;
+  const libelleQuota = `${q.restant} vidéo${q.restant > 1 ? "s" : ""} restante${q.restant > 1 ? "s" : ""}`;
 
   const suivi = (
     <>

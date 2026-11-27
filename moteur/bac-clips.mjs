@@ -16,7 +16,7 @@ import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { setTimeout as attendre } from "node:timers/promises";
 import { fabriquer } from "./clip.mjs";
-import { extraireSon } from "./clip/ia.mjs";
+import { couperPlage, extraireSon } from "./clip/ia.mjs";
 
 const fichierTache = process.argv[2];
 const t = JSON.parse(await readFile(fichierTache, "utf8"));
@@ -56,12 +56,14 @@ async function deposer(url, contenu, type) {
   }
 }
 
-function telecharger(lien, fichier, surAvancement) {
+/** `plage` : ne télécharge que ce passage (secondes), quand la plateforme le permet. */
+function telecharger(lien, fichier, surAvancement, plage) {
   return new Promise((ok, ko) => {
     const p = spawn(YTDLP, [
       "--no-warnings", "--no-playlist", "--newline",
       "--progress-template", "download:%(progress._percent_str)s",
       "-f", "bv*[height<=1080][ext=mp4]+ba[ext=m4a]/b[height<=1080]/b",
+      ...(plage ? ["--download-sections", `*${plage.debut}-${plage.fin}`] : []),
       "--merge-output-format", "mp4", "-o", fichier, lien,
     ]);
     let err = "";
@@ -93,8 +95,23 @@ function cause(e) {
 const dossier = await mkdtemp(join(tmpdir(), "xpclip-lot-"));
 try {
   // 1. La vidéo, puis son son
-  const source = join(dossier, "source.mp4");
-  await telecharger(t.source, source, (v) => nouvelle({ phase: "progres", etape: "telechargement", avancement: v }));
+  // Seulement le passage choisi (20 min au plus). Si la plateforme ne sait pas, la vidéo entière, puis on coupe.
+  let source = join(dossier, "source.mp4");
+  const avancer = (v) => nouvelle({ phase: "progres", etape: "telechargement", avancement: v });
+  if (t.plage) {
+    try {
+      await telecharger(t.source, source, avancer, t.plage);
+      journal("passage récupéré");
+    } catch (e) {
+      journal("passage seul impossible, vidéo entière :", String(e?.message || e).slice(0, 200));
+      const entiere = join(dossier, "entiere.mp4");
+      await telecharger(t.source, entiere, avancer);
+      await couperPlage(entiere, source, t.plage);
+      await rm(entiere, { force: true });
+    }
+  } else {
+    await telecharger(t.source, source, avancer);
+  }
   journal("vidéo récupérée");
   const son = join(dossier, "son.mp4");
   await extraireSon(source, son);

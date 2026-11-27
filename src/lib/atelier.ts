@@ -146,7 +146,7 @@ export async function eteindre(id: string) {
 
 /* ---------- « Lien → clips » ---------- */
 
-export type TacheClips = { id: string; source: string; depotSon: string; suivi: string; jeton: string };
+export type TacheClips = { id: string; source: string; depotSon: string; suivi: string; jeton: string; /** Passage à analyser (secondes). */ plage?: { debut: number; fin: number } };
 export type RenduClips = {
   moments: { titre: string; parties: [number, number][] }[];
   mots: { texte: string; debut: number; fin: number }[];

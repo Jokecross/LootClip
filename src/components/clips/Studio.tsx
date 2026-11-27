@@ -10,8 +10,9 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { TetePage } from "@/components/app/Ecran";
 import type { EtatClips } from "@/lib/clips-local";
-import { OPTIONS_PAR_DEFAUT, type OptionsClips } from "@/lib/clips-options";
+import { OPTIONS_PAR_DEFAUT, PLAGE_MAX, type OptionsClips } from "@/lib/clips-options";
 import { CarteClip, Score } from "./CarteClip";
+import { ChoixPlage } from "./Plage";
 import { Reglages } from "./Reglages";
 
 const ETAPES = [
@@ -91,6 +92,9 @@ export function Studio({
   const [fichier, setFichier] = useState<{ nom: string; chemin?: string; part: number } | null>(null);
   /** En ligne, un lien YouTube passe par le fichier : on affiche sa vidéo et le guide, sans rien lancer. */
   const [youtubeParLien, setYoutubeParLien] = useState(true);
+  /** Le passage analysé (20 min au plus) et la durée de la vidéo quand on la connaît (fichier, aperçu). */
+  const [plage, setPlage] = useState({ debut: 0, fin: PLAGE_MAX });
+  const [dureeConnue, setDureeConnue] = useState<number | null>(null);
   const [youtube, setYoutube] = useState<{ titre: string | null; miniature: string | null; auteur: string | null } | null>(null);
   useEffect(() => {
     fetch("/api/clips/mode")
@@ -154,6 +158,12 @@ export function Studio({
         .catch(() => {});
       return;
     }
+    setPlage({ debut: 0, fin: PLAGE_MAX });
+    setDureeConnue(null);
+    fetch(`/api/apercu?url=${encodeURIComponent(lien.trim())}`)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((a) => a?.duree && setDureeConnue(a.duree))
+      .catch(() => {});
     setEtape("reglages");
   }
 
@@ -161,12 +171,12 @@ export function Studio({
     if (avantLancer && !avantLancer()) return;
     setErreur("");
     setEnvoi(true);
-    const rep = await fetch("/api/clips", { method: "POST", headers: { "content-type": "application/json", ...(await enTetes()) }, body: JSON.stringify(fichier?.chemin ? { fichier: fichier.chemin, options } : { lien: lien.trim(), options }) }).catch(() => null);
+    const rep = await fetch("/api/clips", { method: "POST", headers: { "content-type": "application/json", ...(await enTetes()) }, body: JSON.stringify(fichier?.chemin ? { fichier: fichier.chemin, options: { ...options, plage } } : { lien: lien.trim(), options: { ...options, plage } }) }).catch(() => null);
     setEnvoi(false);
     if (!rep?.ok) {
       const code = rep ? ((await rep.json().catch(() => ({}))) as { erreur?: string }).erreur : "";
       setErreur(
-        code === "youtube" ? "Pour une vidéo YouTube, envoie le fichier (2 clics dans YouTube Studio)." : code === "bientot" ? "Cette fonction arrive bientôt en ligne." : code === "quota" ? "Tu as utilisé tous tes clips du mois." : code === "heures" ? "Tu as utilisé toutes tes heures de vidéo du mois." : code === "non_connecte" ? "Connecte-toi pour lancer tes clips." : "Le lien n'est pas passé. Réessaie.",
+        code === "youtube" ? "Pour une vidéo YouTube, envoie le fichier (2 clics dans YouTube Studio)." : code === "bientot" ? "Cette fonction arrive bientôt en ligne." : code === "quota" ? "Tu as utilisé toutes tes vidéos du mois." : code === "heures" ? "Tu as utilisé toutes tes heures de vidéo du mois." : code === "non_connecte" ? "Connecte-toi pour lancer tes clips." : "Le lien n'est pas passé. Réessaie.",
       );
       setEtape("lien");
       return;
@@ -186,8 +196,14 @@ export function Studio({
       setErreur("Connecte-toi pour envoyer un fichier.");
       return;
     }
-    const { cheminClip, deposer } = await import("@/lib/depot");
+    const { cheminClip, deposer, lireDuree } = await import("@/lib/depot");
     const chemin = cheminClip(userId, f);
+    const local = URL.createObjectURL(f);
+    lireDuree(local).then((d) => {
+      URL.revokeObjectURL(local);
+      setDureeConnue(d ? Math.floor(d) : null);
+      setPlage({ debut: 0, fin: Math.min(d ? Math.floor(d) : PLAGE_MAX, PLAGE_MAX) });
+    });
     setFichier({ nom: f.name, part: 0 });
     try {
       await deposer(f, chemin, (a) => setFichier({ nom: f.name, part: a.total ? a.envoye / a.total : 0 }));
@@ -224,6 +240,7 @@ export function Studio({
             Changer
           </button>
         </p>
+        <ChoixPlage lien={fichier?.chemin ? "" : lien.trim()} dureeConnue={dureeConnue} plage={plage} changer={setPlage} />
         <Reglages options={options} changer={(o) => setOptions((x) => ({ ...x, ...o }))} />
         {erreur && (
           <p role="alert" className="mt-3 text-[14px] font-bold">

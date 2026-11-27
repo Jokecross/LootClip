@@ -51,7 +51,21 @@ export type OptionsClips = {
   format: keyof typeof FORMATS;
   accroche: boolean;
   nombre: (typeof NOMBRES_CLIPS)[number];
+  /** Passage de la vidéo à analyser, en secondes (20 min au plus). */
+  plage?: { debut: number; fin: number };
 };
+
+/** Durée maximum analysée par vidéo, en secondes. */
+export const PLAGE_MAX = 20 * 60;
+
+/** Une plage propre : nombres, dans l'ordre, 20 min au plus, 10 s au moins. Défaut : les 20 premières minutes. */
+export function plagePropre(p: unknown): { debut: number; fin: number } {
+  const o = (p && typeof p === "object" ? p : null) as { debut?: unknown; fin?: unknown } | null;
+  const debut = Math.max(0, Math.floor(Number(o?.debut)));
+  const fin = Math.floor(Number(o?.fin));
+  if (!o || !Number.isFinite(debut) || !Number.isFinite(fin) || fin - debut < 10) return { debut: 0, fin: PLAGE_MAX };
+  return { debut, fin: Math.min(fin, debut + PLAGE_MAX) };
+}
 
 export const OPTIONS_PAR_DEFAUT: OptionsClips = {
   type: "meilleur",
@@ -76,5 +90,6 @@ export function optionsPropres(brut: unknown): OptionsClips {
     format: dans(FORMATS, o.format, OPTIONS_PAR_DEFAUT.format),
     accroche: o.accroche !== false,
     nombre,
+    plage: plagePropre(o.plage),
   };
 }
