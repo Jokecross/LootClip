@@ -34,7 +34,7 @@ export default function Merci() {
   return (
     <Message titre={titre} sous={texte} travaille={vue === "attente"}>
       {vue !== "attente" && (
-        <Link href={vue === "echec" ? "/app/creer" : etat.videos.length ? "/app/creer" : "/commencer?e=10"} className="bouton bouton-rose w-full">
+        <Link href={vue === "echec" ? "/app/creer" : etat.videos.length ? "/app/creer" : "/commencer?e=lien"} className="bouton bouton-rose w-full">
           {vue === "echec" ? "Revoir les offres" : etat.videos.length ? "Créer une vidéo" : "Déposer mes clips"}
         </Link>
       )}

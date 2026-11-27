@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { FormulaireCompte } from "@/components/compte/FormulaireCompte";
 import { LienAccueil } from "@/components/marque/Logo";
-import { Cadre, Question } from "@/components/onboarding/Cadre";
+import { AccrocheCompte } from "@/components/onboarding/AccrocheCompte";
+import { Cadre } from "@/components/onboarding/Cadre";
 import { useEtat } from "@/lib/etat";
 import { rafraichir } from "@/lib/serveur";
 
@@ -31,9 +32,9 @@ export default function Connexion() {
       cle="connexion"
       fond="turquoise"
       entete={<div className="ob-progression"><LienAccueil /></div>}
-      gauche={<Question sous="Reprends là où tu t'étais arrêté.">Content de te revoir.</Question>}
+      gauche={<AccrocheCompte mode="connexion" />}
       droite={
-        <div className="bloc relative mt-5 flex flex-col bg-blanc p-5 lg:m-auto lg:w-full lg:max-w-[600px] lg:p-10">
+        <div className="ob-carte ob-carte-compte surgit">
           <FormulaireCompte mode="connexion" retour="/app/creer" valider={valider} />
           <Link href="/commencer" className="mt-3 flex min-h-11 items-center justify-center text-[15px]">
             Pas encore de compte ?&nbsp;<span className="lien">Commencer</span>

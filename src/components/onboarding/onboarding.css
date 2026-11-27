@@ -356,3 +356,33 @@
     .aa-etiquette { font-size: 14px; }
   }
 }
+
+/* Inscription et connexion : le titre, trois vrais clips, les atouts */
+@layer components {
+  .ac-titre { font-size: 32px; line-height: 1.02; }
+  .ac-surligne { background: linear-gradient(transparent 62%, var(--color-jaune) 62%, var(--color-jaune) 92%, transparent 92%); padding: 0 0.05em; -webkit-box-decoration-break: clone; box-decoration-break: clone; }
+  .ac .ob-sous { margin-top: 10px; }
+  .ac-clips { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; max-width: 340px; margin-top: 18px; }
+  .ac-clip { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+  .ac-clip:nth-child(1) { rotate: -3deg; translate: 0 6px; }
+  .ac-clip:nth-child(3) { rotate: 3deg; translate: 0 6px; }
+  .ac-ecran { position: relative; width: 100%; aspect-ratio: 9 / 16; overflow: hidden; border: var(--ep) solid var(--color-encre); border-radius: 12px; background: var(--color-encre); transition: transform 300ms cubic-bezier(0.3, 1.4, 0.5, 1), box-shadow 300ms; }
+  .ac-clip[data-actif="true"] .ac-ecran { transform: translateY(-6px) scale(1.04); box-shadow: 0 6px 0 var(--color-encre); }
+  .ac-ecran img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  .ac-score { padding: 0 7px; border: 2px solid var(--color-encre); border-radius: 8px; background: var(--color-jaune); font-size: 11px; font-weight: 700; line-height: 18px; }
+  .ac-score b { font-size: 13px; font-weight: 800; }
+  .ac-clip[data-actif="true"] .ac-score { background: var(--color-rose); }
+  .ac-legende { margin-top: 10px; font-size: 12px; font-weight: 600; color: var(--color-encre2); }
+  .ac-atouts { display: none; }
+  @media (min-width: 1024px) {
+    .ac-titre { font-size: clamp(44px, min(4.2vw, 7.6vh), 66px); }
+    .ac .ob-sous { margin-top: 16px; font-size: 19px; }
+    .ac-clips { max-width: 420px; gap: 14px; margin-top: 28px; }
+    .ac-score { font-size: 12px; line-height: 20px; }
+    .ac-legende { font-size: 13px; }
+    .ac-atouts { display: flex; flex-direction: column; gap: 10px; margin-top: 24px; font-size: 16px; font-weight: 700; }
+    .ac-atouts li { display: flex; align-items: center; gap: 10px; }
+    .ac-atouts span { display: grid; width: 26px; height: 26px; flex: none; place-items: center; border: 2px solid var(--color-encre); border-radius: 50%; background: var(--color-turquoise); }
+    .ac-atouts svg { width: 15px; }
+  }
+}

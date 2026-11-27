@@ -1,13 +1,15 @@
 "use client";
 /*
- * Onboarding « lien → clips » en 12 écrans. L'écran des offres s'affiche après les comptes à relier,
+ * Onboarding « lien → clips » en 11 écrans : l'accroche, puis l'inscription (avant les questions, choix de Martin du 26/11).
+ * L'écran des offres s'affiche après les comptes à relier,
  * avant le premier lien.
  * Une action par écran, bouton principal en bas, barre de progression en haut, retour possible.
  * L'étape est dans l'adresse (?e=3) : le bouton retour du téléphone marche aussi.
  */
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useRef, useState } from "react";
-import { ecranAccroche, ecranActivite, ecranDestinations, ecranObjectif, ecranPlan, ecranPrincipe, ecranRythme, ecranStyle, ecranTiktok, MENTION_PRINCIPE, REPERE_RYTHME } from "@/components/onboarding/Ecrans";
+import { ecranAccroche, ecranActivite, ecranDestinations, ecranObjectif, ecranPlan, ecranRythme, ecranStyle, ecranTiktok, REPERE_RYTHME } from "@/components/onboarding/Ecrans";
+import { AccrocheCompte } from "@/components/onboarding/AccrocheCompte";
 import { Reseaux } from "@/components/onboarding/Reseaux";
 import { FormulaireCompte } from "@/components/compte/FormulaireCompte";
 import { Paywall } from "@/components/app/Paywall";
@@ -19,12 +21,15 @@ import { CLIPS_SEMAINE_DEFAUT, ecrirePreferences, ecrireReponses, effacerReponse
 import { preparer, reveiller } from "@/lib/sons";
 import { suivre } from "@/lib/suivi";
 
-const ECRANS = ["accroche", "principe", "activite", "destinations", "tiktok", "style", "rythme", "objectif", "plan", "compte", "reseaux", "lien"] as const;
+const ECRANS = ["accroche", "compte", "activite", "destinations", "tiktok", "style", "rythme", "objectif", "plan", "reseaux", "lien"] as const;
 const TOTAL = ECRANS.length;
 const COMPTE = ECRANS.indexOf("compte") + 1;
 const RESEAUX = ECRANS.indexOf("reseaux") + 1;
+const PLAN = ECRANS.indexOf("plan") + 1;
 const LIEN = ECRANS.indexOf("lien") + 1;
 const place = (e: (typeof ECRANS)[number]) => ECRANS.indexOf(e) + 1;
+/** L'étape de l'adresse : un numéro (?e=3) ou un nom d'écran (?e=lien). */
+const lireEtape = (brut: string | null) => (brut && (ECRANS as readonly string[]).includes(brut) ? place(brut as (typeof ECRANS)[number]) : Number(brut) || 1);
 
 function premiereManquante(r: Reponses) {
   if (!r.activite) return place("activite");
@@ -40,7 +45,7 @@ function Onboarding() {
   const router = useRouter();
   const params = useSearchParams();
   const etat = useEtat();
-  const n = Math.min(TOTAL, Math.max(1, Number(params.get("e")) || 1));
+  const n = Math.min(TOTAL, Math.max(1, lireEtape(params.get("e"))));
   const [r, setR] = useState<Reponses>({});
   const [pret, setPret] = useState(false);
   const [lien, setLien] = useState("");
@@ -58,17 +63,22 @@ function Onboarding() {
 
   useEffect(() => {
     if (!pret || !etat.charge) return;
-    if (etat.compte && !aRepondre) {
-      if (n < COMPTE) router.replace("/app/creer");
-      if (n === COMPTE) router.replace(`/commencer?e=${RESEAUX}`);
+    // L'inscription vient d'abord : sans compte, on ne va pas plus loin que l'écran du compte.
+    if (!etat.compte) {
+      if (n > COMPTE) router.replace(`/commencer?e=${COMPTE}`);
       return;
     }
+    // Compte déjà profilé : plus de questions, direct à l'appli (les comptes à relier et le lien restent ouverts).
+    if (!aRepondre) {
+      if (n < RESEAUX) router.replace("/app/creer");
+      return;
+    }
+    if (n === COMPTE) return router.replace(`/commencer?e=${COMPTE + 1}`);
     const lu = lireReponses();
     const manque = premiereManquante(lu);
     if (manque && n > manque) return router.replace(`/commencer?e=${manque}`);
-    if (!etat.compte && n > COMPTE) return router.replace(`/commencer?e=${COMPTE}`);
-    // Déjà connecté (Google) : pas de compte à créer, les réponses vont dans le profil, puis les offres.
-    if (etat.compte && n >= COMPTE) {
+    // Questions finies : les réponses vont dans le profil, puis les comptes à relier et les offres.
+    if (!manque && n > PLAN) {
       // La console n'est plus demandée : la base garde une valeur par défaut.
       const profil = { plateforme: lu.plateforme ?? "ps5", objectif: lu.objectif!, tiktok: lu.tiktok!, frequence: lu.frequence! };
       modifier((e) => ({ ...e, compte: e.compte ? { ...e.compte, plateforme: profil.plateforme, profil } : e.compte }));
@@ -111,11 +121,11 @@ function Onboarding() {
   const suivant = () => router.push(`/commencer?e=${n + 1}`);
   const retour = () => (window.history.length > 1 ? router.back() : router.replace(n > 1 ? `/commencer?e=${n - 1}` : "/"));
 
-  /** Compte créé : les réponses vont dans le profil (serveur.ts), puis les offres. */
+  /** Compte créé au départ : on passe aux questions. */
   async function creerCompte() {
     await rafraichir();
     suivre("inscription", { methode: "email" });
-    router.replace(`/commencer?e=${RESEAUX}`);
+    router.replace(`/commencer?e=${COMPTE + 1}`);
   }
 
   /** Le premier lien : gardé pour la page Créer, qui lance les clips tout de suite. */
@@ -137,7 +147,7 @@ function Onboarding() {
     router.push("/app/creer");
   }
 
-  if (!pret || (n === RESEAUX && !etat.compte) || (etat.compte && (n === COMPTE || (n > COMPTE && aRepondre)))) return <div className="min-h-dvh bg-fond" />;
+  if (!pret || (!etat.compte && n > COMPTE) || (etat.compte && (n === COMPTE || (n > PLAN && aRepondre)))) return <div className="min-h-dvh bg-fond" />;
 
   if (n === RESEAUX) return <Reseaux n={n} total={TOTAL} ici={`/commencer?e=${RESEAUX}`} passer={() => router.replace(`/commencer?e=${LIEN}`)} />;
 
@@ -155,12 +165,6 @@ function Onboarding() {
       contenu = ecranAccroche();
       action = { libelle: "Commencer", faire: suivant, actif: true };
       pied = <p>Sans engagement. Résiliation en deux clics.</p>;
-      break;
-
-    case "principe":
-      contenu = ecranPrincipe();
-      action = { libelle: "C'est parti", faire: suivant, actif: true };
-      pied = <p>{MENTION_PRINCIPE}</p>;
       break;
 
     case "activite":
@@ -196,16 +200,16 @@ function Onboarding() {
 
     case "plan":
       if (objectif && r.frequence) contenu = ecranPlan({ objectif, frequence: r.frequence });
-      action = { libelle: etat.compte ? "Continuer" : "Créer mon compte", faire: suivant, actif: !!objectif && !!r.frequence };
+      action = { libelle: "Continuer", faire: suivant, actif: !!objectif && !!r.frequence };
       pied = <p>{MENTION_OBJECTIF}</p>;
       break;
 
     case "compte":
       contenu = {
-        gauche: <Question avant="Ton compte" sous="Pour garder ton plan et tes clips.">Crée ton compte.</Question>,
+        gauche: <AccrocheCompte mode="inscription" />,
         droite: (
           <div className="ob-carte ob-carte-compte surgit">
-            <FormulaireCompte mode="inscription" retour={`/commencer?e=${RESEAUX}`} valider={creerCompte} />
+            <FormulaireCompte mode="inscription" retour={`/commencer?e=${COMPTE + 1}`} valider={creerCompte} />
           </div>
         ),
         fond: "rose",
@@ -268,7 +272,7 @@ function Onboarding() {
   return (
     <Cadre
       cle={n}
-      entete={n === 1 ? <EnteteMarque /> : <Progression n={n} total={TOTAL} retour={n <= COMPTE && !(etat.compte && n === 2) ? retour : undefined} />}
+      entete={n === 1 ? <EnteteMarque /> : <Progression n={n} total={TOTAL} retour={n < RESEAUX && n !== COMPTE + 1 ? retour : undefined} />}
       {...contenu}
       action={
         action && (

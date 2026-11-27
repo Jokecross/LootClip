@@ -75,7 +75,7 @@ export default function CoquilleAppli({ children }: { children: React.ReactNode 
   // Nouveau compte sans réponses : l'onboarding d'abord, les offres ensuite.
   const aFaire = !chemin.startsWith("/app/compte") && !chemin.startsWith("/app/merci") && sansOnboarding(etat);
   useEffect(() => {
-    if (etat.charge && aFaire) router.replace("/commencer?e=2");
+    if (etat.charge && aFaire) router.replace("/commencer?e=activite");
   }, [etat.charge, aFaire, router]);
 
   // Réservé aux abonnés. Restent ouverts : le compte, le retour de paiement, et les vidéos d'un ancien abonné.

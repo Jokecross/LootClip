@@ -2,12 +2,13 @@ import type { Viewport } from "next";
 import Link from "next/link";
 import "./accueil.css";
 import "./lp.css";
+import { Boucle } from "@/components/accueil/Boucle";
 import { ChampLien } from "@/components/accueil/ChampLien";
 import { Interface } from "@/components/accueil/Interface";
 import { Offres } from "@/components/accueil/Offres";
 import { Reglages } from "@/components/accueil/Reglages";
-import { SousTitres } from "@/components/accueil/SousTitres";
 import { BarreFixe } from "@/components/landing/BarreFixe";
+import { DEMO } from "@/components/onboarding/demo";
 import { LogoIcone } from "@/components/marque/Logo";
 import { PiedDePage } from "@/components/PiedDePage";
 
@@ -164,9 +165,9 @@ export default function Accueil() {
                     <i key={i} style={{ height: `${20 + ((i * 37 + (i % 5) * 11) % 72)}%` }} />
                   ))}
                   {[
-                    { l: 6, w: 15, s: 94 },
-                    { l: 40, w: 12, s: 89 },
-                    { l: 70, w: 17, s: 83 },
+                    { l: 6, w: 15, s: 90 },
+                    { l: 40, w: 12, s: 86 },
+                    { l: 70, w: 17, s: 82 },
                   ].map((m) => (
                     <b key={m.l} style={{ left: `${m.l}%`, width: `${m.w}%` }}>
                       <span>{m.s}</span>
@@ -178,8 +179,7 @@ export default function Accueil() {
               <article className="fn fn-haut">
                 <div className="fn-scene fn-tel" aria-hidden="true">
                   <div className="m-tel-ecran">
-                    <img src="/v4/clips/drole.webp" alt="" width={432} height={768} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
-                    <SousTitres phrase="Mon chien conduit mieux que moi" place="milieu" couleur="var(--color-rose)" />
+                    <Boucle nom={DEMO.clips[1].nom} />
                   </div>
                 </div>
                 <div className="fn-texte">
@@ -212,7 +212,7 @@ export default function Accueil() {
 
               <article className="fn fn-haut">
                 <div className="fn-scene fn-accroche" aria-hidden="true">
-                  <span className="acc-carte titre">Il n&apos;aurait jamais dû me chercher</span>
+                  <span className="acc-carte titre">Mandy cache un corps dans GTA 6</span>
                   <span className="acc-legende">Écrite par l&apos;IA, 3 premières secondes</span>
                 </div>
                 <div className="fn-texte">

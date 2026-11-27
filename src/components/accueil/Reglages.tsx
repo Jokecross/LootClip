@@ -1,18 +1,19 @@
 "use client";
 /*
  * Les réglages d'un clip, à essayer dès l'accueil : type, couleur des sous-titres, placement, format.
- * Le téléphone change tout de suite. Une seule vidéo à la fois, montée par XPclip à partir des parties de Martin.
+ * Le téléphone change tout de suite. Une seule vidéo à la fois : extraits sans sous-titres de la vidéo de démo (demo.ts),
+ * cadrés en Auto (facecam en haut), Plein écran ou Fond flou ; les sous-titres sont dessinés par-dessus.
  */
 import { useState } from "react";
 import { Boucle } from "./Boucle";
 import { SousTitres } from "./SousTitres";
 
 const TYPES = [
-  { cle: "meilleur", nom: "Le meilleur", clip: "defi", phrase: "Le passage que tout le monde va partager" },
-  { cle: "drole", nom: "Moments drôles", clip: "drole", phrase: "Mon chien conduit mieux que moi" },
-  { cle: "conseils", nom: "Conseils", clip: "mission", phrase: "Le secret c'est de commencer par la fin" },
-  { cle: "reactions", nom: "Réactions", clip: "defi", phrase: "Non mais tu as vu ce qu'il vient de faire" },
-  { cle: "histoires", nom: "Histoires", clip: "mission", phrase: "Et là tout a basculé en une seconde" },
+  { cle: "meilleur", nom: "Le meilleur", clip: "m1", phrase: "Le passage que tout le monde va partager" },
+  { cle: "drole", nom: "Moments drôles", clip: "m3", phrase: "Un alligator m'a avalé en entier" },
+  { cle: "conseils", nom: "Conseils", clip: "m2", phrase: "Le secret c'est de commencer par la fin" },
+  { cle: "reactions", nom: "Réactions", clip: "m2", phrase: "Non mais tu as vu ce qu'il vient de faire" },
+  { cle: "histoires", nom: "Histoires", clip: "m1", phrase: "Et là tout a basculé en une seconde" },
 ] as const;
 
 const COULEURS = [
@@ -67,19 +68,8 @@ export function Reglages() {
       <div className="reg-tel-boite">
         <div className="tel-grand">
           <div className="m-tel-ecran">
-            {format === "flou" && <Boucle key={`flou-${t.clip}`} nom={`clips/${t.clip}`} />}
-            {format === "plein" && <Boucle key={`plein-${t.clip}`} nom={`clips/brut-${t.clip}`} />}
-            {format === "auto" && (
-              <>
-                <span className="reg-cam">
-                  <img src="/v4/duck.webp" alt="" width={520} height={440} />
-                </span>
-                <span className="reg-cam-pastille">Facecam</span>
-                <div className="reg-action">
-                  <Boucle key={`auto-${t.clip}`} nom={`clips/brut-${t.clip}`} />
-                </div>
-              </>
-            )}
+            <Boucle key={`${format}-${t.clip}`} nom={`demo/reg-${t.clip}-${format}`} />
+            {format === "auto" && <span className="reg-cam-pastille">Facecam</span>}
             <SousTitres phrase={t.phrase} couleur={couleur} place={place} />
           </div>
         </div>
