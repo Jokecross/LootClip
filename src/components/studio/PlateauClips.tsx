@@ -3,8 +3,9 @@
  * Studio de tournage « lien → clips » : le parcours du site, à faire soi-même devant la caméra (sans inscription).
  * Tu cliques à chaque écran : l'accueil (tu colles le lien dans le champ du haut), les questions, réglages, montage, clips, publication.
  * Régie sur /studio. Une fois prêt, xpclip.com ouvre le premier écran sur cet appareil (cookie, lib/tournage.ts).
- * Réservé à l'équipe : rien n'est écrit dans un vrai compte, rien n'est envoyé au moteur.
- * Les clips montrés sont ceux de la démo (components/onboarding/demo.ts). Appui long sur le logo : retour à la régie.
+ * Réservé à l'équipe. La publication reste simulée : rien n'est posté.
+ * Analyse réelle : le lien collé sur la landing part au vrai moteur (POST /api/clips), on suit le lot et on montre
+ * ses vrais clips. Sinon (ou en cas d'échec), la démo (components/onboarding/demo.ts). Appui long sur le logo : retour à la régie.
  */
 import "@/app/app/outil.css";
 import { useEffect, useRef, useState } from "react";
@@ -16,7 +17,7 @@ import { Cadre, Progression, Question } from "@/components/onboarding/Cadre";
 import { DEMO } from "@/components/onboarding/demo";
 import { ecranActivite, ecranDestinations, ecranObjectif, ecranPlan, ecranRythme, ecranStyle, ecranTiktok, REPERE_RYTHME } from "@/components/onboarding/Ecrans";
 import { Confettis } from "@/components/studio/Confettis";
-import { Programmation, PUBLICATION_DEFAUT, quand, Recommandation, recommander, VitrineClips, type Publication } from "@/components/studio/EcransStudio";
+import { MontageReel, Programmation, PUBLICATION_DEFAUT, quand, Recommandation, recommander, VitrineClips, type ClipVitrine, type Publication } from "@/components/studio/EcransStudio";
 import { Logo } from "@/components/marque/Logo";
 import { OPTIONS_PAR_DEFAUT, type OptionsClips } from "@/lib/clips-options";
 import { MENTION_OBJECTIF, ONBOARDING } from "@/lib/config";
@@ -31,6 +32,12 @@ type Etape = (typeof SUITE)[number];
 const PARCOURS: Etape[] = ["lp", "activite", "destinations", "tiktok", "style", "rythme", "objectif", "plan"];
 const ETAPES_MONTAGE = ["Vidéo récupérée", "Transcription", "Moments forts", "Montage 9:16"];
 
+async function enTetes(): Promise<Record<string, string>> {
+  const { supabase } = await import("@/lib/supabase");
+  const { data } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+  return data.session ? { authorization: `Bearer ${data.session.access_token}` } : {};
+}
+
 /** `direct` : on arrive sur le premier écran (xpclip.com), sans passer par la régie. */
 export function PlateauClips({ direct = false }: { direct?: boolean }) {
   const [etape, setEtape] = useState<Etape>(direct ? "lp" : "regie");
@@ -42,6 +49,9 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
   const [lienColle, setLienColle] = useState("");
   const [pub, setPub] = useState<Publication>(PUBLICATION_DEFAUT);
   const [perso, setPerso] = useState(false);
+  /** Le lot lancé pour de vrai (analyse du lien collé), et ses clips une fois finis. */
+  const [lot, setLot] = useState<{ id: string; erreur?: string } | null>(null);
+  const [vrais, setVrais] = useState<ClipVitrine[] | null>(null);
   const appui = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   useEffect(() => {
@@ -73,6 +83,23 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
   const aller = (e: Etape) => setEtape(e);
   const suivant = () => aller(SUITE[SUITE.indexOf(etape) + 1]);
   const retour = () => aller(SUITE[Math.max(1, SUITE.indexOf(etape) - 1)]);
+  /** Analyse réelle : le lien collé sur la landing part au moteur, avec les réglages choisis. */
+  async function lancerLot() {
+    setVrais(null);
+    const brut = lienColle.trim();
+    if (regl.reel === false || !brut) return setLot(null);
+    setLot({ id: "" });
+    const rep = await fetch("/api/clips", {
+      method: "POST",
+      headers: { "content-type": "application/json", ...(await enTetes()) },
+      body: JSON.stringify({ lien: /^https?:\/\//.test(brut) ? brut : `https://${brut}`, options }),
+    }).catch(() => null);
+    const json = await rep?.json().catch(() => null);
+    if (rep?.ok && json?.id) return setLot({ id: json.id });
+    const code = json?.erreur;
+    setLot({ id: "", erreur: code === "quota" ? "Plus de clips ce mois-ci sur ce compte." : code === "non_connecte" ? "Connecte-toi avec le compte de l'équipe." : code === "bientot" ? "L'analyse en ligne n'est pas encore ouverte." : json?.message || "Le lien n'a pas pu être lancé." });
+  }
+
   const regler = (x: Partial<Reglages>) => {
     const n = { ...regl, ...x };
     setRegl(n);
@@ -88,6 +115,8 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
     setLienColle("");
     setPub(PUBLICATION_DEFAUT);
     setPerso(false);
+    setLot(null);
+    setVrais(null);
     aller(depuis);
   }
 
@@ -136,12 +165,16 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
             <Champ libelle="Lien qui s'écrit à l'écran" exemple={DEMO.lien} valeur={regl.lien ?? ""} changer={(v) => regler({ lien: v })} />
             <Champ libelle="Pseudo montré à la publication" exemple={hasard || "Au hasard à chaque prise"} valeur={regl.pseudo} changer={(v) => regler({ pseudo: v.replace(/\s/g, "") })} />
             <Champ libelle="Clips restants au départ" numerique valeur={String(regl.credits)} changer={(v) => regler({ credits: Math.max(0, Math.min(999, Number(v.replace(/\D/g, "")) || 0)) })} />
-            <Champ libelle="Durée du montage (secondes)" numerique valeur={String(regl.secondes)} changer={(v) => regler({ secondes: Math.max(3, Math.min(60, Number(v.replace(/\D/g, "")) || 3)) })} />
+            <label className="flex min-h-12 items-center justify-between gap-3 text-[14px] font-bold">
+              Analyser pour de vrai le lien collé (sinon : la démo)
+              <input type="checkbox" checked={regl.reel !== false} onChange={(e) => regler({ reel: e.target.checked })} className="h-6 w-6 accent-[var(--color-rose)]" />
+            </label>
+            <Champ libelle="Durée du montage de la démo (secondes)" numerique valeur={String(regl.secondes)} changer={(v) => regler({ secondes: Math.max(3, Math.min(60, Number(v.replace(/\D/g, "")) || 3)) })} />
             <label className="flex min-h-12 items-center justify-between gap-3 text-[14px] font-bold">
               Taper xpclip.com ouvre le tournage sur ce téléphone
               <input type="checkbox" checked={regl.tournage} onChange={(e) => regler({ tournage: e.target.checked })} className="h-6 w-6 accent-[var(--color-rose)]" />
             </label>
-            <p className="text-[13px] text-encre2">Les clips montrés sont ceux de la démo du site. Appui long sur le logo pour revenir ici.</p>
+            <p className="text-[13px] text-encre2">Analyse réelle : 3 à 7 min selon la vidéo. Sans lien collé, la démo du site. Appui long sur le logo pour revenir ici.</p>
           </div>
         ),
       };
@@ -203,24 +236,32 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
         droite: perso ? <ReglagesCompacts options={options} changer={(o) => setOptions((v) => ({ ...v, ...o }))} /> : <Recommandation options={options} personnaliser={() => setPerso(true)} />,
         large: perso,
       };
-      bouton = { libelle: `Créer mes ${options.nombre} clips`, faire: suivant };
+      bouton = { libelle: `Créer mes ${options.nombre} clips`, faire: () => (lancerLot(), suivant()) };
       break;
 
-    case "montage":
+    case "montage": {
+      const fini = (clips?: ClipVitrine[]) => {
+        setVrais(clips ?? null);
+        setCredits((c) => Math.max(0, c - (clips?.length ?? Math.min(options.nombre, DEMO.clips.length))));
+        bravo();
+        aller("clips");
+      };
       contenu = {
         gauche: <Question avant="En cours" sous="L'IA écoute toute la vidéo et garde le meilleur.">On monte tes clips.</Question>,
-        droite: (
-          <Montage
-            secondes={regl.secondes}
-            fini={() => {
-              setCredits((c) => Math.max(0, c - Math.min(options.nombre, DEMO.clips.length)));
-              bravo();
-              aller("clips");
+        droite: lot ? (
+          <MontageReel
+            lot={lot}
+            fini={fini}
+            demo={() => {
+              setLot(null);
             }}
           />
+        ) : (
+          <Montage secondes={regl.secondes} fini={() => fini()} />
         ),
       };
       break;
+    }
 
     case "clips":
       contenu = {
@@ -232,7 +273,7 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
             </Question>
           </>
         ),
-        droite: <VitrineClips nombre={options.nombre} />,
+        droite: <VitrineClips nombre={options.nombre} clips={vrais ?? undefined} />,
         large: true,
       };
       bouton = { libelle: "Poster mes clips", faire: suivant };

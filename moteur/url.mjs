@@ -125,7 +125,7 @@ async function principal() {
     if (!moments.length) throw new Error("0 moments");
     journal(`${moments.length} moments choisis (${t()}, ${usage.input_tokens} + ${usage.output_tokens} jetons)`);
     await writeFile(join(sortie, "moments.json"), JSON.stringify(moments, null, 1));
-    etat.moments = moments.map((m) => ({ titre: m.titre, score: m.score, duree: Math.round(m.parties.reduce((s, [a, b]) => s + b - a, 0)) }));
+    etat.moments = moments.map((m) => ({ titre: m.titre, score: m.score, pourquoi: m.pourquoi, forces: m.forces ?? [], duree: Math.round(m.parties.reduce((s, [a, b]) => s + b - a, 0)) }));
 
     for (const [i, m] of moments.entries()) {
       await passer("montage", i / moments.length);

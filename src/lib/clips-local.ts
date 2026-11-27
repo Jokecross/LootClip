@@ -22,7 +22,7 @@ export const dossierDe = (id: string) => (ID.test(id) ? join(RACINE, id) : null)
 export type EtatClips = {
   etape: "telechargement" | "transcription" | "choix" | "montage" | "fini";
   avancement: number;
-  moments: { titre: string; score: number; duree: number }[];
+  moments: { titre: string; score: number; duree: number; pourquoi?: string; forces?: string[] }[];
   clips: { fichier: string; titre: string; score: number; duree: number; url?: string }[];
   erreur: string | null;
   debut: number;

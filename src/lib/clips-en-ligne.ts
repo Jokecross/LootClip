@@ -108,7 +108,7 @@ export async function traiterSon(user: string, id: string) {
       ...etat,
       etape: "montage",
       avancement: 0,
-      moments: moments.map((m) => ({ titre: m.titre, score: m.score, duree: Math.round(m.parties.reduce((s, [a, b]) => s + b - a, 0)) })),
+      moments: moments.map((m) => ({ titre: m.titre, score: m.score, pourquoi: m.pourquoi, forces: m.forces ?? [], duree: Math.round(m.parties.reduce((s, [a, b]) => s + b - a, 0)) })),
     });
   } catch (e) {
     console.error("traitement du son", id, e);

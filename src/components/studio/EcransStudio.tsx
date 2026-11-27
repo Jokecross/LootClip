@@ -5,7 +5,6 @@
  */
 import "./studio.css";
 import { useEffect, useState } from "react";
-import { Boucle } from "@/components/accueil/Boucle";
 import { DEMO } from "@/components/onboarding/demo";
 import { COULEURS_SOUS_TITRES, DUREES_CLIP, FORMATS, TYPES_CLIP, type OptionsClips } from "@/lib/clips-options";
 import type { Reponses } from "@/lib/onboarding";
@@ -60,21 +59,139 @@ export function Recommandation({ options: o, personnaliser }: { options: Options
   );
 }
 
-/* ---------- 2. Les clips en grand ---------- */
+/* ---------- 2. Le montage réel, suivi en direct ---------- */
 
-export function VitrineClips({ nombre }: { nombre: number }) {
-  const clips = DEMO.clips.slice(0, Math.min(nombre, DEMO.clips.length));
+export type ClipVitrine = { url: string; poster?: string; titre: string; score: number; pourquoi?: string; forces?: string[] };
+
+type EtatLot = {
+  etape: "telechargement" | "transcription" | "choix" | "montage" | "fini";
+  avancement: number;
+  moments: { titre: string; score: number; pourquoi?: string; forces?: string[] }[];
+  clips: { fichier: string; titre: string; score: number; url?: string }[];
+  erreur: string | null;
+};
+const ETAPES_LOT = [
+  { cle: "telechargement", libelle: "Vidéo récupérée", poids: [0, 0.25] },
+  { cle: "transcription", libelle: "Transcription", poids: [0.25, 0.35] },
+  { cle: "choix", libelle: "Moments forts", poids: [0.35, 0.45] },
+  { cle: "montage", libelle: "Montage 9:16", poids: [0.45, 1] },
+] as const;
+
+export function MontageReel({ lot, fini, demo }: { lot: { id: string; erreur?: string }; fini: (clips: ClipVitrine[]) => void; demo: () => void }) {
+  const [etat, setEtat] = useState<EtatLot | null>(null);
+  const [erreur, setErreur] = useState(lot.erreur ?? "");
+  const [debut] = useState(() => Date.now());
+  const [maintenant, setMaintenant] = useState(() => Date.now());
+
+  useEffect(() => setErreur(lot.erreur ?? ""), [lot.erreur]);
+  useEffect(() => {
+    const id = setInterval(() => setMaintenant(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  useEffect(() => {
+    if (!lot.id) return;
+    let fin = false;
+    const suivre = async () => {
+      if (fin) return;
+      const { supabase } = await import("@/lib/supabase");
+      const { data } = await supabase.auth.getSession().catch(() => ({ data: { session: null } }));
+      const rep = await fetch(`/api/clips/${lot.id}`, { cache: "no-store", headers: data.session ? { authorization: `Bearer ${data.session.access_token}` } : {} }).catch(() => null);
+      const e: EtatLot | null = rep?.ok ? await rep.json().catch(() => null) : null;
+      if (e) {
+        setEtat(e);
+        if (e.erreur) return setErreur(e.erreur);
+        if (e.etape === "fini") {
+          fin = true;
+          const clips = e.clips.map((c, i) => ({
+            url: c.url ?? `/api/clips/${lot.id}/${c.fichier}`,
+            titre: c.titre,
+            score: c.score,
+            pourquoi: e.moments[i]?.pourquoi,
+            forces: e.moments[i]?.forces,
+          }));
+          return setTimeout(() => fini(clips), 600);
+        }
+      }
+      setTimeout(suivre, 2000);
+    };
+    suivre();
+    return () => {
+      fin = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lot.id]);
+
+  const i = Math.max(0, ETAPES_LOT.findIndex((x) => x.cle === etat?.etape));
+  const [a, b] = etat?.etape === "fini" ? [1, 1] : ETAPES_LOT[i].poids;
+  const t = etat ? a + (b - a) * Math.min(1, etat.avancement || 0) : 0.02;
+  const secondes = Math.round((maintenant - debut) / 1000);
+
+  if (erreur)
+    return (
+      <div className="ob-carte surgit">
+        <p className="titre text-[22px]">L&apos;analyse n&apos;a pas marché.</p>
+        <p className="text-[15px] font-semibold text-encre2">{erreur}</p>
+        <p className="text-[13px] text-encre2">YouTube bloque souvent les serveurs en ligne. Essaie un lien Twitch, Kick ou X, ou lance le studio depuis ton Mac.</p>
+        <button type="button" onClick={demo} className="bouton bouton-blanc w-full">
+          Continuer avec la démo
+        </button>
+      </div>
+    );
+
+  return (
+    <div className="ob-carte surgit">
+      <div className="flex items-end justify-between">
+        <span className="ob-label">{etat?.etape === "fini" ? "C'est prêt" : ETAPES_LOT[i].libelle}…</span>
+        <span className="titre text-[34px] tabular-nums">{Math.round(t * 100)} %</span>
+      </div>
+      <div className="h-4 overflow-hidden rounded-full border-2 border-encre bg-beige">
+        <span className="block h-full origin-left bg-rose transition-transform duration-700" style={{ transform: `scaleX(${t})` }} />
+      </div>
+      <ol className="grid grid-cols-2 gap-2 text-[14px] font-bold">
+        {ETAPES_LOT.map((e, k) => {
+          const fait = etat?.etape === "fini" || k < i;
+          return (
+            <li key={e.cle} className={`flex items-center gap-2 ${k > i ? "opacity-40" : ""}`}>
+              <span className={`grid h-6 w-6 place-items-center rounded-full border-2 border-encre ${fait ? "bg-turquoise" : k === i ? "bg-jaune" : "bg-blanc"}`}>{fait ? "✓" : ""}</span>
+              {e.libelle}
+            </li>
+          );
+        })}
+      </ol>
+      <ul className="flex flex-col gap-2">
+        {(etat?.moments ?? []).map((m, k) => (
+          <li key={k} className="surgit flex items-center justify-between gap-3 rounded-xl border-2 border-encre bg-fond px-3 py-2 text-[14px] font-bold">
+            <span className="min-w-0 truncate">{m.titre}</span>
+            <span className="rounded-lg border-2 border-encre bg-jaune px-2 text-[12px]">{m.score}/100</span>
+          </li>
+        ))}
+      </ul>
+      <p className="text-[12px] font-semibold text-encre2 tabular-nums">
+        Analyse réelle · {Math.floor(secondes / 60)} min {String(secondes % 60).padStart(2, "0")} s
+      </p>
+    </div>
+  );
+}
+
+/* ---------- 3. Les clips en grand ---------- */
+
+export function VitrineClips({ nombre, clips: vrais }: { nombre: number; clips?: ClipVitrine[] }) {
+  const clips: ClipVitrine[] = vrais?.length
+    ? vrais
+    : DEMO.clips.slice(0, Math.min(nombre, DEMO.clips.length)).map((c) => ({ url: `/v4/${c.nom}.mp4`, poster: `/v4/${c.nom}.webp`, titre: c.titre, score: c.score, pourquoi: c.pourquoi, forces: c.forces }));
   const [k, setK] = useState(0);
-  const c = clips[k];
+  const c = clips[Math.min(k, clips.length - 1)];
   return (
     <div className="studio-clips surgit">
       <div className="studio-tel">
-        <Boucle key={c.nom} nom={c.nom} />
-        <span className="studio-rang">Clip {k + 1} / {clips.length}</span>
+        <video key={c.url} src={c.url} poster={c.poster} autoPlay muted loop playsInline className="absolute inset-0 h-full w-full object-cover" />
+        <span className="studio-rang">
+          Clip {k + 1} / {clips.length}
+        </span>
       </div>
 
       <div className="studio-infos">
-        <div className="studio-note" key={c.nom}>
+        <div className="studio-note" key={c.url}>
           <span className="titre">{c.score}</span>
           <span>
             <b>/100</b>
@@ -82,17 +199,23 @@ export function VitrineClips({ nombre }: { nombre: number }) {
           </span>
         </div>
         <p className="titre studio-titre">{c.titre}</p>
-        <p className="studio-label">Pourquoi cette note</p>
-        <p className="studio-pourquoi">{c.pourquoi}</p>
-        <ul className="studio-forces">
-          {c.forces.map((f) => (
-            <li key={f}>{f}</li>
-          ))}
-        </ul>
+        {c.pourquoi && (
+          <>
+            <p className="studio-label">Pourquoi cette note</p>
+            <p className="studio-pourquoi">{c.pourquoi}</p>
+          </>
+        )}
+        {!!c.forces?.length && (
+          <ul className="studio-forces">
+            {c.forces.slice(0, 3).map((f) => (
+              <li key={f}>{f}</li>
+            ))}
+          </ul>
+        )}
         <div className="studio-choix" role="tablist" aria-label="Tes clips">
           {clips.map((x, i) => (
-            <button key={x.nom} type="button" role="tab" aria-selected={i === k} onClick={() => setK(i)}>
-              <img src={`/v4/${x.nom}.webp`} alt="" width={432} height={768} />
+            <button key={x.url} type="button" role="tab" aria-selected={i === k} onClick={() => setK(i)}>
+              {x.poster ? <img src={x.poster} alt="" width={432} height={768} /> : <video src={`${x.url}#t=1.5`} muted playsInline preload="metadata" />}
               <span>{x.score}</span>
             </button>
           ))}

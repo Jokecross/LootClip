@@ -34,7 +34,7 @@ for (const [offre, o] of Object.entries(OFFRES_PAYANTES)) {
   for (const periodicite of ["mensuel", "annuel"]) for (const lancement of [false, true]) {
     const base = periodicite === "mensuel" ? o.mensuel : a2(o.mensuel * 12 * (1 - REMISE_ANNUELLE));
     const prix = lancement ? a2(base * (1 - LANCEMENT.remise)) : base;
-    const nom = `${o.nom} ${periodicite}${lancement ? " lancement" : ""}`;
+    const nom = `${o.nom} ${periodicite}${lancement ? " lancement" : ""} v2`;
     let t = tarifs.find((x) => x.title === nom);
     if (t && Number(t.renewal_price?.amount ?? t.renewal_price) !== prix) throw new Error(`${nom} existe à un autre prix : ${JSON.stringify(t.renewal_price)}`);
     t ??= await whop("POST", "/variants", {
@@ -48,4 +48,7 @@ for (const [offre, o] of Object.entries(OFFRES_PAYANTES)) {
     if (process.argv[2] === "un") process.exit();
   }
 }
+// Les anciens tarifs restent reconnus (abonnements déjà pris), mais ne sont plus proposés.
+const avant = JSON.parse(fs.readFileSync(racine + "src/lib/whop-tarifs.json", "utf8"));
+for (const [id, t] of Object.entries(avant)) if (!sortie[id]) sortie[id] = { ...t, ancien: true };
 fs.writeFileSync(racine + "src/lib/whop-tarifs.json", JSON.stringify(sortie, null, 2) + "\n");

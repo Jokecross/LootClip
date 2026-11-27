@@ -11,7 +11,7 @@ import { OFFRES_PAYANTES, SITE, type OffrePayante, type Periodicite } from "./co
 import { lancementActif, montant } from "./prix";
 import TARIFS_JSON from "./whop-tarifs.json";
 
-type Tarif = { offre: OffrePayante; periodicite: Periodicite; lancement: boolean };
+type Tarif = { offre: OffrePayante; periodicite: Periodicite; lancement: boolean; /** Ancien prix : encore reconnu, plus proposé. */ ancien?: boolean };
 const TARIFS = TARIFS_JSON as Record<string, Tarif>;
 const COMPTE = "biz_oY3tbxve2BVew1";
 const UUID = /^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$/i;
@@ -79,7 +79,7 @@ export async function creerCommande(user: { id: string }, offre: OffrePayante, p
   const { data: p } = await admin().from("profils").select("offre, periodicite, abonnement_fin").eq("id", user.id).maybeSingle();
   if (p && p.offre === offre && p.periodicite === periodicite && !p.abonnement_fin) throw new DejaAbonne();
   const lancement = lancementActif();
-  const variante = Object.entries(TARIFS).find(([, t]) => t.offre === offre && t.periodicite === periodicite && t.lancement === lancement)?.[0];
+  const variante = Object.entries(TARIFS).find(([, t]) => !t.ancien && t.offre === offre && t.periodicite === periodicite && t.lancement === lancement)?.[0];
   if (!variante) throw new Error("tarif introuvable");
   const c = await whop<{ id: string }>("POST", "/checkout_configurations", {
     account_id: COMPTE,

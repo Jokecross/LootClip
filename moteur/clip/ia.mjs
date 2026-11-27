@@ -11,7 +11,8 @@ import { spawn } from "node:child_process";
 import { readFile, stat } from "node:fs/promises";
 
 const FFMPEG = process.env.FFMPEG || "ffmpeg";
-const MODELE_IA = "claude-opus-5-5";
+// Sonnet 5.5 (décision de Martin du 27/11/2026) : mêmes moments forts qu'Opus au test, 2 fois moins cher.
+const MODELE_IA = "claude-sonnet-5-5";
 const LIMITE_GROQ = 24 * 1024 * 1024; // fichier envoyé à Groq : 25 Mo maximum
 
 function lancer(bin, args) {
@@ -93,9 +94,10 @@ const SCHEMA_MOMENTS = {
             },
           },
           score: { type: "integer", description: "Potentiel viral de 1 à 100" },
-          pourquoi: { type: "string", description: "Une phrase : pourquoi ce moment marche" },
+          pourquoi: { type: "string", description: "Une phrase de 12 mots maximum : pourquoi ce moment marche" },
+          forces: { type: "array", description: "Exactement 3 points forts du clip, 2 à 4 mots chacun", items: { type: "string" } },
         },
-        required: ["titre", "parties", "score", "pourquoi"],
+        required: ["titre", "parties", "score", "pourquoi", "forces"],
         additionalProperties: false,
       },
     },
@@ -121,6 +123,8 @@ Les moments ne se chevauchent pas.
 
 L'accroche (titre) : en français, 8 mots maximum, sans emoji, sans guillemets, qui donne envie de regarder.
 Elle résume le moment fort, comme un titre de clip viral.
+Le pourquoi : en français, 12 mots maximum, tutoiement interdit, sans emoji.
+Les forces : 3 points forts courts (2 à 4 mots), par exemple « Chute inattendue », « Réaction sincère ».
 Classe les moments du plus fort au plus faible.`;
 
 /** Les meilleurs moments, choisis par Claude à partir de la transcription. */
@@ -133,7 +137,7 @@ const TYPES = {
 };
 const DUREES = { courte: [15, 30], moyenne: [30, 60], longue: [60, 90] };
 
-export async function choisirMoments(transcription, { nombre = 5, type = "meilleur", duree = "moyenne" } = {}) {
+export async function choisirMoments(transcription, { nombre = 5, type = "meilleur", duree = "moyenne", modele = process.env.XPCLIP_MODELE_IA || MODELE_IA } = {}) {
   const [min, max] = DUREES[duree] ?? DUREES.moyenne;
   const consigne = [
     `Chaque clip dure entre ${min} et ${max} secondes au total.`,
@@ -143,7 +147,7 @@ export async function choisirMoments(transcription, { nombre = 5, type = "meille
   const client = new Anthropic(); // ANTHROPIC_API_KEY lue dans l'environnement
   const lignes = transcription.segments.map((s) => `[${s.debut.toFixed(1)} → ${s.fin.toFixed(1)}] ${s.texte}`).join("\n");
   const reponse = await client.beta.messages.create({
-    model: MODELE_IA,
+    model: modele,
     max_tokens: 16000,
     betas: ["server-side-fallback-2026-07-01"],
     fallbacks: "default",

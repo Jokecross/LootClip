@@ -18,11 +18,14 @@ const TOUS_LES_STYLES = Object.keys(STYLES) as Style[];
  */
 export const GRATUIT = { nom: "Aucune offre", videos: 0, filigrane: true, styles: TOUS_LES_STYLES };
 
-/** Offres payantes. Prix mensuels TTC en euros. */
+/**
+ * Offres payantes. Prix mensuels TTC en euros, avant la remise de lancement :
+ * avec -20 %, le client paie 9,99 / 19,99 / 49,99 € (décision de Martin du 27/11/2026).
+ */
 export const OFFRES_PAYANTES = {
   starter: {
     nom: "Starter",
-    mensuel: 9.99,
+    mensuel: 12.49,
     videosParMois: 20,
     styles: ["defi", "drole"] as Style[],
     dureeMaxSec: 60,
@@ -30,7 +33,7 @@ export const OFFRES_PAYANTES = {
   },
   pro: {
     nom: "Pro",
-    mensuel: 19.99,
+    mensuel: 24.99,
     videosParMois: 60,
     styles: TOUS_LES_STYLES,
     dureeMaxSec: 180,
@@ -38,7 +41,7 @@ export const OFFRES_PAYANTES = {
   },
   max: {
     nom: "Max",
-    mensuel: 49.99,
+    mensuel: 62.49,
     videosParMois: 200,
     styles: TOUS_LES_STYLES,
     dureeMaxSec: 180,
