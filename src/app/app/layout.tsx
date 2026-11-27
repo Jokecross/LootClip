@@ -12,7 +12,8 @@ import { useTeinte } from "@/components/ui/teinte";
 import { afficherToast, Toasts } from "@/components/ui/Toast";
 import { Paywall } from "@/components/app/Paywall";
 import { aAcces, modifier, sansOnboarding, useEtat } from "@/lib/etat";
-import { quota, statutDe, surveillerMontages, useMaintenant } from "@/lib/montage";
+import { statutDe, surveillerMontages, useMaintenant } from "@/lib/montage";
+import { useQuotaVideos } from "@/lib/quota-videos";
 
 const ONGLETS = [
   {
@@ -87,7 +88,7 @@ export default function CoquilleAppli({ children }: { children: React.ReactNode 
   if (!pret) return <div className="min-h-dvh bg-fond" />;
   if (!acces && !libre) return <Paywall ouvert moment="entree" apresPaiement={() => {}} />;
 
-  const q = quota(etat);
+  const q = useQuotaVideos(etat);
   const estActif = (href: string) => chemin.startsWith(href) || (href === "/app/videos" && chemin.startsWith("/app/video/"));
   const libelleQuota = `${q.restant} vidéo${q.restant > 1 ? "s" : ""} restante${q.restant > 1 ? "s" : ""}`;
 

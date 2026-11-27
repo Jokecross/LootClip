@@ -2,11 +2,11 @@
 /* Les vidéos qu'il reste ce mois-ci. Le robot se tient dessus, sur ordinateur. */
 import Link from "next/link";
 import { useEtat } from "@/lib/etat";
-import { quota } from "@/lib/montage";
+import { useQuotaVideos } from "@/lib/quota-videos";
 
 export function Quota() {
   const etat = useEtat();
-  const q = quota(etat);
+  const q = useQuotaVideos(etat);
   if (!q.total) return null;
   return (
     <Link href="/app/compte" className="bloc hidden bg-blanc px-7 py-6 lg:block">

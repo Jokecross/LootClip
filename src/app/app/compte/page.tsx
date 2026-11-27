@@ -11,7 +11,7 @@ import { GRATUIT, MENTION_OBJECTIF, OFFRES_PAYANTES, PURGE_CLIPS_JOURS } from "@
 import { useEtat } from "@/lib/etat";
 import { deconnecter, supprimerCompte } from "@/lib/serveur";
 import { date, euros, nombre } from "@/lib/format";
-import { quota } from "@/lib/montage";
+import { useQuotaVideos } from "@/lib/quota-videos";
 import { objectifBooste } from "@/lib/onboarding";
 import { usePublicationOuverte } from "@/lib/publication";
 import { eur, montant, unite } from "@/lib/prix";
@@ -20,7 +20,7 @@ export default function Compte() {
   const etat = useEtat();
   const router = useRouter();
   const compte = etat.compte!;
-  const q = quota(etat);
+  const q = useQuotaVideos(etat);
   const [gerer, setGerer] = useState(false);
   const [supprimer, setSupprimer] = useState(false);
   const [effacement, setEffacement] = useState(false);
@@ -77,10 +77,10 @@ export default function Compte() {
         {estPro && (
           <>
             <p className="mt-4 text-[15px] font-bold lg:text-[17px]">
-              {q.utilise} clip{q.utilise > 1 ? "s" : ""} sur {q.total} {q.periode}
+              {q.utilise} vidéo{q.utilise > 1 ? "s" : ""} sur {q.total} {q.periode}
               {compte.abonneDepuis ? ` · depuis le ${date(compte.abonneDepuis)}` : ""}
             </p>
-            <div className="barre mt-2.5" role="progressbar" aria-valuenow={q.utilise} aria-valuemax={q.total} aria-label="Clips utilisés">
+            <div className="barre mt-2.5" role="progressbar" aria-valuenow={q.utilise} aria-valuemax={q.total} aria-label="Vidéos utilisées">
               <span style={{ width: `${Math.max(3, (q.utilise / q.total) * 100)}%` }} />
             </div>
             {compte.abonnementFin && <p className="mt-3 text-[15px] font-bold">Résilié. Ton accès reste ouvert jusqu&apos;au {date(compte.abonnementFin)}.</p>}

@@ -61,6 +61,13 @@ async function offreDe(user: string) {
   return (profil?.offre ?? "gratuit") as Offre;
 }
 
+/** Vidéos analysées ce mois-ci, pour la pastille et la page Compte. */
+export async function quotaDuMois(user: string) {
+  const [offre, compteur] = await Promise.all([offreDe(user), lireCompteur(user)]);
+  const total = offre === "gratuit" ? 0 : OFFRES_PAYANTES[offre].videosParMois;
+  return { utilise: compteur.clips, total, restant: Math.max(0, total - compteur.clips) };
+}
+
 export async function clipsRestants(user: { id: string; email?: string }) {
   if (estTesteur(user.email)) return null;
   const offre = await offreDe(user.id);

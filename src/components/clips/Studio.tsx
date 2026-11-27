@@ -14,6 +14,7 @@ import { OPTIONS_PAR_DEFAUT, PLAGE_MAX, type OptionsClips } from "@/lib/clips-op
 import { CarteClip, Score } from "./CarteClip";
 import { ChoixPlage } from "./Plage";
 import { Reglages } from "./Reglages";
+import { relireQuota } from "@/lib/quota-videos";
 
 const ETAPES = [
   { cle: "telechargement", libelle: "Vidéo récupérée", poids: [0, 0.25] },
@@ -131,7 +132,10 @@ export function Studio({
         }
         if (!e.erreur && e.etape !== "fini" && Date.now() - bougeLe > 10 * 60_000) e.erreur = "L'analyse ne répond plus. Réessaie, ou envoie le fichier de ta vidéo.";
         setEtat(e);
-        if (e.etape === "fini" || e.erreur) fini = true;
+        if (e.etape === "fini" || e.erreur) {
+          fini = true;
+          relireQuota(); // le compteur du mois a bougé (ou pas, en cas d'échec)
+        }
       }
       if (!fini) minuteur = setTimeout(tour, 1000);
     };
