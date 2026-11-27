@@ -25,7 +25,7 @@ export const idValide = (id: string) => ID.test(id);
 const chemin = (user: string, id: string, f: string) => `lots/${user}/${id}/${f}`;
 const moisCourant = () => new Date().toISOString().slice(0, 7);
 
-export type EtatLot = EtatClips & { options: OptionsClips; source: string; user: string; /** Run Apify en cours (liens YouTube). */ apify?: string };
+export type EtatLot = EtatClips & { options: OptionsClips; source: string; user: string; /** Run Apify en cours (liens YouTube). */ apify?: string; /** Essai Apify en cours (1, 2, 3). */ apifyEssai?: number };
 
 /**
  * Lit un petit fichier d'état. Toujours par un lien signé neuf (adresse unique) et sans cache :
@@ -112,6 +112,8 @@ async function demarrerMachine(user: string, id: string, source: string, plage: 
   if (!prete) preparerBase().catch((e) => console.error("base :", e));
 }
 
+const ESSAIS_APIFY = 3;
+
 /** Apify a fini (webhook) : on relit le résultat et on lance la machine avec le MP4 du passage. */
 export async function apresApify(user: string, id: string, run: string, site: string) {
   const etat = await lireEtatLot(user, id);
@@ -120,7 +122,15 @@ export async function apresApify(user: string, id: string, run: string, site: st
   try {
     const res = await resultatApify(run);
     if (!res.ok) {
-      console.error("apify", id, res.raison);
+      const essai = etat.apifyEssai ?? 1;
+      console.error("apify", id, `essai ${essai}`, res.raison);
+      // YouTube bloque parfois l'acteur : on relance (un run échoué ne coûte rien), 3 essais au total.
+      if (essai < ESSAIS_APIFY) {
+        const webhook = `${site}/api/clips/apify?u=${user}&id=${id}&j=${jetonLot(`apify:${id}:${user}`)}`;
+        const nouveau = await lancerApify(etat.source, etat.options.plage, webhook);
+        await ecrireEtatLot(user, id, { ...etat, apify: nouveau, apifyEssai: essai + 1, avancement: Math.min(0.3, essai * 0.1) });
+        return;
+      }
       throw new Erreur("Je n'ai pas pu récupérer cette vidéo YouTube. Réessaie, ou envoie le fichier.");
     }
     await demarrerMachine(user, id, res.url, undefined, site, true);
