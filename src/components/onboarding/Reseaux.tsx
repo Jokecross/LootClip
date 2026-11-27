@@ -3,14 +3,14 @@
 import { useEffect, useState } from "react";
 import { TelProfil } from "@/components/onboarding/TelProfil";
 import { NOMS, PictoReseau } from "@/components/studio/Publier";
-import { Duo, Titre } from "@/components/ui/Duo";
-import { Coche, Entete } from "@/components/ui/Parcours";
+import { Cadre, Progression, Question } from "@/components/onboarding/Cadre";
+import { Coche } from "@/components/ui/Parcours";
 import { useEtat } from "@/lib/etat";
 import { relier, useComptes, type Reseau } from "@/lib/publication";
 import { suivre } from "@/lib/suivi";
 
 const PATIENCE_MS = 5000;
-const AIDE: Record<Reseau, string> = { tiktok: "Là où partiront tes vidéos.", instagram: "Compte professionnel ou créateur." };
+const AIDE: Record<Reseau, string> = { tiktok: "Là où partiront tes clips.", instagram: "Compte professionnel ou créateur." };
 
 export function Reseaux({ n, total, ici, passer }: { n: number; total: number; ici: string; passer: () => void }) {
   const etat = useEtat();
@@ -50,14 +50,14 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
   }
 
   return (
-    <Duo
+    <Cadre
       cle="reseaux"
-      marque
-      entete={<Entete n={n} total={total} />}
+      entete={<Progression n={n} total={total} />}
       fond="turquoise"
       gauche={
-        <Titre
-          sous={etat.compte?.profil?.tiktok === "non" && !relies.length ? "Pas encore de page ? Touche « Plus tard »." : "Tes vidéos partiront à l'heure que tu choisis."}
+        <Question
+          avant="Tes comptes"
+          sous={etat.compte?.profil?.tiktok === "non" && !relies.length ? "Pas encore de page ? Touche « Plus tard »." : "Tes clips partiront à l'heure que tu choisis."}
           plus={
             probleme && (
               <p role="alert" className="mt-3 rounded-2xl border-2 border-encre bg-rose p-3 !text-[15px] font-bold !text-encre">
@@ -67,10 +67,10 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
           }
         >
           Relie tes comptes.
-        </Titre>
+        </Question>
       }
       droite={
-        <div className="grid min-h-[300px] flex-1 grid-cols-2 gap-2.5 pt-5 lg:min-h-0 lg:gap-7 lg:pt-0">
+        <div className="ob-reseaux-grille">
           {(["tiktok", "instagram"] as Reseau[]).map((r, i) => {
             const c = relies.find((x) => x.reseau === r);
             return (
@@ -80,7 +80,7 @@ export function Reseaux({ n, total, ici, passer }: { n: number; total: number; i
                 disabled={!!c || attente !== null}
                 onClick={() => choisir(r)}
                 style={{ "--d": `${i * 110}ms` } as React.CSSProperties}
-                className={`choix choix-haut surgit ${c ? "!bg-jaune" : ""}`}
+                className={`choix choix-haut ob-reseau surgit ${c ? "!bg-jaune" : ""}`}
               >
                 <span className={`choix-vue ${i ? "bg-orange" : "bg-rose"}`}>
                   <TelProfil etat={c ? "abonnes" : "non"} />

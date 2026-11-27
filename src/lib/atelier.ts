@@ -12,7 +12,21 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 
-const FICHIERS = ["montage.mjs", "calques.mjs", "bac.mjs", "bac.sh", "package.json", "package-lock.json", "polices/Bricolage-ExtraBold.ttf"];
+const FICHIERS = [
+  "montage.mjs",
+  "calques.mjs",
+  "bac.mjs",
+  "bac.sh",
+  "package.json",
+  "package-lock.json",
+  "polices/Bricolage-ExtraBold.ttf",
+  // « lien → clips »
+  "clip.mjs",
+  "bac-clips.mjs",
+  "clip/ia.mjs",
+  "clip/sous-titres.mjs",
+  "clip/visages.py",
+];
 const DOSSIER = "/vercel/sandbox/moteur";
 const REGION = "cdg1";
 const PREFIXE_BASE = "xpclip-base-";
@@ -74,6 +88,7 @@ export async function demarrer(tache: Tache, hotes: string[]) {
     if (!prete) {
       await machine.mkDir(DOSSIER).catch(() => {});
       await machine.mkDir(`${DOSSIER}/polices`).catch(() => {});
+      await machine.mkDir(`${DOSSIER}/clip`).catch(() => {});
       await machine.writeFiles(fichiers);
     }
     await machine.writeFiles([{ path: `${DOSSIER}/tache.json`, content: JSON.stringify(tache), mode: 0o600 }]);
@@ -100,12 +115,13 @@ export async function preparerBase() {
     image: "vercel/sandbox/node:24",
     region: REGION,
     resources: { vcpus: 4 },
-    timeout: 5 * 60_000,
+    timeout: 8 * 60_000,
     snapshotExpiration: 0,
     keepLastSnapshots: { count: 1, deleteEvicted: true },
   });
   await machine.mkDir(DOSSIER).catch(() => {});
   await machine.mkDir(`${DOSSIER}/polices`).catch(() => {});
+  await machine.mkDir(`${DOSSIER}/clip`).catch(() => {});
   await machine.writeFiles(fichiers);
   const cmd = await machine.runCommand("bash", [`${DOSSIER}/bac.sh`]);
   if (cmd.exitCode !== 0) {
@@ -126,4 +142,70 @@ export async function eteindre(id: string) {
   const usage = m ? await m.stop().catch(() => null) : null;
   await m?.delete().catch(() => {});
   return usage;
+}
+
+/* ---------- « Lien → clips » ---------- */
+
+export type TacheClips = { id: string; source: string; depotSon: string; suivi: string; jeton: string };
+export type RenduClips = {
+  moments: { titre: string; parties: [number, number][] }[];
+  mots: { texte: string; debut: number; fin: number }[];
+  reglages: Record<string, unknown>;
+  depots: string[];
+  annule?: boolean;
+};
+const nomLot = (id: string) => `xpclip-lot-${id}`;
+
+/**
+ * Démarre un lot : la machine récupère la vidéo et dépose son son, puis attend rendu.json.
+ * Réseau ouvert : la vidéo peut venir de n'importe quelle plateforme. La machine n'a aucune clé.
+ */
+export async function demarrerClips(tache: TacheClips) {
+  const { fichiers, base } = await moteur();
+  const reglages = { name: nomLot(tache.id), persistent: false, region: REGION, resources: { vcpus: 4 }, timeout: DELAI_MAX_MIN * 60_000 };
+  let machine: Sandbox;
+  let prete = false;
+  const modele = await Sandbox.get({ name: base }).catch(() => null);
+  if (modele?.currentSnapshotId) {
+    machine = await Sandbox.fork({ sourceSandbox: base, ...reglages });
+    prete = true;
+  } else {
+    machine = await Sandbox.create({ image: "vercel/sandbox/node:24", ...reglages });
+  }
+  try {
+    if (!prete) {
+      await machine.mkDir(DOSSIER).catch(() => {});
+      await machine.mkDir(`${DOSSIER}/polices`).catch(() => {});
+      await machine.mkDir(`${DOSSIER}/clip`).catch(() => {});
+      await machine.writeFiles(fichiers);
+    }
+    await machine.writeFiles([{ path: `${DOSSIER}/tache.json`, content: JSON.stringify(tache), mode: 0o600 }]);
+    await machine.runCommand({ cmd: "bash", args: [`${DOSSIER}/bac.sh`, "clips", `${DOSSIER}/tache.json`], detached: true });
+  } catch (e) {
+    await machine.delete().catch(() => {});
+    throw e;
+  }
+  return { prete };
+}
+
+/** Donne à la machine les moments choisis : elle monte les clips dès qu'elle les lit. */
+export async function envoyerRendu(id: string, rendu: RenduClips) {
+  const m = await Sandbox.get({ name: nomLot(id) });
+  await m.writeFiles([{ path: `${DOSSIER}/rendu.json`, content: JSON.stringify(rendu), mode: 0o600 }]);
+}
+
+export async function eteindreLot(id: string) {
+  const m = await Sandbox.get({ name: nomLot(id) }).catch(() => null);
+  await m?.stop().catch(() => {});
+  await m?.delete().catch(() => {});
+}
+
+/** Jeton d'un lot : signé avec la clé du serveur, il ne vaut que pour ce lot. */
+export function jetonLot(id: string) {
+  return createHmac("sha256", process.env.SUPABASE_SERVICE_ROLE_KEY!).update(`lot:${id}`).digest("hex");
+}
+export function jetonLotValide(recu: string, id: string) {
+  const a = Buffer.from(recu);
+  const b = Buffer.from(jetonLot(id));
+  return a.length === b.length && timingSafeEqual(a, b);
 }

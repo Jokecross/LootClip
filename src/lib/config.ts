@@ -26,7 +26,7 @@ export const OFFRES_PAYANTES = {
     videosParMois: 20,
     styles: ["defi", "drole"] as Style[],
     dureeMaxSec: 60,
-    avantages: ["20 vidéos par mois", "Jusqu'à 1 minute", "2 styles de montage", "Sans filigrane"],
+    avantages: ["20 clips par mois", "Vidéos jusqu'à 2 h", "Tous les réglages de clips", "Sans filigrane"],
   },
   pro: {
     nom: "Pro",
@@ -34,7 +34,7 @@ export const OFFRES_PAYANTES = {
     videosParMois: 60,
     styles: TOUS_LES_STYLES,
     dureeMaxSec: 180,
-    avantages: ["60 vidéos par mois", "Jusqu'à 3 minutes", "Les 3 styles de montage", "Sans filigrane"],
+    avantages: ["60 clips par mois", "Vidéos jusqu'à 2 h", "Tous les réglages de clips", "Sans filigrane"],
   },
   max: {
     nom: "Max",
@@ -42,7 +42,7 @@ export const OFFRES_PAYANTES = {
     videosParMois: 200,
     styles: TOUS_LES_STYLES,
     dureeMaxSec: 180,
-    avantages: ["200 vidéos par mois", "Tout ce qu'il y a dans Pro"],
+    avantages: ["200 clips par mois", "Tout ce qu'il y a dans Pro"],
   },
 } as const;
 
@@ -130,7 +130,7 @@ export const SOCIETE = {
   contact: "xpclip.contact@gmail.com",
 };
 
-export const NON_AFFILIATION = "XPclip n'est pas affilié à Rockstar Games ni à Sony.";
+export const NON_AFFILIATION = "XPclip n'est affilié ni à YouTube, ni à Twitch, ni à Kick, ni à X, ni à TikTok.";
 
 /** « Mot de passe oublié » : à passer à true quand l'envoi d'e-mails (Resend) est branché dans Supabase. */
 export const EMAILS_ACTIFS = false;

@@ -8,7 +8,7 @@ export function PiedDePage() {
       <div className="mx-auto flex max-w-[560px] flex-col gap-5 lg:max-w-[1120px] lg:flex-row lg:flex-wrap lg:items-start lg:justify-between">
         <div className="[&_.titre]:text-fond">
           <Logo taille={28} />
-          <p className="mt-2 text-[14px] text-fond/70">Tes clips. Ton loot.</p>
+          <p className="mt-2 text-[14px] text-fond/70">Tes vidéos longues, en clips prêts à poster.</p>
         </div>
         <nav className="flex flex-wrap gap-x-6 text-[14px] font-bold" aria-label="Informations légales">
           <Link href="/legal/mentions-legales" className="flex min-h-12 items-center underline-offset-4 hover:underline">

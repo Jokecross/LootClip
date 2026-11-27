@@ -9,7 +9,7 @@ import { loadWhop } from "@whop/elements";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Logo } from "@/components/marque/Logo";
-import { Titre } from "@/components/ui/Duo";
+import "@/app/app/outil.css";
 import { teinteDe, useTeinte } from "@/components/ui/teinte";
 import { confirmer } from "@/lib/abonnement";
 import { OFFRES_PAYANTES, SITE, type OffrePayante, type Periodicite } from "@/lib/config";
@@ -92,7 +92,7 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
   }
 
   return createPortal(
-    <div data-paiement className="appli v4 v3 fixed inset-0 z-[60] overflow-y-auto" style={{ "--page": teinteDe("jaune") } as React.CSSProperties} role="dialog" aria-modal="true" aria-labelledby="t-paiement">
+    <div data-paiement className="appli v4 v3 fixed inset-0 z-[60] overflow-y-auto" style={{ "--page": teinteDe(null) } as React.CSSProperties} role="dialog" aria-modal="true" aria-labelledby="t-paiement">
       <div className="entree paiement mx-auto flex min-h-dvh max-w-[560px] flex-col px-4 pb-[max(16px,env(safe-area-inset-bottom))] pt-[max(14px,env(safe-area-inset-top))] lg:pt-8">
         <div className="flex min-h-11 items-center justify-between gap-4 pb-4">
           <Logo taille={34} />
@@ -104,13 +104,13 @@ export function Paiement({ achat, fermer, reussi }: { achat: Achat; fermer: () =
             </button>
           )}
         </div>
-        <Titre
-          id="t-paiement"
-          avant={`XPclip ${OFFRES_PAYANTES[achat.offre].nom}`}
-          sous={activation ? "Paiement envoyé. On ouvre ton offre." : achat.periodicite === "mensuel" ? "Tous les 30 jours. Résilie quand tu veux." : "Une fois par an. Résilie quand tu veux."}
-        >
-          {eur(achat.montant)} {unite(achat.periodicite)}
-        </Titre>
+        <header className="ap-tete mt-2 !block">
+          <p className="!mt-0 text-[14px] font-bold !text-encre">{`XPclip ${OFFRES_PAYANTES[achat.offre].nom}`}</p>
+          <h1 id="t-paiement" className="titre mt-1">
+            {eur(achat.montant)} {unite(achat.periodicite)}
+          </h1>
+          <p>{activation ? "Paiement envoyé. On ouvre ton offre." : achat.periodicite === "mensuel" ? "Tous les 30 jours. Résilie quand tu veux." : "Une fois par an. Résilie quand tu veux."}</p>
+        </header>
 
         {lent ? (
           <div className="bloc mt-5 bg-blanc p-5 text-[16px]" role="status">

@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Message } from "@/components/app/Ecran";
+import { Message, TetePage } from "@/components/app/Ecran";
 import { Vignette } from "@/components/app/Vignette";
-import { PURGE_CLIPS_JOURS, STYLES } from "@/lib/config";
+import { MesClips } from "@/components/clips/MesClips";
+import { STYLES } from "@/lib/config";
 import { useEtat } from "@/lib/etat";
 import { date, duree } from "@/lib/format";
 import { LIBELLES_STATUT, statutDe, useMaintenant, type Statut } from "@/lib/montage";
@@ -19,25 +20,28 @@ export default function MesVideos() {
   const etat = useEtat();
   const t = useMaintenant(1000);
 
-  if (!etat.videos.length) {
-    return (
-      <Message titre="Pas encore de vidéo." sous="Dépose tes clips, on s'occupe du montage.">
-        <Link href="/app/creer" className="bouton bouton-rose w-full">
-          Créer ma première vidéo
-        </Link>
-      </Message>
-    );
-  }
+  const vide = (
+    <Message titre="Pas encore de clip." sous="Colle le lien d'une vidéo, on s'occupe du reste.">
+      <Link href="/app/creer" className="bouton bouton-rose w-full">
+        Créer mes premiers clips
+      </Link>
+    </Message>
+  );
 
   return (
     <>
-      <div className="mb-6 flex items-center justify-between gap-4 lg:mb-10">
-        <h1 className="titre text-[40px] lg:text-[72px]">Mes vidéos</h1>
-        <Link href="/app/creer" className="bouton bouton-rose hidden lg:inline-flex lg:px-9">
-          Nouvelle vidéo
-        </Link>
-      </div>
-      <ul className="etagere">
+      <TetePage
+        titre="Mes clips"
+        sous="Tous tes clips, rangés par vidéo."
+        action={
+          <Link href="/app/creer" className="bouton bouton-rose hidden lg:inline-flex lg:px-9">
+            Nouveaux clips
+          </Link>
+        }
+      />
+      <MesClips vide={etat.videos.length ? null : vide} />
+      {etat.videos.length > 0 && <h2 className="titre mb-4 mt-12 text-[24px] lg:text-[32px]">Anciennes vidéos</h2>}
+      {etat.videos.length > 0 && <ul className="etagere">
         {etat.videos.map((v) => {
           const { statut, avancement } = statutDe(v, t);
           const enCours = statut === "en_cours" || statut === "en_attente";
@@ -58,8 +62,7 @@ export default function MesVideos() {
             </li>
           );
         })}
-      </ul>
-      <p className="mt-8 text-[14px] font-medium">Tes clips bruts sont supprimés après {PURGE_CLIPS_JOURS} jours. Tes vidéos restent.</p>
+      </ul>}
     </>
   );
 }

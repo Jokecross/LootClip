@@ -10,4 +10,5 @@ next-env.d.ts
 .vercel
 
 # clips de test (vidéos lourdes, contenus de tiers)
-CLIP/
+/CLIP/
+__pycache__/

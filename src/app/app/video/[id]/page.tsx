@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Robot } from "@/components/accueil/Robot";
 import { DefiSeptJours } from "@/components/app/DefiSeptJours";
 import { Message } from "@/components/app/Ecran";
 import { Lecteur } from "@/components/app/Lecteur";
@@ -66,11 +65,7 @@ export default function PageVideo() {
       <h1 className="titre text-center text-[38px] lg:text-[68px]">{statut === "en_attente" ? "Ta vidéo est dans la file." : "Montage en cours."}</h1>
       <p className="mt-2 text-center text-[16px] font-medium lg:mt-4 lg:text-[20px]">Tu peux fermer l&apos;appli. On te prévient quand c&apos;est prêt.</p>
 
-      <div className="bloc mt-6 overflow-hidden bg-blanc lg:mt-10 lg:grid lg:grid-cols-[1fr_1.1fr]">
-        <div className="atelier-scene lg:!h-auto lg:min-h-[400px] lg:border-b-0 lg:border-r-2">
-          <span className="tapis" aria-hidden="true" />
-          <Robot xp={avancement} className="travaille" />
-        </div>
+      <div className="ap-carte mx-auto mt-6 max-w-[640px] overflow-hidden lg:mt-10">
         <div className="p-5 lg:p-9">
           <div className="flex items-baseline justify-between gap-3">
             <span className="titre text-[20px] lg:text-[24px]">{STYLES[video.style].nom}</span>

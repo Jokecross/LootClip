@@ -1,7 +1,6 @@
 "use client";
-/* L'image d'une vidéo montée, chargée quand elle approche de l'écran. Pas encore montée : l'accroche et le robot. */
+/* L'image d'une vidéo montée, chargée quand elle approche de l'écran. Pas encore montée : l'accroche. */
 import { useEffect, useRef, useState } from "react";
-import { Robot } from "@/components/accueil/Robot";
 import type { Video } from "@/lib/etat";
 import { supabase } from "@/lib/supabase";
 
@@ -32,7 +31,7 @@ export function Vignette({ video, avancement, enCours }: { video: Video; avancem
       {!vue && (
         <>
           <span className="etagere-accroche line-clamp-4">{video.accroche || video.titre}</span>
-          <Robot xp={chemin ? 1 : avancement} className={enCours ? "travaille" : ""} />
+          {enCours && <span className="ap-roue absolute bottom-[14%] left-1/2 -ml-[14px]" />}
         </>
       )}
     </span>

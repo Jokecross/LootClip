@@ -48,7 +48,7 @@ function carteArrondie(ctx, x, y, l, h, r) {
  * L'accroche : une carte jaune en haut de l'écran, sous la zone des onglets de TikTok.
  * `echelle` et `angle` servent à l'animation « pop » (la carte grossit en tournant légèrement).
  */
-export async function dessinerAccroche(texte, echelle = 1, angle = -2) {
+export async function dessinerAccroche(texte, echelle = 1, angle = -2, y = 300) {
   const toile = createCanvas(L, H);
   const ctx = toile.getContext("2d");
   const largeurTexte = 820;
@@ -70,7 +70,6 @@ export async function dessinerAccroche(texte, echelle = 1, angle = -2) {
   const largeur = Math.min(960, Math.max(...lignes.map((l) => ctx.measureText(l).width)) + padH * 2);
   const hauteur = lignes.length * interligne + padV * 2 - (interligne - taille);
   const x = (L - largeur) / 2;
-  const y = 300;
 
   // Transformation autour du centre de la carte (animation)
   const cx = L / 2;
@@ -113,12 +112,12 @@ const rebond = (t) => {
 };
 
 /** Les images de l'apparition de l'accroche : 12 images (0,4 s à 30 i/s), de petite et penchée à sa place. */
-export async function dessinerAccrocheAnimee(texte, images = 12) {
+export async function dessinerAccrocheAnimee(texte, images = 12, y = 300) {
   const resultat = [];
   for (let k = 0; k < images; k++) {
     const t = (k + 1) / images;
     const e = rebond(t);
-    resultat.push(await dessinerAccroche(texte, 0.35 + 0.65 * e, -9 + 7 * e));
+    resultat.push(await dessinerAccroche(texte, 0.35 + 0.65 * e, -9 + 7 * e, y));
   }
   return resultat;
 }

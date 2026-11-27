@@ -1,16 +1,29 @@
-/* Une page de l'appli : le robot et sa bulle à gauche, le contenu à droite. Une colonne sur téléphone. */
-import { Titre } from "@/components/ui/Duo";
+/* Une page de l'appli, look outil : le titre et ses à-côtés à gauche, le contenu à droite. Une colonne sur téléphone. */
 
-export function Ecran({ titre, sous, plus, socle, children, travaille, xp }: { titre: React.ReactNode; sous?: React.ReactNode; plus?: React.ReactNode; /** Sous les pieds du robot, sur ordinateur. */ socle?: React.ReactNode; children: React.ReactNode; travaille?: boolean; xp?: number }) {
+/** Le titre d'une page : grand titre, une ligne dessous, et une action à droite si besoin. */
+export function TetePage({ titre, sous, action, id }: { titre: React.ReactNode; sous?: React.ReactNode; action?: React.ReactNode; id?: string }) {
   return (
-    <div className="appli-deux">
-      <div className="appli-gauche">
-        <Titre sous={sous} plus={plus} travaille={travaille} xp={xp}>
+    <header className="ap-tete">
+      <div className="min-w-0">
+        <h1 id={id} className="titre">
           {titre}
-        </Titre>
+        </h1>
+        {sous && <p>{sous}</p>}
+      </div>
+      {action}
+    </header>
+  );
+}
+
+export function Ecran({ titre, sous, plus, socle, children }: { titre: React.ReactNode; sous?: React.ReactNode; plus?: React.ReactNode; /** Sous le titre, à gauche sur ordinateur. */ socle?: React.ReactNode; children: React.ReactNode; travaille?: boolean; xp?: number }) {
+  return (
+    <div className="ap-deux">
+      <div className="ap-gauche">
+        <TetePage titre={titre} sous={sous} />
+        {plus}
         {socle}
       </div>
-      <div className="appli-corps">{children}</div>
+      <div className="ap-corps">{children}</div>
     </div>
   );
 }
@@ -18,11 +31,10 @@ export function Ecran({ titre, sous, plus, socle, children, travaille, xp }: { t
 /** Un message court, seul au milieu de la page. */
 export function Message({ titre, sous, children, travaille }: { titre: React.ReactNode; sous?: React.ReactNode; children?: React.ReactNode; travaille?: boolean }) {
   return (
-    <div className="appli-message mx-auto max-w-[720px] lg:pt-10">
-      <Titre sous={sous} travaille={travaille}>
-        {titre}
-      </Titre>
-      {children && <div className="bloc mt-5 flex flex-col gap-3 bg-blanc p-5 lg:mt-0 lg:p-8">{children}</div>}
+    <div className="ap-message lg:pt-10">
+      {travaille && <span className="ap-roue mx-auto mb-5 block" aria-hidden="true" />}
+      <TetePage titre={titre} sous={sous} />
+      {children && <div className="ap-carte mt-6 flex flex-col gap-3 p-5 lg:p-8">{children}</div>}
     </div>
   );
 }

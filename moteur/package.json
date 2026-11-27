@@ -8,6 +8,7 @@
     "service": "node worker.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
     "@napi-rs/canvas": "^0.1.80",
     "@supabase/supabase-js": "^2.119.2"
   }

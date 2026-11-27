@@ -9,6 +9,7 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.14.0",
     "@supabase/supabase-js": "^2.119.2",
     "@vercel/analytics": "^2.0.1",
     "@vercel/sandbox": "^4.1.0",

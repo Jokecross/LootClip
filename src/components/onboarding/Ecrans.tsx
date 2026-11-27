@@ -1,23 +1,31 @@
 "use client";
 /*
- * Les écrans à réponses de l'onboarding. Servis par /commencer et par le studio de tournage (/studio).
+ * Les écrans à réponses de l'onboarding, en « look outil » (comme l'accueil V6). Servis par /commencer et par /studio.
+ * Parcours « lien → clips » : activité, réseaux, genre de clips, aperçu, rythme, objectif, plan.
+ * Les écrans de l'ancien parcours (console, heures de jeu) restent pour le studio de tournage.
  */
+import "./onboarding.css";
 import { useEffect, useRef, useState } from "react";
-import { Objet, Pieces,  } from "@/components/objets/Objet";
-import { Eventail } from "@/components/accueil/Eventail";
-import { TelProfil } from "@/components/onboarding/TelProfil";
-import { Mots, Titre } from "@/components/ui/Duo";
+import { Boucle } from "@/components/accueil/Boucle";
+import { Objet } from "@/components/objets/Objet";
+import { Question } from "@/components/onboarding/Cadre";
+import { AvantApres } from "@/components/onboarding/AvantApres";
+import { Vitrine } from "@/components/onboarding/Vitrine";
+import { Titre } from "@/components/ui/Duo";
 import { Coche } from "@/components/ui/Parcours";
 import { Roulette } from "@/components/ui/Roulette";
 import { ONBOARDING } from "@/lib/config";
 import type { Profil } from "@/lib/etat";
 import { nombre, videos, vuesLisibles } from "@/lib/format";
-import { plan, videosPourHeures, type Reponses } from "@/lib/onboarding";
+import { clipsPourLongues, CLIPS_SEMAINE, CLIPS_SEMAINE_DEFAUT, LONGUES, LONGUES_DEFAUT, plan, videosPourHeures, type Activite, type Destination, type Reponses, type StyleClips } from "@/lib/onboarding";
 import { bravo, cran, pop } from "@/lib/sons";
 
 type Props = { r: Reponses; repondre: (x: Reponses) => void };
 
 export const REPERE_HEURES = "Notre repère : une vidéo par heure de jeu. Trois par jour maximum.";
+export const REPERE_RYTHME = "Une vidéo longue donne plusieurs clips. Trois par jour maximum.";
+
+const clips = (n: number) => `${nombre(n)} clip${n >= 2 ? "s" : ""}`;
 
 /** L'étiquette sous le montant choisi. */
 function palier(objectif: number) {
@@ -28,92 +36,444 @@ function palier(objectif: number) {
 }
 
 /*
- * Chaque écran rend sa partie gauche (la question) et sa partie droite (la scène),
- * posées par <Duo> : l'une sous l'autre sur téléphone, côte à côte sur ordinateur.
+ * Chaque écran rend sa partie gauche (la question) et sa partie droite (la réponse),
+ * posées par <Cadre> : l'une sous l'autre sur téléphone, côte à côte sur ordinateur.
  */
 export type Parties = { gauche: React.ReactNode; droite: React.ReactNode; fond?: string; large?: boolean; centre?: boolean };
 
 export const MENTION_PRINCIPE = "Tout dépend de tes vues. Aucun revenu n'est garanti.";
 
-/** L'accroche : la promesse, et trois vidéos en éventail posées sur le sol. */
+function Valide({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} aria-hidden="true">
+      <path d="M5 12.500l4.500 4.500L19 7.500" fill="none" stroke="currentColor" strokeWidth="3.200" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/** L'accroche : la promesse, et une petite interface XPclip qui tourne. */
 export function ecranAccroche(): Parties {
   return {
     gauche: (
-      <div className="arrivee relative z-10">
+      <div className="ob-accroche arrivee">
+        <p className="ob-sur">
+          <i aria-hidden="true" />
+          Clips IA pour streamers, podcasts et créateurs
+        </p>
         <h1 className="titre">
-          Tes parties de GTA&nbsp;6 peuvent te <span className="mot-fort">payer.</span>
+          Une vidéo longue. <span className="ob-surligne">Des clips prêts</span> à poster.
         </h1>
-        <p className="etape-sous">Tu joues sur ta console. XPclip monte tes propres clips. Tu postes.</p>
+        <p className="ob-sous">Tu colles le lien. XPclip coupe, cadre et sous-titre.</p>
+        <ul className="ob-atouts">
+          {["Moments forts notés sur 100", "Sous-titres mot à mot", "Cadrage vertical automatique"].map((t) => (
+            <li key={t}>
+              <Valide className="ob-atout-coche" />
+              {t}
+            </li>
+          ))}
+        </ul>
       </div>
     ),
-    droite: <Eventail />,
+    droite: <Vitrine />,
     fond: "jaune",
-    centre: true,
   };
 }
 
-/** Le principe, avant les questions : ce sont ses parties à lui, pas les vidéos des autres. */
+/** Le principe, pour les débutants : la vidéo longue, puis les vrais clips qui en sortent. */
 export function ecranPrincipe(): Parties {
   return {
     gauche: (
-      <>
-<Titre sous="Pas de vidéo YouTube reprise. Que tes parties à toi.">
-          <span className="whitespace-nowrap">Ton jeu. <br className="max-lg:hidden" />Tes clips.</span> <br />Ton argent.
-        </Titre>
-      </>
+      <Question avant="Comment ça marche" sous="Tu colles le lien. XPclip fait tout le reste.">
+        Une vidéo longue devient plusieurs clips.
+      </Question>
     ),
-    droite: <Gestes />,
+    droite: <AvantApres />,
     fond: "turquoise",
     large: true,
   };
 }
 
-/** Le principe en quatre vignettes. */
-function Gestes() {
-  const gestes: { titre: string; fond: string; vue: React.ReactNode }[] = [
-    { titre: "Tu joues à GTA 6", fond: "bg-jaune", vue: <Objet nom="manette" className="absolute inset-x-[16%] inset-y-[10%]" /> },
-    {
-      titre: "Tu gardes tes meilleurs moments",
-      fond: "bg-orange",
-      vue: (
-        <div className="pile">
-          {["chien", "canard", "saut"].map((n, i) => (
-            <span key={n} style={{ "--i": i } as React.CSSProperties}>
-              <img src={`/v4/${n}.webp`} alt="" width={480} height={270} />
-              <b>
-                <Coche className="h-full w-full" />
-              </b>
+/* ---------- Petits pictos des tuiles (traits encre, sans logo de marque) ---------- */
+const trait = { fill: "none", stroke: "currentColor", strokeWidth: 2.4, strokeLinecap: "round", strokeLinejoin: "round" } as const;
+const PICTOS: Record<string, React.ReactNode> = {
+  stream: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <rect x="6" y="10" width="36" height="24" rx="5" />
+      <path d="M18 40h12M24 34v6" />
+      <circle cx="15" cy="18" r="3" fill="currentColor" stroke="none" />
+    </svg>
+  ),
+  debut: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <path d="M24 8l4.500 9.500L38 19l-7 7 1.700 10L24 31.300 15.300 36 17 26l-7-7 9.500-1.500z" />
+    </svg>
+  ),
+  podcast: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <rect x="17" y="6" width="14" height="24" rx="7" />
+      <path d="M11 22a13 13 0 0 0 26 0M24 35v7M17 42h14" />
+    </svg>
+  ),
+  youtube: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <rect x="5" y="11" width="38" height="26" rx="8" />
+      <path d="M21 18v12l10-6z" fill="currentColor" />
+    </svg>
+  ),
+  clippeur: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <circle cx="13" cy="34" r="6" />
+      <circle cx="35" cy="34" r="6" />
+      <path d="M17 30 34 8M31 30 14 8" />
+    </svg>
+  ),
+  tiktok: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <rect x="14" y="5" width="20" height="38" rx="5" />
+      <path d="M21 38h6" />
+      <path d="m21 18 8 5-8 5z" fill="currentColor" />
+    </svg>
+  ),
+  shorts: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <rect x="14" y="5" width="20" height="38" rx="5" />
+      <path d="M19 12h10M19 36h10" />
+      <path d="m21 19 8 5-8 5z" fill="currentColor" />
+    </svg>
+  ),
+  reels: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <rect x="8" y="8" width="32" height="32" rx="9" />
+      <path d="M8 17h32M16 8l5 9M26 8l5 9" />
+      <path d="m21 23 8 5-8 5z" fill="currentColor" />
+    </svg>
+  ),
+  auto: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <path d="m24 6 4.5 11.5L40 22l-11.5 4.5L24 38l-4.5-11.5L8 22l11.5-4.5z" />
+    </svg>
+  ),
+  drole: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <circle cx="24" cy="24" r="17" />
+      <path d="M15 27c2 6 16 6 18 0zM17 19l4 2M31 19l-4 2" />
+    </svg>
+  ),
+  conseils: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <path d="M17 32c-5-4-6-8-6-11a13 13 0 0 1 26 0c0 3-1 7-6 11zM19 38h10M21 43h6" />
+    </svg>
+  ),
+  reactions: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <path d="M26 5 12 27h11l-3 16 16-23H25z" />
+    </svg>
+  ),
+  abonnes: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <circle cx="18" cy="17" r="6" />
+      <path d="M7 38a11 11 0 0 1 22 0M31 12a6 6 0 0 1 0 11M35 30a10 10 0 0 1 6 8" />
+    </svg>
+  ),
+  vide: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <rect x="14" y="5" width="20" height="38" rx="5" />
+      <path d="M21 38h6" />
+      <path d="M19 16h10M19 22h6" strokeDasharray="2 3" />
+    </svg>
+  ),
+  non: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <circle cx="24" cy="24" r="17" strokeDasharray="5 4" />
+      <path d="M24 16v16M16 24h16" />
+    </svg>
+  ),
+  histoires: (
+    <svg viewBox="0 0 48 48" {...trait}>
+      <path d="M8 10c6-2 11-1 16 3 5-4 10-5 16-3v28c-6-2-11-1-16 3-5-4-10-5-16-3zM24 13v28" />
+    </svg>
+  ),
+};
+
+
+type Tuile = { valeur: string; libelle: string; indice?: string; fond: string };
+
+/** Les choix, en lignes propres : le choix fait passe en jaune. `plusieurs` : on peut en cocher autant qu'on veut. */
+function Tuiles({ tuiles, choisies, choisir, label, plusieurs = false }: { tuiles: Tuile[]; choisies: string[]; choisir: (v: string) => void; label: string; plusieurs?: boolean }) {
+  return (
+    <div className={`ob-tuiles ${tuiles.length <= 3 ? "ob-tuiles-trois" : ""} ${tuiles.length === 5 ? "ob-tuiles-cinq" : ""}`} role={plusieurs ? "group" : "radiogroup"} aria-label={label}>
+      {tuiles.map((t, i) => {
+        const actif = choisies.includes(t.valeur);
+        return (
+          <button
+            key={t.valeur}
+            type="button"
+            role={plusieurs ? "checkbox" : "radio"}
+            aria-checked={actif}
+            onClick={() => {
+              pop(0.4 + i * 0.18);
+              choisir(t.valeur);
+            }}
+            style={{ "--d": `${i * 50}ms` } as React.CSSProperties}
+            className="ob-tuile surgit"
+          >
+            <span className={`ob-tuile-picto ${t.fond}`} aria-hidden="true">
+              {PICTOS[t.valeur]}
             </span>
-          ))}
-        </div>
-      ),
-    },
-    {
-      titre: "XPclip monte tes vidéos",
-      fond: "bg-rose",
-      vue: (
-        <div className="tel-carte">
-          <div className="m-tel-ecran">
-            <img src="/v4/clips/drole.webp" alt="" width={432} height={768} className="absolute inset-0 h-full w-full object-cover" />
-          </div>
-        </div>
-      ),
-    },
-    { titre: "Tu postes, tes vues peuvent payer", fond: "bg-blanc", vue: <Pieces part={0.7} className="absolute inset-x-[14%] bottom-[14%] top-[16%]" /> },
+            <span className="ob-tuile-texte">
+              <span className="titre block">{t.libelle}</span>
+              {t.indice && <small>{t.indice}</small>}
+            </span>
+            <span className={`ob-tuile-coche ${plusieurs ? "ob-tuile-carre" : ""}`} aria-hidden="true">
+              <Valide />
+            </span>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function ecranActivite({ r, repondre }: Props): Parties {
+  return {
+    gauche: (
+      <Question avant="Ton profil" sous="Choisis ce qui te ressemble le plus.">
+        Tu veux faire des clips avec quoi&nbsp;?
+      </Question>
+    ),
+    droite: (
+      <Tuiles
+        label="Tes vidéos"
+        tuiles={[
+          { valeur: "stream", libelle: "Mes lives", indice: "Je streame sur Twitch, Kick ou YouTube", fond: "bg-rose" },
+          { valeur: "youtube", libelle: "Mes vidéos YouTube", indice: "Vlogs, jeux, tutos, réactions", fond: "bg-jaune" },
+          { valeur: "podcast", libelle: "Mon podcast", indice: "Ou des interviews filmées", fond: "bg-turquoise" },
+          { valeur: "clippeur", libelle: "Les vidéos d'un créateur", indice: "Je fais des clips pour quelqu'un", fond: "bg-orange" },
+          { valeur: "debut", libelle: "Je débute", indice: "Je n'ai pas encore de vidéos", fond: "bg-blanc" },
+        ]}
+        choisies={r.activite ? [r.activite] : []}
+        choisir={(v) => repondre({ activite: v as Activite })}
+      />
+    ),
+    fond: "orange",
+    large: true,
+  };
+}
+
+export function ecranDestinations({ r, repondre }: Props): Parties {
+  const choisies = r.destinations ?? [];
+  return {
+    gauche: (
+      <Question avant="Tes réseaux" sous="Coches-en autant que tu veux. Même format partout.">
+        Tu veux poster où ?
+      </Question>
+    ),
+    droite: (
+      <Tuiles
+        plusieurs
+        label="Où poster tes clips"
+        tuiles={[
+          { valeur: "tiktok", libelle: "TikTok", indice: "Vertical 9:16", fond: "bg-rose" },
+          { valeur: "shorts", libelle: "YouTube Shorts", indice: "Vertical 9:16", fond: "bg-orange" },
+          { valeur: "reels", libelle: "Instagram Reels", indice: "Vertical 9:16", fond: "bg-turquoise" },
+        ]}
+        choisies={choisies}
+        choisir={(v) => {
+          const d = v as Destination;
+          repondre({ destinations: choisies.includes(d) ? choisies.filter((x) => x !== d) : [...choisies, d] });
+        }}
+      />
+    ),
+    fond: "jaune",
+    large: true,
+  };
+}
+
+/** Les genres de clips. `clip` : le montage XPclip de Martin montré dans l'aperçu (accroche déjà dedans). */
+export const GENRES: Record<StyleClips, { libelle: string; indice: string; fond: string; clip: string; mots: string[] }> = {
+  auto: { libelle: "Les meilleurs moments", indice: "Je choisis pour toi", fond: "bg-jaune", clip: "defi", mots: ["REGARDE", "BIEN", "CE", "QUI", "ARRIVE", "LÀ"] },
+  drole: { libelle: "Moments drôles", indice: "Fous rires et fails", fond: "bg-turquoise", clip: "drole", mots: ["NON", "MAIS", "ATTENDS", "IL", "A", "FAIT", "ÇA"] },
+  conseils: { libelle: "Conseils et astuces", indice: "Ce qui apprend un truc", fond: "bg-orange", clip: "defi", mots: ["LE", "SECRET", "C'EST", "DE", "FAIRE", "ÇA"] },
+  reactions: { libelle: "Réactions fortes", indice: "Cris, surprises, clashs", fond: "bg-rose", clip: "defi", mots: ["OH", "NON", "C'EST", "PAS", "POSSIBLE"] },
+  histoires: { libelle: "Histoires racontées", indice: "Un début, une chute", fond: "bg-blanc", clip: "mission", mots: ["ET", "LÀ", "TU", "SAIS", "CE", "QU'IL", "FAIT"] },
+};
+
+export function ecranStyle({ r, repondre }: Props): Parties {
+  const choisis = r.stylesClips ?? (r.styleClips ? [r.styleClips] : []);
+  const basculer = (v: StyleClips) => {
+    const liste = choisis.includes(v) ? choisis.filter((x) => x !== v) : [...choisis, v];
+    repondre({ stylesClips: liste, styleClips: liste[0] });
+  };
+  return {
+    gauche: (
+      <Question avant="Type de clips" sous="Choisis-en autant que tu veux. Tu pourras changer.">
+        Quels clips tu veux&nbsp;?
+      </Question>
+    ),
+    droite: (
+      <Tuiles
+        label="Genre de clips"
+        plusieurs
+        tuiles={(Object.keys(GENRES) as StyleClips[]).map((k) => ({ valeur: k, libelle: GENRES[k].libelle, indice: GENRES[k].indice, fond: GENRES[k].fond }))}
+        choisies={choisis}
+        choisir={(v) => basculer(v as StyleClips)}
+      />
+    ),
+    fond: "rose",
+    large: true,
+  };
+}
+
+export function ecranApercu({ r }: { r: Reponses }): Parties {
+  const genre = GENRES[r.styleClips ?? "auto"];
+  return {
+    gauche: (
+      <Question
+        avant="Aperçu"
+        sous="Cadrés en vertical, sous-titrés, avec une accroche. Prêts à poster."
+        plus={
+          <ul className="ob-atouts ob-atouts-bas">
+            {["Les meilleurs moments", "Sous-titres mot à mot", "Accroche écrite", "Format TikTok, Shorts, Reels"].map((t) => (
+              <li key={t}>
+                <Valide className="ob-atout-coche" />
+                {t}
+              </li>
+            ))}
+          </ul>
+        }
+      >
+        Tes clips ressembleront à ça.
+      </Question>
+    ),
+    droite: <Apercu clip={genre.clip} mots={genre.mots} genre={genre.libelle} />,
+    fond: "turquoise",
+  };
+}
+
+function Apercu({ clip, mots, genre }: { clip: string; mots: string[]; genre: string }) {
+  // Groupes de 3 mots maximum, le mot prononcé passe en jaune : comme le moteur.
+  const groupes: string[][] = [];
+  for (let i = 0; i < mots.length; i += 3) groupes.push(mots.slice(i, i + 3));
+  const [k, setK] = useState(0);
+  useEffect(() => {
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = setInterval(() => setK((x) => (x + 1) % mots.length), 420);
+    return () => clearInterval(id);
+  }, [mots.length]);
+  const g = Math.floor(k / 3);
+  const reglages = [
+    { nom: "Type", valeur: genre },
+    { nom: "Couleur", valeur: "Jaune", pastille: "bg-jaune" },
+    { nom: "Place", valeur: "Bas" },
+    { nom: "Format", valeur: "Auto" },
   ];
   return (
-    <ol className="gestes">
-      {gestes.map((g, i) => (
-        <li key={g.titre} className="bloc surgit bg-blanc" style={{ "--d": `${60 + i * 80}ms` } as React.CSSProperties}>
-          <div className={`gestes-vue ${g.fond}`}>
-            <span className="numero titre">{i + 1}</span>
-            {g.vue}
-          </div>
-          <p>{g.titre}</p>
-        </li>
-      ))}
-    </ol>
+    <div className="ob-apercu" aria-hidden="true">
+      <div className="ob-apercu-tel">
+        <div className="m-tel-ecran">
+          <Boucle nom={`clips/${clip}`} />
+          <span key={g} className="ob-st">
+            {groupes[g].map((m, i) => (
+              <b key={i} className={g * 3 + i === k ? "ob-st-actif" : ""}>
+                {m}
+              </b>
+            ))}
+          </span>
+        </div>
+      </div>
+      <div className="ob-panneau">
+        <p className="ob-panneau-titre">Tes réglages</p>
+        <ul>
+          {reglages.map((x) => (
+            <li key={x.nom}>
+              <span>{x.nom}</span>
+              <b>
+                {x.pastille && <i className={x.pastille} />}
+                {x.valeur}
+              </b>
+            </li>
+          ))}
+        </ul>
+        <p className="ob-panneau-note">Tout se change dans le studio.</p>
+      </div>
+    </div>
   );
+}
+
+/** Une réglette : le chiffre au milieu, moins et plus de chaque côté, un curseur dessous. */
+function Reglette<T extends number>({ valeurs, valeur, changer, libelle, label, children }: { valeurs: readonly T[]; valeur: T; changer: (v: T) => void; libelle: (v: T) => string; label: string; children: React.ReactNode }) {
+  const trouve = valeurs.indexOf(valeur);
+  const i = trouve >= 0 ? trouve : 0;
+  const dernier = valeurs.length - 1;
+  const aller = (j: number) => {
+    const k = Math.min(dernier, Math.max(0, j));
+    if (k === i) return;
+    cran(0.3 + (k / dernier) * 0.7);
+    changer(valeurs[k]);
+  };
+  return (
+    <div className="ob-reglette">
+      <div className="ob-reglette-ligne">
+        <button type="button" className="ob-pas" onClick={() => aller(i - 1)} disabled={i <= 0} aria-label="Moins">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 12h12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          </svg>
+        </button>
+        <div className="ob-reglette-valeur">{children}</div>
+        <button type="button" className="ob-pas" onClick={() => aller(i + 1)} disabled={i >= dernier} aria-label="Plus">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M6 12h12M12 6v12" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+          </svg>
+        </button>
+      </div>
+      <input
+        type="range"
+        className="curseur ob-curseur"
+        min={0}
+        max={dernier}
+        step={1}
+        value={i}
+        aria-label={label}
+        aria-valuetext={libelle(valeurs[i])}
+        style={{ "--p": `${(i / dernier) * 100}%` } as React.CSSProperties}
+        onChange={(e) => aller(Number(e.target.value))}
+      />
+      <div className="ob-reglette-bornes">
+        <span>{libelle(valeurs[0])}</span>
+        <span>{libelle(valeurs[dernier])}</span>
+      </div>
+    </div>
+  );
+}
+
+/** Le rythme : combien de vidéos longues par semaine, donc combien de clips à poster. */
+export function ecranRythme({ r, repondre }: Props): Parties {
+  const parSemaine = r.frequence ?? CLIPS_SEMAINE_DEFAUT;
+  const libelle = (v: number) => clips(v);
+  const rythme = parSemaine >= 14 ? `${Math.round(parSemaine / 7)} clips par jour` : parSemaine >= 7 ? "1 clip par jour" : parSemaine >= 3 ? "1 clip tous les 2 jours" : "Pour tester tranquillement";
+  return {
+    gauche: (
+      <Question avant="Ton rythme" sous="Tu pourras changer quand tu veux.">
+        Tu veux poster combien de clips par semaine&nbsp;?
+      </Question>
+    ),
+    droite: (
+      <div className="ob-carte surgit">
+        <Reglette label="Clips par semaine" valeurs={CLIPS_SEMAINE} valeur={(CLIPS_SEMAINE as readonly number[]).includes(parSemaine) ? (parSemaine as (typeof CLIPS_SEMAINE)[number]) : CLIPS_SEMAINE_DEFAUT} libelle={libelle} changer={(v) => repondre({ frequence: v, longues: Math.max(1, Math.ceil(v / 3)) })}>
+          <Grand cle={parSemaine}>{parSemaine}</Grand>
+          <p className="ob-unite">{parSemaine > 1 ? "clips" : "clip"} par semaine</p>
+        </Reglette>
+        <div className="ob-resultat">
+          <div>
+            <p className="ob-resultat-nom">Ton rythme</p>
+            <p className="titre ob-resultat-chiffre">{rythme}</p>
+          </div>
+          <Semaine n={parSemaine} />
+        </div>
+      </div>
+    ),
+    fond: "orange",
+  };
 }
 
 export function ecranConsole({ r, repondre }: Props): Parties {
@@ -135,14 +495,21 @@ export function ecranConsole({ r, repondre }: Props): Parties {
 }
 
 export function ecranTiktok({ r, repondre }: Props): Parties {
-  const option = (valeur: "abonnes" | "vide" | "non", libelle: string, fond: string) => ({ valeur, libelle, fond, scene: <TelProfil etat={valeur} /> });
   return {
-    gauche: <Titre sous="Aucun souci si tu pars de zéro.">Tu as déjà une page TikTok ?</Titre>,
+    gauche: (
+      <Question avant="Ta page" sous="Aucun souci si tu pars de zéro.">
+        Tu as déjà une page TikTok ?
+      </Question>
+    ),
     droite: (
-      <Choix
+      <Tuiles
         label="Ta page TikTok"
-        options={[option("abonnes", "Oui, avec des abonnés", "bg-orange"), option("vide", "Oui, mais elle est vide", "bg-turquoise"), option("non", "Non, pas encore", "bg-beige")]}
-        valeur={r.tiktok}
+        tuiles={[
+          { valeur: "abonnes", libelle: "Oui, avec des abonnés", indice: "Tu postes déjà", fond: "bg-orange" },
+          { valeur: "vide", libelle: "Oui, mais elle est vide", indice: "Tu n'as pas encore posté", fond: "bg-turquoise" },
+          { valeur: "non", libelle: "Non, pas encore", indice: "On la crée ensemble", fond: "bg-jaune" },
+        ]}
+        choisies={r.tiktok ? [r.tiktok] : []}
         choisir={(v) => repondre({ tiktok: v as Profil["tiktok"] })}
       />
     ),
@@ -153,37 +520,23 @@ export function ecranTiktok({ r, repondre }: Props): Parties {
 
 export function ecranObjectif({ r, repondre }: Props): Parties {
   const objectif = r.objectif ?? ONBOARDING.objectifParDefaut;
-  const part = (ONBOARDING.objectifs.indexOf(objectif) + 1) / ONBOARDING.objectifs.length;
-  const montant = <Grand cle={objectif}>{nombre(objectif)}&nbsp;€</Grand>;
-  const etiquette = <span className={`pastille mt-2.5 lg:min-h-10 lg:px-5 lg:text-[18px] ${palier(objectif).fond}`}>{palier(objectif).texte}</span>;
+  const p = palier(objectif);
   return {
     gauche: (
-      <>
-        <Titre sous="Lance la roue et cale ton objectif.">Tu vises combien par mois ?</Titre>
-        <div className="relative flex flex-1 flex-col items-center justify-end pb-3 lg:hidden">
-          <Pieces part={part} className="mb-2 min-h-[56px] w-full flex-1" />
-          {montant}
-          {etiquette}
-        </div>
-      </>
+      <Question avant="Ton objectif" sous="Fixe ton objectif. Tu pourras le changer.">
+        Tu vises combien par mois ?
+      </Question>
     ),
     droite: (
-      <>
-        <Roulette
-          nu
-          label="Objectif par mois"
-          valeurs={ONBOARDING.objectifs}
-          valeur={objectif}
-          libelle={(v) => `${nombre(v)} €`}
-          changer={(v) => repondre({ objectif: v })}
-          centre={
-            <div className="flex flex-col items-center pb-[14%]">
-              {montant}
-              {etiquette}
-            </div>
-          }
-        />
-      </>
+      <div className="ob-carte surgit">
+        <Reglette label="Objectif par mois" valeurs={ONBOARDING.objectifs} valeur={objectif} libelle={(v) => `${nombre(v)} €`} changer={(v) => repondre({ objectif: v })}>
+          <Grand cle={objectif}>{nombre(objectif)}&nbsp;€</Grand>
+          <p className="ob-unite">objectif par mois</p>
+        </Reglette>
+        <p className="ob-palier">
+          <span className={`pastille ${p.fond}`}>{p.texte}</span>
+        </p>
+      </div>
     ),
     fond: "orange",
   };
@@ -246,66 +599,52 @@ export function ecranHeures({ r, repondre }: Props): Parties {
 export function ecranPlan({ objectif, frequence }: { objectif: number; frequence: number }): Parties {
   const p = plan(objectif, frequence);
   const apparait = (ms: number) => ({ "--d": `${ms}ms` }) as React.CSSProperties;
-  const signe = "surgit absolute z-30 grid h-10 w-10 place-items-center rounded-full border-2 border-encre bg-fond text-[24px] font-extrabold leading-none lg:h-[56px] lg:w-[56px] lg:text-[34px]";
-  const carte = "surgit bloc relative z-20 flex flex-col justify-center px-3.5 py-3 lg:px-8 lg:py-5";
-  const petit = "text-[12px] font-bold leading-tight lg:text-[clamp(16px,1.35vw,24px)]";
-  const gros = "titre mt-1 whitespace-nowrap text-[26px] tabular-nums lg:mt-[min(8px,1vh)] lg:text-[clamp(34px,min(3.600vw,7.200vh),62px)]";
-  const note = "mt-1 text-[11px] leading-snug lg:mt-[min(8px,1vh)] lg:text-[clamp(14px,1.15vw,20px)] font-medium";
   return {
     gauche: (
-      <>
-        <Titre sous="On place la barre 6 % plus haut, pour dépasser ton objectif.">{`Voilà comment viser ${nombre(objectif)}\u00a0€ par mois.`}</Titre>
-      </>
+      <Question avant="Ton plan" sous="On place la barre 6 % plus haut, pour dépasser ton objectif.">
+        {`Voilà comment viser ${nombre(objectif)} € par mois.`}
+      </Question>
     ),
     droite: (
-      <div className="mt-5 flex flex-1 flex-col max-lg:[@media(max-height:720px)]:mt-3 lg:mt-0 lg:min-h-0 lg:justify-center">
-        <div className="relative grid grid-cols-2 gap-3 lg:gap-7">
-          <div className={`${carte} bg-blanc lg:min-h-[min(210px,25vh)]`} style={apparait(120)}>
-            <p className={petit}>Tu postes tes clips</p>
-            <p className={gros}>{videos(p.parMois)}</p>
-            <p className={note}>par mois, {frequence} par semaine</p>
+      <div className="ob-plan">
+        <div className="ob-plan-ligne">
+          <div className="ob-stat surgit" style={apparait(120)}>
+            <p className="ob-stat-nom">Tu postes</p>
+            <p className="titre ob-stat-chiffre">{clips(p.parMois)}</p>
+            <p className="ob-stat-note">par mois, {frequence} par semaine</p>
           </div>
-          <div className={`${carte} bg-blanc lg:min-h-[min(210px,25vh)]`} style={apparait(260)}>
-            <p className={petit}>Objectif par vidéo</p>
-            <p className={gros}>
-              <span className="text-[0.46em] font-bold tracking-normal">environ </span>
+          <span className="ob-signe surgit" style={apparait(220)} aria-label="fois">
+            ×
+          </span>
+          <div className="ob-stat surgit" style={apparait(260)}>
+            <p className="ob-stat-nom">Objectif par clip</p>
+            <p className="titre ob-stat-chiffre">
+              <span className="ob-stat-petit">environ </span>
               {euros(p.booste / p.parMois)}
             </p>
-            <p className={note}>
+            <p className="ob-stat-note">
               avec {vuesLisibles(p.vuesParVideoMin)} à {vuesLisibles(p.vuesParVideoMax)} {p.vuesParVideoMax >= 1_000_000 ? "de vues" : "vues"}
             </p>
           </div>
-          <span className={`${signe} left-1/2 top-1/2 -ml-5 -mt-5 lg:-ml-7 lg:-mt-7`} style={apparait(260)} aria-label="fois">
-            ×
-          </span>
         </div>
-        <Total objectif={objectif} booste={p.booste} signe={`${signe} -top-5 left-8 lg:-top-7 lg:left-12`} carte={carte} petit={petit} note={note}>
-          avec {vuesLisibles(p.vuesMin)} à {vuesLisibles(p.vuesMax)} {p.vuesMax >= 1_000_000 ? "de vues" : "vues"}
-        </Total>
+        <div className="ob-total surgit" style={apparait(420)}>
+          <span className="ob-signe ob-signe-haut" aria-label="égale">
+            =
+          </span>
+          <p className="ob-stat-nom">Ton objectif par mois</p>
+          <p className="titre ob-total-chiffre">
+            <Compteur de={objectif} vers={p.booste} attente={800} />
+            &nbsp;€
+          </p>
+          <p className="ob-stat-note">
+            avec {vuesLisibles(p.vuesMin)} à {vuesLisibles(p.vuesMax)} {p.vuesMax >= 1_000_000 ? "de vues" : "vues"} par mois
+          </p>
+        </div>
       </div>
     ),
     fond: "jaune",
     large: true,
   };
-}
-
-/** Le total : il grimpe, et les pièces s'empilent derrière la carte. */
-function Total({ objectif, booste, signe, carte, petit, note, children }: { objectif: number; booste: number; signe: string; carte: string; petit: string; note: string; children: React.ReactNode }) {
-  return (
-    <div className="relative mt-6 flex min-h-[170px] flex-1 flex-col justify-end lg:mt-10 lg:min-h-0 lg:max-h-[52vh]">
-            <div className={`${carte} bg-rose pb-4 pt-6 lg:pb-8 lg:pt-12`} style={{ "--d": "420ms" } as React.CSSProperties}>
-        <Pieces part={0.3 + booste / 4000} className="plan-pieces absolute bottom-full left-[30%] right-[6%] -mb-2 h-[88px] lg:left-[40%] lg:-mb-3 lg:h-[min(22vh,200px)]" />
-        <span className={signe} style={{ "--d": "420ms" } as React.CSSProperties} aria-label="égale">
-          =
-        </span>
-        <p className={petit}>Ton objectif par mois</p>
-        <p className="titre mt-1 whitespace-nowrap text-[52px] leading-[0.9] tabular-nums lg:mt-[min(10px,1.2vh)] lg:text-[clamp(60px,min(8vw,15vh),170px)]">
-          <Compteur de={objectif} vers={booste} attente={800} />&nbsp;€
-        </p>
-        <p className={note}>{children}</p>
-      </div>
-    </div>
-  );
 }
 
 /** 75,7 → « 76 € » ; 1,4 → « 1,40 € » */

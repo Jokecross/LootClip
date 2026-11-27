@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LienAccueil } from "@/components/marque/Logo";
-import { Duo, Titre } from "@/components/ui/Duo";
+import { Cadre, Question } from "@/components/onboarding/Cadre";
 import { SITE } from "@/lib/config";
 import { rafraichir } from "@/lib/serveur";
 import { messageErreur, supabase } from "@/lib/supabase";
@@ -48,14 +48,14 @@ export default function MotDePasse() {
 
   const nouveau = etape === "nouveau";
   return (
-    <Duo
+    <Cadre
       cle={etape}
       fond="orange"
-      entete={<LienAccueil />}
+      entete={<div className="ob-progression"><LienAccueil /></div>}
       gauche={
-        <Titre sous={nouveau ? "Choisis-en un de 6 caractères minimum." : etape === "envoye" ? "Si un compte existe, le lien arrive dans une minute." : "On t'envoie un lien pour en choisir un autre."}>
+        <Question sous={nouveau ? "Choisis-en un de 6 caractères minimum." : etape === "envoye" ? "Si un compte existe, le lien arrive dans une minute." : "On t'envoie un lien pour en choisir un autre."}>
           {nouveau ? "Nouveau mot de passe." : etape === "envoye" ? "Regarde tes e-mails." : "Mot de passe oublié."}
-        </Titre>
+        </Question>
       }
       droite={
         <div className="bloc mt-5 bg-blanc p-5 lg:m-auto lg:w-full lg:max-w-[600px] lg:p-10">

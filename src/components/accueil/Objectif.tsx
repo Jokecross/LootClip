@@ -34,7 +34,7 @@ export function Objectif() {
           {nombre(objectif)}&nbsp;€
         </p>
         <p className="mt-3 text-[16px] font-bold leading-snug lg:mt-9 lg:text-[22px]">
-          {ONBOARDING.frequenceParDefaut} vidéos par semaine, soit un objectif de {parVideo < 10 ? parVideo.toFixed(1).replace(".", ",") : nombre(parVideo)}&nbsp;€ par vidéo.
+          {ONBOARDING.frequenceParDefaut} clips par semaine, soit un objectif de {parVideo < 10 ? parVideo.toFixed(1).replace(".", ",") : nombre(parVideo)}&nbsp;€ par clip.
         </p>
         <Link href="/commencer" onClick={() => ecrireReponses({ objectif })} className="gros gros-rose mt-6 w-full max-w-[420px] max-lg:hidden">
           Viser {nombre(objectif)}&nbsp;€

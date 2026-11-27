@@ -12,7 +12,7 @@ export function Quota() {
     <Link href="/app/compte" className="bloc hidden bg-blanc px-7 py-6 lg:block">
       <span className="block text-[16px] font-bold text-encre2">Ce mois-ci</span>
       <span className="titre mt-1 block text-[30px] tabular-nums">
-        {q.restant} vidéo{q.restant > 1 ? "s" : ""} restante{q.restant > 1 ? "s" : ""}
+        {q.restant} clip{q.restant > 1 ? "s" : ""} restant{q.restant > 1 ? "s" : ""}
       </span>
       <span className="barre mt-4 block" aria-hidden="true">
         <span style={{ width: `${Math.max(4, (q.restant / q.total) * 100)}%` }} />

@@ -12,7 +12,7 @@ const PAGES: Record<string, { titre: string; blocs: { h: string; p: string[] }[]
     blocs: [
       { h: "Éditeur", p: [`${S.nom}, ${S.forme}.`, `Siège : ${S.adresse}.`, ...(S.numero ? [`Numéro d'enregistrement : ${S.numero}.`] : []), ...(S.responsable ? [`Responsable de la publication : ${S.responsable}.`] : []), `Contact : ${S.contact}.`] },
       { h: "Hébergeur", p: ["Vercel Inc., 340 S Lemon Ave #4133, Walnut, CA 91789, États-Unis. Site : vercel.com.", "Les comptes et les vidéos sont stockés par Supabase."] },
-      { h: "Marques", p: [NON_AFFILIATION, "GTA, PlayStation, PS5 et Xbox sont des marques de leurs propriétaires respectifs."] },
+      { h: "Marques", p: [NON_AFFILIATION, "YouTube, Twitch, Kick, X et TikTok sont des marques de leurs propriétaires respectifs."] },
     ],
   },
   cgv: {

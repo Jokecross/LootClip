@@ -8,9 +8,9 @@ import { Feuille } from "@/components/ui/Feuille";
 import { afficherToast } from "@/components/ui/Toast";
 import { arreter, lienGestion, reprendre, resilier } from "@/lib/abonnement";
 import { GRATUIT, MENTION_OBJECTIF, OFFRES_PAYANTES, PURGE_CLIPS_JOURS } from "@/lib/config";
-import { modifier, useEtat } from "@/lib/etat";
+import { useEtat } from "@/lib/etat";
 import { deconnecter, supprimerCompte } from "@/lib/serveur";
-import { date, euros, nombre, videos } from "@/lib/format";
+import { date, euros, nombre } from "@/lib/format";
 import { quota } from "@/lib/montage";
 import { objectifBooste } from "@/lib/onboarding";
 import { usePublicationOuverte } from "@/lib/publication";
@@ -43,11 +43,7 @@ export default function Compte() {
     setAttente(false);
   }
 
-  function choisirConsole(p: "ps5" | "xbox") {
-    modifier((e) => ({ ...e, compte: e.compte ? { ...e.compte, plateforme: p } : e.compte }));
-  }
-
-  const ligne = "flex min-h-[64px] w-full items-center justify-between gap-4 px-5 text-left text-[17px] font-bold lg:min-h-[72px] lg:px-7 lg:text-[19px]";
+  const ligne = "flex min-h-[60px] w-full items-center justify-between gap-4 px-5 text-left text-[16px] font-bold lg:min-h-[64px] lg:px-7 lg:text-[17px]";
 
   return (
     <>
@@ -56,35 +52,35 @@ export default function Compte() {
       sous={<span className="block truncate">{compte.email}</span>}
       socle={
         compte.profil && (
-          <section className="bloc mt-5 bg-blanc p-5 lg:mt-0 lg:p-7" aria-labelledby="t-obj">
+          <section className="ap-carte p-5 lg:p-7" aria-labelledby="t-obj">
             <p id="t-obj" className="text-[15px] font-bold">
               Ton objectif XPclip
             </p>
             <p className="titre mt-1 text-[32px] lg:text-[38px]">{nombre(objectifBooste(compte.profil.objectif))}&nbsp;€ par mois</p>
-            <p className="mt-1.5 text-[15px] text-encre2">Ton plan : {videos(compte.profil.frequence)} par semaine.</p>
+            <p className="mt-1.5 text-[15px] text-encre2">Ton plan : {nombre(compte.profil.frequence)} clip{compte.profil.frequence > 1 ? "s" : ""} par semaine.</p>
             <p className="mt-2 text-[12px] text-encre2">{MENTION_OBJECTIF}</p>
           </section>
         )
       }
     >
       {/* Abonnement */}
-      <section className={`bloc p-5 lg:p-8 ${estPro ? "bg-jaune" : "bg-blanc"}`} aria-labelledby="t-abo">
+      <section className="ap-carte p-5 lg:p-8" aria-labelledby="t-abo">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[15px] font-bold">Ton offre</p>
-            <h2 id="t-abo" className="titre mt-1 text-[36px] lg:text-[48px]">
+            <h2 id="t-abo" className="titre mt-1 text-[32px] lg:text-[40px]">
               {nomOffre}
             </h2>
           </div>
-          <span className="pastille bg-blanc tabular-nums lg:min-h-10 lg:px-4 lg:text-[17px]">{estPro ? `${eur(prix)} ${unite(periode)}` : "0 €"}</span>
+          <span className={`ap-pastille tabular-nums lg:min-h-9 lg:px-4 lg:text-[15px] ${estPro ? "bg-jaune" : ""}`}>{estPro ? `${eur(prix)} ${unite(periode)}` : "0 €"}</span>
         </div>
         {estPro && (
           <>
             <p className="mt-4 text-[15px] font-bold lg:text-[17px]">
-              {q.utilise} vidéo{q.utilise > 1 ? "s" : ""} sur {q.total} {q.periode}
+              {q.utilise} clip{q.utilise > 1 ? "s" : ""} sur {q.total} {q.periode}
               {compte.abonneDepuis ? ` · depuis le ${date(compte.abonneDepuis)}` : ""}
             </p>
-            <div className="barre mt-2.5" role="progressbar" aria-valuenow={q.utilise} aria-valuemax={q.total} aria-label="Vidéos utilisées">
+            <div className="barre mt-2.5" role="progressbar" aria-valuenow={q.utilise} aria-valuemax={q.total} aria-label="Clips utilisés">
               <span style={{ width: `${Math.max(3, (q.utilise / q.total) * 100)}%` }} />
             </div>
             {compte.abonnementFin && <p className="mt-3 text-[15px] font-bold">Résilié. Ton accès reste ouvert jusqu&apos;au {date(compte.abonnementFin)}.</p>}
@@ -102,31 +98,17 @@ export default function Compte() {
       </section>
 
       {/* Réglages */}
-      <section className="bloc divide-y-2 divide-encre overflow-hidden bg-blanc" aria-label="Réglages">
-        <div className={ligne}>
-          Ma console
-          <div className="segment !rounded-[15px] !p-1" role="radiogroup" aria-label="Ta console">
-            {(["ps5", "xbox"] as const).map((p) => (
-              <button key={p} type="button" role="radio" aria-checked={compte.plateforme === p} onClick={() => choisirConsole(p)} className="!min-h-[40px] !rounded-[9px] px-4">
-                {p === "ps5" ? "PS5" : "Xbox"}
-              </button>
-            ))}
-          </div>
-        </div>
+      <section className="ap-carte divide-y-2 divide-encre overflow-hidden" aria-label="Réglages">
         {publier && (
           <Link href="/app/comptes" className={ligne}>
             TikTok et Instagram
             <Chevron />
           </Link>
         )}
-        <Link href="/app/demarrage" className={ligne}>
-          Revoir le tutoriel
-          <Chevron />
-        </Link>
         <details className="group">
           <summary className={`${ligne} cursor-pointer list-none [&::-webkit-details-marker]:hidden`}>
             Factures
-            <span className="pastille bg-turquoise">{etat.factures.length}</span>
+            <span className="ap-pastille bg-turquoise">{etat.factures.length}</span>
           </summary>
           {etat.factures.length ? (
             <ul className="px-5 pb-4 lg:px-7">

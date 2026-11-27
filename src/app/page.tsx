@@ -1,104 +1,77 @@
 import type { Viewport } from "next";
 import Link from "next/link";
 import "./accueil.css";
-import { Machine } from "@/components/accueil/Machine";
-import { Objectif } from "@/components/accueil/Objectif";
+import "./lp.css";
+import { ChampLien } from "@/components/accueil/ChampLien";
+import { Interface } from "@/components/accueil/Interface";
 import { Offres } from "@/components/accueil/Offres";
-import { Styles } from "@/components/accueil/Styles";
+import { Reglages } from "@/components/accueil/Reglages";
+import { SousTitres } from "@/components/accueil/SousTitres";
 import { BarreFixe } from "@/components/landing/BarreFixe";
 import { LogoIcone } from "@/components/marque/Logo";
-import { Objet } from "@/components/objets/Objet";
 import { PiedDePage } from "@/components/PiedDePage";
 
 /*
- * Accueil V4. Une idée : on voit la machine tourner. Ta partie entre, ta vidéo sort.
- * Les scènes de jeu sont dessinées par nous (outils/scenes) et montées par le vrai moteur.
+ * Accueil V6, « look outil » (décision de Martin du 26/11/2026) : la charte reste, le décor de jeu part.
+ * Le champ du hero marche pour de vrai, l'interface du produit est au centre.
+ * Les vidéos sont de vrais montages XPclip des parties de Martin (jamais de vidéos de tiers).
  */
-// La barre du téléphone continue le jaune du haut de page.
-export const viewport: Viewport = { themeColor: "#F9D477", width: "device-width", initialScale: 1, viewportFit: "cover" };
-
-const FAQ = [
-  { q: "Comment mes parties peuvent me payer ?", r: "Tu postes tes vidéos sur tes propres comptes. Plus elles font de vues, plus elles peuvent rapporter. Le montant dépend de tes vues : rien n'est garanti." },
-  { q: "C'est du clipping ?", r: "Non. Le clipping reprend les vidéos des autres. Ici, tu postes tes propres parties, jouées sur ta console." },
-  {
-    q: "Comment je sors mes clips de la PS5 ?",
-    r: "Tu actives l'envoi automatique des captures. Tes clips arrivent dans l'appli PlayStation de ton téléphone. Tu les enregistres dans ta galerie, puis tu les déposes ici. Sur Xbox, c'est pareil avec l'appli Xbox.",
-  },
-  { q: "Ça prend combien de temps ?", r: "Le temps d'envoyer tes clips, puis une minute de montage. Tu reçois une notification quand ta vidéo est prête." },
-  { q: "Je dois savoir monter ?", r: "Non. XPclip choisit les meilleurs passages, les assemble en vertical et ajoute l'accroche. Tu n'as plus qu'à poster." },
-  { q: "Je dois montrer mon visage ?", r: "Non. Tes vidéos montrent ton jeu, pas toi." },
-  { q: "Je peux poster ailleurs que sur TikTok ?", r: "Oui. Le format 9:16 marche aussi sur YouTube Shorts et Instagram Reels." },
-];
+export const viewport: Viewport = { themeColor: "#fdf5ea", width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 const LIENS = [
-  { href: "#s-etapes", nom: "Comment ça marche" },
-  { href: "#s-styles", nom: "Les styles" },
+  { href: "#s-fonctions", nom: "Fonctionnalités" },
+  { href: "#s-reglages", nom: "Réglages" },
   { href: "#s-offres", nom: "Tarifs" },
   { href: "#s-questions", nom: "Questions" },
 ];
 
-const Coche = () => (
-  <svg viewBox="0 0 24 24" aria-hidden="true">
-    <circle cx="12" cy="12" r="11" fill="#6FE3D6" stroke="#1A0B2E" strokeWidth="2" />
-    <path d="M7.500 12.400l3 3 6-6.400" fill="none" stroke="#1A0B2E" strokeWidth="2.600" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-);
+const FAITS = [
+  { chiffre: "2 h", texte: "de vidéo max" },
+  { chiffre: "1080p", texte: "vertical 9:16" },
+  { chiffre: "Mot à mot", texte: "sous-titres animés" },
+  { chiffre: "Minutes", texte: "pas des heures" },
+];
 
 const ETAPES = [
-  {
-    titre: "Joue.",
-    texte: "Un bon moment ? Un bouton, et ton clip est gardé.",
-    fond: "bg-turquoise",
-    scene: (
-      <>
-        <Objet nom="manette" className="absolute inset-x-[14%] bottom-[8%] top-[24%]" plusTard />
-        <span className="toast-clip">
-          <Coche /> Clip gardé
-        </span>
-      </>
-    ),
-  },
-  {
-    titre: "Dépose.",
-    texte: "Choisis tes clips. XPclip monte la vidéo en une minute.",
-    fond: "bg-orange",
-    scene: (
-      <div className="pile">
-        {["chien", "canard", "saut"].map((n, i) => (
-          <span key={n} style={{ "--i": i } as React.CSSProperties}>
-            <img src={`/v4/${n}.webp`} alt="" width={480} height={270} loading="lazy" />
-            <b>
-              <Coche />
-            </b>
-          </span>
-        ))}
-      </div>
-    ),
-  },
-  {
-    titre: "Poste.",
-    texte: "TikTok, Reels ou Shorts. Tes vues peuvent payer.",
-    fond: "bg-jaune",
-    scene: (
-      <>
-        <div className="tel-carte">
-          <div className="m-tel-ecran">
-            <img src="/v4/drole.webp" alt="" width={432} height={768} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
-          </div>
-        </div>
-        <span className="publiee titre">Publiée !</span>
-      </>
-    ),
-  },
+  { titre: "Colle ton lien", texte: "YouTube, Twitch, Kick, X, ou ton fichier." },
+  { titre: "Règle ton style", texte: "Type de clip, couleur, place des sous-titres, format." },
+  { titre: "Télécharge tes clips", texte: "Prêts pour TikTok, Shorts et Reels." },
 ];
+
+const PUBLICS = [
+  { nom: "Streamers", texte: "Tes lives deviennent des clips. La facecam passe en haut.", fond: "bg-turquoise" },
+  { nom: "Podcasts", texte: "Les meilleures phrases, cadrées sur la personne qui parle.", fond: "bg-jaune" },
+  { nom: "Créateurs", texte: "Une vidéo longue, et tes clips de la semaine sont prêts.", fond: "bg-rose" },
+  { nom: "Clippeurs", texte: "Le lien du créateur, et tu livres des clips propres.", fond: "bg-orange" },
+];
+
+const FAQ = [
+  { q: "Quelles vidéos je peux coller ?", r: "Un lien YouTube, Twitch, Kick ou X. Tu peux aussi déposer ton fichier. Ta vidéo peut durer jusqu'à 2 heures." },
+  { q: "Comment XPclip choisit les moments ?", r: "L'IA écoute toute la vidéo. Elle note chaque passage sur 100. Elle garde ceux qui accrochent, avec une vraie chute." },
+  { q: "Je peux régler les sous-titres ?", r: "Oui. Tu choisis le type de clip, la couleur, le placement et le format. Tout se règle avant de lancer." },
+  { q: "Ça prend combien de temps ?", r: "Quelques minutes pour une vidéo d'une heure. Tes clips arrivent un par un, prêts à poster." },
+  { q: "Je dois savoir monter ?", r: "Non. Tu colles le lien. XPclip coupe, cadre, sous-titre et ajoute l'accroche." },
+  { q: "Je peux couper la vidéo d'un autre ?", r: "Seulement si tu en as le droit. Tes vidéos, ou celles d'un créateur qui t'a donné son accord." },
+  { q: "Je peux poster ailleurs que sur TikTok ?", r: "Oui. Le format vertical marche aussi sur YouTube Shorts et Instagram Reels." },
+];
+
+function Icone({ d }: { d: string }) {
+  return (
+    <span className="fn-icone" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d={d} fill="none" stroke="currentColor" strokeWidth="2.400" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </span>
+  );
+}
 
 export default function Accueil() {
   return (
-    <div className="v4">
-      <nav className="nav" aria-label="Menu">
+    <div className="v4 lp">
+      <nav className="lp-nav" aria-label="Menu">
         <Link href="/" className="flex items-center gap-2.5" aria-label="XPclip">
-          <LogoIcone taille={38} className="rounded-[24%] ring-2 ring-encre" />
-          <span className="titre text-[22px]">XPclip</span>
+          <LogoIcone taille={36} className="rounded-[24%] ring-2 ring-encre" />
+          <span className="titre text-[21px]">XPclip</span>
         </Link>
         <ul className="hidden items-center lg:flex">
           {LIENS.map((l) => (
@@ -113,123 +86,217 @@ export default function Accueil() {
           <Link href="/inscription?mode=connexion" className="nav-lien">
             Se connecter
           </Link>
-          <Link href="/commencer" className="bouton bouton-rose bouton-petit hidden lg:inline-flex">
-            Commencer
+          <Link href="/commencer" className="bouton bouton-rose bouton-petit hidden sm:inline-flex">
+            Essayer
           </Link>
         </div>
-        <span className="nav-xp" aria-hidden="true">
-          <i />
-        </span>
       </nav>
 
-      {/* 1. La machine */}
-      <header className="hero">
-        {["nuage-a", "nuage-b"].map((n) => (
-          <svg key={n} viewBox="0 -10 160 96" className={`nuage ${n}`} aria-hidden="true">
-            <path d="M28 78a24 24 0 0 1-3-47.800A36 36 0 0 1 92 18a30 30 0 0 1 40 20 20.500 20.500 0 0 1-2 40z" fill="currentColor" stroke="#1A0B2E" strokeWidth="3" strokeLinejoin="round" />
-          </svg>
-        ))}
-        <div className="hero-texte relative">
-          <h1 className="titre">
-            Tes parties de GTA&nbsp;6 peuvent te <span className="mot-fort">payer.</span>
-          </h1>
-          <p>Tu joues sur ta console. XPclip monte tes clips.</p>
-          <div id="cta-hero">
-            <Link href="/commencer" className="gros gros-rose gros-xl">
-              Créer ma première vidéo
-            </Link>
-            <small>Sans engagement. Résiliation en deux clics.</small>
-          </div>
+      {/* 1. Hero : le champ marche, l'interface en dessous */}
+      <header className="lp-hero">
+        <p className="lp-badge">
+          <span className="lp-point" aria-hidden="true" />
+          Clips IA pour streamers, podcasts et créateurs
+        </p>
+        <h1 className="titre">
+          Ta vidéo longue. <span className="lp-surligne">Tes meilleurs clips</span> en un clic.
+        </h1>
+        <p className="lp-sous">L&apos;IA trouve les moments forts, cadre en vertical et sous-titre mot à mot.</p>
+        <div id="cta-hero" className="lp-champ">
+          <ChampLien />
+          <small>Sans engagement. Résiliation en deux clics.</small>
         </div>
-        <Machine />
+        <div className="lp-vitrine">
+          <Interface />
+        </div>
       </header>
 
+      <ul className="lp-faits" aria-label="En bref">
+        {FAITS.map((f) => (
+          <li key={f.chiffre}>
+            <b className="titre">{f.chiffre}</b>
+            <span>{f.texte}</span>
+          </li>
+        ))}
+      </ul>
+
       <main>
-        {/* 2. Les étapes, en escalier */}
-        <section id="s-etapes" aria-labelledby="t-etapes" className="sect">
-          <h2 id="t-etapes" className="titre titre-v4 text-center">
-            Trois gestes. C&apos;est tout.
+        {/* 2. Comment ça marche */}
+        <section aria-labelledby="t-etapes" className="sect">
+          <p className="lp-sur">Comment ça marche</p>
+          <h2 id="t-etapes" className="titre lp-h2">
+            Trois étapes. Zéro montage.
           </h2>
-          <ol className="escalier">
+          <ol className="lp-etapes">
             {ETAPES.map((e, i) => (
-              <li key={e.titre} className="bloc overflow-hidden bg-blanc">
-                <div className={`relative h-[240px] overflow-hidden border-b-2 border-encre lg:h-[320px] ${e.fond}`}>
-                  <span className="numero titre">{i + 1}</span>
-                  {e.scene}
-                </div>
-                <div className="p-6 lg:p-8">
-                  <h3 className="titre text-[34px] lg:text-[46px]">{e.titre}</h3>
-                  <p className="mt-2.5 text-[17px] leading-snug lg:text-[20px]">{e.texte}</p>
-                </div>
+              <li key={e.titre}>
+                <span className="lp-num titre">{i + 1}</span>
+                <h3 className="titre">{e.titre}</h3>
+                <p>{e.texte}</p>
               </li>
             ))}
           </ol>
         </section>
 
-        {/* 3. Les styles */}
-        <section id="s-styles" aria-labelledby="t-styles" className="plein bg-turquoise">
+        {/* 3. Fonctionnalités */}
+        <section id="s-fonctions" aria-labelledby="t-fonctions" className="plein bg-blanc">
           <div className="sect">
-            <Styles />
-          </div>
-        </section>
-
-        {/* 4. La roue */}
-        <section aria-labelledby="t-objectif" className="sect">
-          <Objectif />
-        </section>
-
-        {/* 5. Les offres */}
-        <section id="s-offres" aria-labelledby="t-offres" className="plein bg-blanc">
-          <div className="sect">
-            <h2 id="t-offres" className="titre titre-v4 text-center">
-              Choisis ton rythme.
+            <p className="lp-sur">Fonctionnalités</p>
+            <h2 id="t-fonctions" className="titre lp-h2">
+              Tout le montage, fait pour toi.
             </h2>
-            <Offres />
+            <div className="fn-grille">
+              <article className="fn fn-large">
+                <div className="fn-texte">
+                  <Icone d="M12 3l2.400 5.600L20 9.300l-4.300 3.900L17 19l-5-3-5 3 1.300-5.800L4 9.300l5.600-.7z" />
+                  <h3 className="titre">L&apos;IA repère les moments forts</h3>
+                  <p>Elle écoute toute ta vidéo. Chaque passage reçoit une note sur 100. Tu gardes les meilleurs.</p>
+                </div>
+                <div className="fn-scene fn-frise" aria-hidden="true">
+                  {Array.from({ length: 40 }, (_, i) => (
+                    <i key={i} style={{ height: `${20 + ((i * 37 + (i % 5) * 11) % 72)}%` }} />
+                  ))}
+                  {[
+                    { l: 6, w: 15, s: 94 },
+                    { l: 40, w: 12, s: 89 },
+                    { l: 70, w: 17, s: 83 },
+                  ].map((m) => (
+                    <b key={m.l} style={{ left: `${m.l}%`, width: `${m.w}%` }}>
+                      <span>{m.s}</span>
+                    </b>
+                  ))}
+                </div>
+              </article>
+
+              <article className="fn fn-haut">
+                <div className="fn-scene fn-tel" aria-hidden="true">
+                  <div className="m-tel-ecran">
+                    <img src="/v4/clips/drole.webp" alt="" width={432} height={768} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                    <SousTitres phrase="Mon chien conduit mieux que moi" place="milieu" couleur="var(--color-rose)" />
+                  </div>
+                </div>
+                <div className="fn-texte">
+                  <Icone d="M4 7h16M4 12h10M4 17h13" />
+                  <h3 className="titre">Sous-titres mot à mot</h3>
+                  <p>Le mot prononcé s&apos;allume. Tu choisis la couleur et la place.</p>
+                </div>
+              </article>
+
+              <article className="fn fn-haut">
+                <div className="fn-scene fn-cadrage" aria-hidden="true">
+                  <span className="cad-large">
+                    <i className="cad-cam" />
+                    <i className="cad-jeu" />
+                  </span>
+                  <svg viewBox="0 0 24 24" className="cad-fleche">
+                    <path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  <span className="cad-vertical">
+                    <i className="cad-cam" />
+                    <i className="cad-jeu" />
+                  </span>
+                </div>
+                <div className="fn-texte">
+                  <Icone d="M4 8V5a1 1 0 011-1h3M16 4h3a1 1 0 011 1v3M20 16v3a1 1 0 01-1 1h-3M8 20H5a1 1 0 01-1-1v-3" />
+                  <h3 className="titre">Cadrage automatique</h3>
+                  <p>XPclip suit les visages. La facecam passe en haut, le jeu en bas.</p>
+                </div>
+              </article>
+
+              <article className="fn fn-haut">
+                <div className="fn-scene fn-accroche" aria-hidden="true">
+                  <span className="acc-carte titre">Il n&apos;aurait jamais dû me chercher</span>
+                  <span className="acc-legende">Écrite par l&apos;IA, 3 premières secondes</span>
+                </div>
+                <div className="fn-texte">
+                  <Icone d="M5 5h14v10H9l-4 4z" />
+                  <h3 className="titre">Une accroche écrite</h3>
+                  <p>Chaque clip s&apos;ouvre sur un titre qui donne envie de rester.</p>
+                </div>
+              </article>
+
+              <article className="fn fn-large fn-sombre">
+                <div className="fn-texte">
+                  <Icone d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+                  <h3 className="titre">Prêt à poster, partout</h3>
+                  <p>1080 × 1920, son égalisé, sans filigrane. Tu télécharges et tu postes.</p>
+                </div>
+                <ul className="fn-reseaux" aria-label="Formats">
+                  {["TikTok", "YouTube Shorts", "Instagram Reels"].map((r) => (
+                    <li key={r}>{r}</li>
+                  ))}
+                </ul>
+              </article>
+            </div>
           </div>
         </section>
 
-        {/* 6. Les questions */}
-        <section id="s-questions" aria-labelledby="t-faq" className="sect">
-          <div className="questions">
-            <div className="questions-tete">
-              <h2 id="t-faq" className="titre titre-v4">
-                Une question&nbsp;?
-              </h2>
-              <img src="/v4/duck.webp" alt="" width={520} height={440} loading="lazy" className="duck" />
-            </div>
-            <div className="flex flex-col gap-3.5">
-              {FAQ.map(({ q, r }) => (
-                <details key={q} name="faq" className="question">
-                  <summary>
-                    {q}
-                    <span aria-hidden="true">
-                      <svg viewBox="0 0 24 24">
-                        <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="3.400" strokeLinecap="round" />
-                      </svg>
-                    </span>
-                  </summary>
-                  <p>{r}</p>
-                </details>
+        {/* 4. Les réglages, à essayer */}
+        <section id="s-reglages" aria-labelledby="t-reglages" className="sect">
+          <Reglages />
+        </section>
+
+        {/* 5. Pour qui */}
+        <section aria-labelledby="t-publics" className="plein bg-turquoise">
+          <div className="sect">
+            <h2 id="t-publics" className="titre lp-h2">
+              Fait pour ceux qui filment long.
+            </h2>
+            <ul className="publics">
+              {PUBLICS.map((p) => (
+                <li key={p.nom} className="bloc overflow-hidden bg-blanc">
+                  <p className={`titre border-b-2 border-encre px-5 py-4 text-[24px] lg:px-6 lg:text-[28px] ${p.fond}`}>{p.nom}</p>
+                  <p className="px-5 py-4 text-[16px] leading-snug lg:px-6 lg:py-5 lg:text-[17px]">{p.texte}</p>
+                </li>
               ))}
+            </ul>
+          </div>
+        </section>
+
+        {/* 6. Les offres */}
+        <section id="s-offres" aria-labelledby="t-offres" className="sect">
+          <p className="lp-sur">Tarifs</p>
+          <h2 id="t-offres" className="titre lp-h2">
+            Un prix simple, selon ton rythme.
+          </h2>
+          <Offres />
+        </section>
+
+        {/* 7. Les questions */}
+        <section id="s-questions" aria-labelledby="t-faq" className="plein bg-blanc">
+          <div className="sect">
+            <div className="questions">
+              <div className="questions-tete">
+                <h2 id="t-faq" className="titre lp-h2 !text-left">
+                  Une question&nbsp;?
+                </h2>
+              </div>
+              <div className="flex flex-col gap-3">
+                {FAQ.map(({ q, r }) => (
+                  <details key={q} name="faq" className="question">
+                    <summary>
+                      {q}
+                      <span aria-hidden="true">
+                        <svg viewBox="0 0 24 24">
+                          <path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" strokeWidth="3.400" strokeLinecap="round" />
+                        </svg>
+                      </span>
+                    </summary>
+                    <p>{r}</p>
+                  </details>
+                ))}
+              </div>
             </div>
           </div>
         </section>
 
-        {/* 7. Le départ */}
-        <section aria-labelledby="t-fin" className="depart">
+        {/* 8. Le départ */}
+        <section aria-labelledby="t-fin" className="lp-fin">
           <h2 id="t-fin" className="titre">
-            Ta prochaine session peut payer.
+            Ton prochain clip est déjà dans ta vidéo.
           </h2>
-          <div id="cta-fin">
-            <Link href="/commencer" className="arcade titre" aria-label="Créer ma première vidéo">
-              <span>Start</span>
-            </Link>
-          </div>
-          <p>Sans engagement. Résiliation en deux clics.</p>
-          <div className="route" aria-hidden="true">
-            <span className="voiture">
-              <img src="/v4/voiture.webp" alt="" width={820} height={400} loading="lazy" />
-            </span>
+          <div id="cta-fin" className="lp-champ">
+            <ChampLien />
           </div>
         </section>
       </main>

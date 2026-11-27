@@ -5,12 +5,12 @@ import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { FormulaireCompte } from "@/components/compte/FormulaireCompte";
 import { LienAccueil } from "@/components/marque/Logo";
-import { Duo, Titre } from "@/components/ui/Duo";
+import { Cadre, Question } from "@/components/onboarding/Cadre";
 import { useEtat } from "@/lib/etat";
 import { rafraichir } from "@/lib/serveur";
 
 /*
- * Connexion d'un joueur qui a déjà un compte (e-mail + mot de passe, ou Google).
+ * Connexion d'un créateur qui a déjà un compte (e-mail + mot de passe, ou Google).
  * Les nouveaux passent par l'onboarding (/commencer), qui crée le compte à l'écran 7.
  */
 export default function Connexion() {
@@ -27,11 +27,11 @@ export default function Connexion() {
   }
 
   return (
-    <Duo
+    <Cadre
       cle="connexion"
       fond="turquoise"
-      entete={<LienAccueil />}
-      gauche={<Titre sous="Reprends là où tu t'étais arrêté.">Content de te revoir.</Titre>}
+      entete={<div className="ob-progression"><LienAccueil /></div>}
+      gauche={<Question sous="Reprends là où tu t'étais arrêté.">Content de te revoir.</Question>}
       droite={
         <div className="bloc relative mt-5 flex flex-col bg-blanc p-5 lg:m-auto lg:w-full lg:max-w-[600px] lg:p-10">
           <FormulaireCompte mode="connexion" retour="/app/creer" valider={valider} />

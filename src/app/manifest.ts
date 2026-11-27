@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "XPclip",
     short_name: "XPclip",
-    description: "Tes clips. Ton loot.",
+    description: "Tes vidéos longues, en clips prêts à poster.",
     lang: "fr",
     start_url: "/app/creer",
     scope: "/",
