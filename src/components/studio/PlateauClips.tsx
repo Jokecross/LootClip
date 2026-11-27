@@ -12,7 +12,7 @@ import { Boucle } from "@/components/accueil/Boucle";
 import { LancerLien } from "@/components/accueil/ChampLien";
 import { Landing } from "@/components/accueil/Landing";
 import { CarteClip } from "@/components/clips/CarteClip";
-import { Reglages as ReglagesClips } from "@/components/clips/Reglages";
+import { ReglagesCompacts } from "@/components/clips/ReglagesCompacts";
 import { Cadre, Progression, Question } from "@/components/onboarding/Cadre";
 import { DEMO } from "@/components/onboarding/demo";
 import { ecranActivite, ecranDestinations, ecranObjectif, ecranPlan, ecranRythme, ecranStyle, ecranTiktok, REPERE_RYTHME } from "@/components/onboarding/Ecrans";
@@ -194,8 +194,14 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
 
     case "reglages":
       contenu = {
-        gauche: <Question avant="Ton style" sous={`Vidéo : ${lienColle || lien}. L'aperçu change en direct.`}>Règle tes clips.</Question>,
-        droite: <ReglagesClips options={options} changer={(o) => setOptions((v) => ({ ...v, ...o }))} />,
+        gauche: (
+          <div className="max-lg:[&_.ob-sous]:hidden max-lg:[&_.ob-sur]:hidden">
+            <Question avant="Ton style" sous={`Vidéo : ${(lienColle || lien).split("?")[0]}`}>
+              Règle tes clips.
+            </Question>
+          </div>
+        ),
+        droite: <ReglagesCompacts options={options} changer={(o) => setOptions((v) => ({ ...v, ...o }))} />,
         large: true,
       };
       bouton = { libelle: `Créer mes ${options.nombre} clips`, faire: suivant };
