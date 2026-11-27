@@ -24,5 +24,9 @@ if [ ! -f .pret-clips ]; then
   touch .pret-clips
 fi
 export PYTHON=/opt/xpclip-venv/bin/python MODELE_VISAGES="$PWD/modeles/yunet.onnx" YTDLP=/usr/local/bin/yt-dlp
-if [ "${1:-}" = "clips" ]; then exec node bac-clips.mjs "$2"; fi
+if [ "${1:-}" = "clips" ]; then
+  # yt-dlp à jour à chaque lot : YouTube change souvent, une base ancienne finirait par échouer.
+  sudo timeout 60 /usr/local/bin/yt-dlp -U >/dev/null 2>&1 || true
+  exec node bac-clips.mjs "$2"
+fi
 if [ $# -gt 0 ]; then exec node bac.mjs "$1"; fi

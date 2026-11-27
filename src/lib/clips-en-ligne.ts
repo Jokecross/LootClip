@@ -89,7 +89,10 @@ export async function lancerLot({ user, source, options, site }: { user: { id: s
   await ecrireEtatLot(user.id, id, etat);
   await compter(user.id, 1);
   try {
-    if (apifyActif() && estYoutube(source)) {
+    if (process.env.YOUTUBE_PROXY_URL && estYoutube(source)) {
+      // YouTube par proxy résidentiel : la machine télécharge le son, puis seulement les moments choisis.
+      await demarrerMachine(user.id, id, source, options.plage, site, false, process.env.YOUTUBE_PROXY_URL);
+    } else if (apifyActif() && estYoutube(source)) {
       // YouTube : Apify récupère le passage, puis /api/clips/apify lance la machine (apresApify).
       const webhook = `${site}/api/clips/apify?u=${user.id}&id=${id}&j=${jetonLot(`apify:${id}:${user.id}`)}`;
       const run = await lancerApify(ACTEURS[0], source, options.plage, webhook);
@@ -105,10 +108,10 @@ export async function lancerLot({ user, source, options, site }: { user: { id: s
   return id;
 }
 
-async function demarrerMachine(user: string, id: string, source: string, plage: TacheClips["plage"], site: string, direct = false) {
+async function demarrerMachine(user: string, id: string, source: string, plage: TacheClips["plage"], site: string, direct = false, proxy?: string) {
   const { data: depot, error } = await admin().storage.from(BUCKET).createSignedUploadUrl(chemin(user, id, "son.mp4"), { upsert: true });
   if (error) throw error;
-  const { prete } = await demarrerClips({ id, source, depotSon: depot.signedUrl, suivi: `${site}/api/clips/suivi?u=${user}`, jeton: jetonLot(`${id}:${user}`), plage, ...(direct ? { direct: true } : {}) });
+  const { prete } = await demarrerClips({ id, source, depotSon: depot.signedUrl, suivi: `${site}/api/clips/suivi?u=${user}`, jeton: jetonLot(`${id}:${user}`), plage, ...(direct ? { direct: true } : {}), ...(proxy ? { proxy } : {}) });
   if (!prete) preparerBase().catch((e) => console.error("base :", e));
 }
 

@@ -156,6 +156,8 @@ export type TacheClips = {
   plage?: { debut: number; fin: number };
   /** Lien direct vers un MP4 (YouTube via Apify), téléchargé sans yt-dlp ; avec `plage`, la machine coupe ensuite. */
   direct?: boolean;
+  /** Proxy résidentiel pour YouTube (YOUTUBE_PROXY_URL) : exception à « aucune clé », limité en trafic. */
+  proxy?: string;
 };
 export type RenduClips = {
   moments: { titre: string; parties: [number, number][] }[];

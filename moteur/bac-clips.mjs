@@ -8,6 +8,9 @@
  * 1. Récupère la vidéo (yt-dlp) et dépose son son compressé ; prévient XPclip (phase « son »).
  * 2. XPclip transcrit et choisit les moments, puis écrit rendu.json dans la machine.
  * 3. Monte chaque clip, le dépose, prévient XPclip ; puis « fini ».
+ *
+ * Liens YouTube avec proxy (t.proxy) : on paie le proxy au Mo, donc deux temps.
+ *   1. seulement le son du passage choisi ; 3. seulement la vidéo de chaque moment choisi.
  */
 import { spawn } from "node:child_process";
 import { createWriteStream, existsSync } from "node:fs";
@@ -58,15 +61,21 @@ async function deposer(url, contenu, type) {
   }
 }
 
-/** `plage` : ne télécharge que ce passage (secondes), quand la plateforme le permet. */
-function telecharger(lien, fichier, surAvancement, plage) {
+/**
+ * `plage` : ne télécharge que ce passage (secondes), quand la plateforme le permet.
+ * `o.format` : sélecteur yt-dlp ; `o.proxy` : proxy résidentiel (YouTube) ; `o.precis` : coupe exacte.
+ */
+function telecharger(lien, fichier, surAvancement, plage, o = {}) {
   return new Promise((ok, ko) => {
     const p = spawn(YTDLP, [
       "--no-warnings", "--no-playlist", "--newline",
       "--progress-template", "download:%(progress._percent_str)s",
-      "-f", "bv*[height<=1080][ext=mp4]+ba[ext=m4a]/b[height<=1080]/b",
+      "-f", o.format ?? "bv*[height<=1080][ext=mp4]+ba[ext=m4a]/b[height<=1080]/b",
       ...(plage ? ["--download-sections", `*${plage.debut}-${plage.fin}`] : []),
-      "--merge-output-format", "mp4", "-o", fichier, lien,
+      ...(o.precis ? ["--force-keyframes-at-cuts"] : []),
+      ...(o.proxy ? ["--proxy", o.proxy, "--js-runtimes", "node", "--retries", "3"] : []),
+      ...(o.format?.startsWith("ba") ? [] : ["--merge-output-format", "mp4"]),
+      "-o", fichier, lien,
     ]);
     let err = "";
     let dernier = 0;
@@ -120,7 +129,15 @@ try {
   // Seulement le passage choisi (20 min au plus). Si la plateforme ne sait pas, la vidéo entière, puis on coupe.
   let source = join(dossier, "source.mp4");
   const avancer = (v) => nouvelle({ phase: "progres", etape: "telechargement", avancement: v });
-  if (t.direct && t.plage) {
+  // YouTube par proxy : le son seul du passage (quelques Mo), la vidéo viendra moment par moment.
+  const parProxy = Boolean(t.proxy && t.plage);
+  const son = join(dossier, "son.mp4");
+  if (parProxy) {
+    const brut = join(dossier, "son-brut.m4a");
+    await telecharger(t.source, brut, avancer, t.plage, { format: "ba[ext=m4a]/ba", proxy: t.proxy });
+    await extraireSon(brut, son);
+    journal("son du passage récupéré (proxy)");
+  } else if (t.direct && t.plage) {
     // Vidéo entière (Apify) : on la récupère, puis on coupe le passage choisi.
     const entiere = join(dossier, "entiere.mp4");
     await telechargerDirect(t.source, entiere, avancer);
@@ -142,9 +159,10 @@ try {
   } else {
     await telecharger(t.source, source, avancer);
   }
-  journal("vidéo récupérée");
-  const son = join(dossier, "son.mp4");
-  await extraireSon(source, son);
+  if (!parProxy) {
+    journal("vidéo récupérée");
+    await extraireSon(source, son);
+  }
   await deposer(t.depotSon, await readFile(son), "video/mp4");
   journal("son déposé");
   await nouvelle({ phase: "son" });
@@ -163,7 +181,23 @@ try {
   for (const [i, moment] of rendu.moments.entries()) {
     nouvelle({ phase: "progres", etape: "montage", avancement: i / rendu.moments.length });
     const sortie = join(dossier, `clip_${i + 1}.mp4`);
-    await fabriquer({ source, moment, mots: rendu.mots, sortie, reglages: rendu.reglages });
+    if (parProxy) {
+      // Seulement la vidéo du moment (1 s de marge), puis les temps sont recalés sur ce petit fichier.
+      const debut = Math.max(0, Math.min(...moment.parties.map(([a]) => a)) - 1);
+      const fin = Math.max(...moment.parties.map(([, b]) => b)) + 1;
+      const morceau = join(dossier, `moment_${i + 1}.mp4`);
+      await telecharger(t.source, morceau, () => {}, { debut: t.plage.debut + debut, fin: t.plage.debut + fin }, {
+        format: "bv*[height<=720][ext=mp4]+ba[ext=m4a]/b[height<=720]/b",
+        proxy: t.proxy,
+        precis: true,
+      });
+      const recale = { ...moment, parties: moment.parties.map(([a, b]) => [a - debut, b - debut]) };
+      const mots = rendu.mots.filter((w) => w.fin >= debut && w.debut <= fin).map((w) => ({ ...w, debut: w.debut - debut, fin: w.fin - debut }));
+      await fabriquer({ source: morceau, moment: recale, mots, sortie, reglages: rendu.reglages });
+      await rm(morceau, { force: true });
+    } else {
+      await fabriquer({ source, moment, mots: rendu.mots, sortie, reglages: rendu.reglages });
+    }
     await deposer(rendu.depots[i], await readFile(sortie), "video/mp4");
     journal(`clip ${i + 1} déposé`);
     await nouvelle({ phase: "clip", index: i });

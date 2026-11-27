@@ -4,5 +4,5 @@ import { clipsLocaux } from "@/lib/clips-local";
 export const dynamic = "force-dynamic";
 
 export function GET() {
-  return Response.json({ youtubeParLien: clipsLocaux() || Boolean(process.env.APIFY_TOKEN) });
+  return Response.json({ youtubeParLien: clipsLocaux() || Boolean(process.env.YOUTUBE_PROXY_URL || process.env.APIFY_TOKEN) });
 }
