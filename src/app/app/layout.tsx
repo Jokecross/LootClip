@@ -68,6 +68,8 @@ export default function CoquilleAppli({ children }: { children: React.ReactNode 
   const router = useRouter();
   const chemin = usePathname();
   const tuto = chemin.startsWith("/app/demarrage");
+  // Hook : avant tout retour anticipé (sinon React plante au passage « chargement » → « prête »).
+  const q = useQuotaVideos(etat);
 
   useEffect(() => {
     if (etat.charge && !etat.compte) router.replace("/inscription");
@@ -88,7 +90,6 @@ export default function CoquilleAppli({ children }: { children: React.ReactNode 
   if (!pret) return <div className="min-h-dvh bg-fond" />;
   if (!acces && !libre) return <Paywall ouvert moment="entree" apresPaiement={() => {}} />;
 
-  const q = useQuotaVideos(etat);
   const estActif = (href: string) => chemin.startsWith(href) || (href === "/app/videos" && chemin.startsWith("/app/video/"));
   const libelleQuota = `${q.restant} vidéo${q.restant > 1 ? "s" : ""} restante${q.restant > 1 ? "s" : ""}`;
 
