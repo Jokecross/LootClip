@@ -83,6 +83,16 @@ export default function Compte() {
             <div className="barre mt-2.5" role="progressbar" aria-valuenow={q.utilise} aria-valuemax={q.total} aria-label="Vidéos utilisées">
               <span style={{ width: `${Math.max(3, (q.utilise / q.total) * 100)}%` }} />
             </div>
+            {q.secondesTotal ? (
+              <>
+                <p className="mt-4 text-[15px] font-bold lg:text-[17px]">
+                  {Math.floor((q.secondes ?? 0) / 3600)} h {String(Math.floor(((q.secondes ?? 0) % 3600) / 60)).padStart(2, "0")} analysées sur {Math.round(q.secondesTotal / 3600)} h ce mois-ci
+                </p>
+                <div className="barre mt-2.5" role="progressbar" aria-valuenow={q.secondes ?? 0} aria-valuemax={q.secondesTotal} aria-label="Heures utilisées">
+                  <span style={{ width: `${Math.max(3, ((q.secondes ?? 0) / q.secondesTotal) * 100)}%` }} />
+                </div>
+              </>
+            ) : null}
             {compte.abonnementFin && <p className="mt-3 text-[15px] font-bold">Résilié. Ton accès reste ouvert jusqu&apos;au {date(compte.abonnementFin)}.</p>}
           </>
         )}
@@ -101,7 +111,7 @@ export default function Compte() {
       <section className="ap-carte divide-y-2 divide-encre overflow-hidden" aria-label="Réglages">
         {publier && (
           <Link href="/app/comptes" className={ligne}>
-            TikTok et Instagram
+            Mes réseaux (TikTok, Instagram)
             <Chevron />
           </Link>
         )}

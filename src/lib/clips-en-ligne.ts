@@ -65,7 +65,9 @@ async function offreDe(user: string) {
 export async function quotaDuMois(user: string) {
   const [offre, compteur] = await Promise.all([offreDe(user), lireCompteur(user)]);
   const total = offre === "gratuit" ? 0 : OFFRES_PAYANTES[offre].videosParMois;
-  return { utilise: compteur.clips, total, restant: Math.max(0, total - compteur.clips) };
+  const secondesTotal = offre === "gratuit" ? 0 : OFFRES_PAYANTES[offre].heuresParMois * 3600;
+  const secondes = compteur.secondes ?? 0;
+  return { utilise: compteur.clips, total, restant: Math.max(0, total - compteur.clips), secondes, secondesTotal, secondesRestantes: Math.max(0, secondesTotal - secondes) };
 }
 
 export async function clipsRestants(user: { id: string; email?: string }) {
@@ -235,8 +237,8 @@ export async function suivreLot(user: string, id: string, corps: { phase: string
 }
 
 /** L'état pour l'écran, avec un lien de lecture pour chaque clip fini. */
-export async function etatPourEcran(user: string, id: string) {
-  const etat = await lireEtatLot(user, id);
+export async function etatPourEcran(user: string, id: string, deja?: EtatLot | null) {
+  const etat = deja ?? (await lireEtatLot(user, id));
   if (!etat) return null;
   const clips = await Promise.all(
     etat.clips.map(async (c) => {
@@ -252,10 +254,27 @@ export async function etatPourEcran(user: string, id: string) {
 export async function listerLotsEnLigne(user: string) {
   const { data } = await admin().storage.from(BUCKET).list(`lots/${user}`, { limit: 100 });
   const ids = (data ?? []).map((f) => f.name).filter((n) => ID.test(n));
-  const lots = await Promise.all(ids.map(async (id) => ({ id, etat: await etatPourEcran(user, id) })));
+  const lots = await Promise.all(
+    ids.map(async (id) => {
+      const brut = await lireEtatLot(user, id);
+      return { id, etat: brut ? await etatPourEcran(user, id, brut) : null, source: brut?.source ?? "", plage: brut?.options?.plage ?? null, nombre: brut?.options?.nombre ?? null };
+    }),
+  );
   return lots
     .filter((l) => l.etat)
-    .map(({ id, etat }) => ({ id, debut: etat!.debut, etape: etat!.etape, erreur: etat!.erreur, clips: etat!.clips }))
+    .map(({ id, etat, source, plage, nombre }) => ({
+      id,
+      debut: etat!.debut,
+      etape: etat!.etape,
+      avancement: etat!.avancement,
+      erreur: etat!.erreur,
+      clips: etat!.clips,
+      moments: etat!.moments.length,
+      // Le lien d'origine (pour son titre et sa miniature) ; un fichier envoyé n'a pas de lien.
+      lien: /^https?:\/\//.test(source) ? source : null,
+      plage,
+      nombre,
+    }))
     .sort((a, b) => (b.debut ?? 0) - (a.debut ?? 0))
     .slice(0, 30);
 }

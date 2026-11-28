@@ -22,7 +22,7 @@ export default function MesVideos() {
   const t = useMaintenant(1000);
 
   const vide = (
-    <Message titre="Pas encore de clip." sous="Colle le lien d'une vidéo, on s'occupe du reste.">
+    <Message titre="Pas encore de clip." sous="Colle le lien d'une vidéo. Tes clips arrivent en 3 à 5 minutes.">
       <Link href="/app/creer" className="bouton bouton-rose w-full">
         Créer mes premiers clips
       </Link>
@@ -33,7 +33,7 @@ export default function MesVideos() {
     <>
       <TetePage
         titre="Mes clips"
-        sous="Tous tes clips, rangés par vidéo."
+        sous="Regarde, télécharge, poste ou programme tes clips."
         action={
           <Link href="/app/creer" className="bouton bouton-rose hidden lg:inline-flex lg:px-9">
             Nouveaux clips

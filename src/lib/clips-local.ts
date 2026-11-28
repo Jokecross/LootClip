@@ -61,5 +61,5 @@ export async function listerLots() {
   return lots
     .filter((l): l is { id: string; etat: EtatClips } => Boolean(l.etat))
     .sort((a, b) => (b.etat.debut ?? 0) - (a.etat.debut ?? 0))
-    .map(({ id, etat }) => ({ id, debut: etat.debut, etape: etat.etape, erreur: etat.erreur, clips: etat.clips.map((c) => ({ ...c, url: `/api/clips/${id}/${c.fichier}` })) }));
+    .map(({ id, etat }) => ({ id, debut: etat.debut, etape: etat.etape, avancement: etat.avancement, erreur: etat.erreur, moments: etat.moments.length, lien: null, plage: null, nombre: null, clips: etat.clips.map((c) => ({ ...c, url: `/api/clips/${id}/${c.fichier}` })) }));
 }

@@ -8,12 +8,12 @@ import { useEffect, useState } from "react";
 import type { Etat } from "./etat";
 import { quota } from "./montage";
 
-type Quota = { utilise: number; total: number; restant: number; periode: string };
+export type Quota = { utilise: number; total: number; restant: number; periode: string; /** Heures du mois, en secondes (null : inconnues, mode local). */ secondes: number | null; secondesTotal: number | null };
 
 export const relireQuota = () => window.dispatchEvent(new Event("xpclip:quota"));
 
 export function useQuotaVideos(etat: Etat): Quota {
-  const local = quota(etat);
+  const local: Quota = { ...quota(etat), secondes: null, secondesTotal: null };
   const [serveur, setServeur] = useState<Quota | null>(null);
   const actif = Boolean(etat.compte) && etat.compte?.offre !== "gratuit";
   useEffect(() => {
@@ -25,7 +25,7 @@ export function useQuotaVideos(etat: Etat): Quota {
       if (!data.session) return;
       const r = await fetch("/api/clips/quota", { cache: "no-store", headers: { authorization: `Bearer ${data.session.access_token}` } }).catch(() => null);
       const j = r?.ok ? await r.json().catch(() => null) : null;
-      if (!fini && j && typeof j.utilise === "number") setServeur({ utilise: j.utilise, total: j.total, restant: j.restant, periode: "ce mois-ci" });
+      if (!fini && j && typeof j.utilise === "number") setServeur({ utilise: j.utilise, total: j.total, restant: j.restant, periode: "ce mois-ci", secondes: j.secondes ?? null, secondesTotal: j.secondesTotal ?? null });
     };
     lire();
     const id = setInterval(lire, 60_000);

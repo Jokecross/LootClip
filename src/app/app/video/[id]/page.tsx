@@ -222,7 +222,7 @@ function Resultat({ video }: { video: Video }) {
       <div className="mb-5 flex items-center justify-between gap-3 lg:hidden">
         <h1 className="titre text-[36px]">Ta vidéo est prête.</h1>
       </div>
-      <div className="mx-auto w-[66%] max-w-[270px] lg:sticky lg:top-[130px] lg:mx-0 lg:w-full lg:max-w-none">
+      <div className="mx-auto w-[66%] max-w-[270px] lg:sticky lg:top-10 lg:mx-0 lg:w-full lg:max-w-none">
         <div className="tel-lecteur">
           <Lecteur video={video} sources={sources} />
         </div>

@@ -14,6 +14,7 @@ import { OPTIONS_PAR_DEFAUT, PLAGE_MAX, type OptionsClips } from "@/lib/clips-op
 import { CarteClip, Score } from "./CarteClip";
 import { ChoixPlage } from "./Plage";
 import { Reglages } from "./Reglages";
+import { relireLots } from "@/lib/lots";
 import { relireQuota } from "@/lib/quota-videos";
 
 const ETAPES = [
@@ -45,6 +46,36 @@ function Pas({ n }: { n: number }) {
         </li>
       ))}
     </ol>
+  );
+}
+
+/** Sur ordinateur, à droite du lien : le déroulé en 4 étapes et 2 conseils. */
+function AideCreer() {
+  const pas = [
+    ["Colle un lien", "YouTube, Twitch, Kick ou X. Ou envoie ton fichier."],
+    ["Choisis le passage", "20 minutes au plus, et ton style de clips."],
+    ["On monte tes clips", "Meilleurs moments, sous-titres, format 9:16. Compte 3 à 5 min."],
+    ["Poste-les", "Télécharge, poste tout de suite ou programme."],
+  ];
+  return (
+    <aside className="ap-carte ap-aide" aria-labelledby="t-aide">
+      <h2 id="t-aide" className="tb-titre">
+        Comment ça marche
+      </h2>
+      <ol>
+        {pas.map(([nom, detail], i) => (
+          <li key={nom}>
+            <span aria-hidden="true">{i + 1}</span>
+            <div>
+              <b>{nom}</b>
+              <p>{detail}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+      <p className="ap-aide-conseil">Une vidéo où quelqu&apos;un parle donne les meilleurs clips.</p>
+      <p className="ap-aide-conseil">Tu peux fermer la page. Tes clips arrivent dans Mes clips.</p>
+    </aside>
   );
 }
 
@@ -114,6 +145,22 @@ export function Studio({
     });
   }, []);
 
+  // Depuis l'Accueil : ?auto=1 (le lien collé passe directement aux réglages) ou ?lot=<id> (suivre une vidéo en cours).
+  const [auto, setAuto] = useState(false);
+  useEffect(() => {
+    const p = new URLSearchParams(window.location.search);
+    const lot = p.get("lot");
+    if (lot && /^[0-9a-f-]{36}$/i.test(lot)) setId(lot);
+    if (p.get("auto") === "1") setAuto(true);
+    if (lot || p.has("auto")) window.history.replaceState(null, "", window.location.pathname);
+  }, []);
+  useEffect(() => {
+    if (!auto || !lien) return;
+    setAuto(false);
+    continuer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [auto, lien]);
+
   // Suivi : une question par seconde tant que les clips ne sont pas finis
   useEffect(() => {
     if (!id) return;
@@ -135,6 +182,7 @@ export function Studio({
         if (e.etape === "fini" || e.erreur) {
           fini = true;
           relireQuota(); // le compteur du mois a bougé (ou pas, en cas d'échec)
+          relireLots();
         }
       }
       if (!fini) minuteur = setTimeout(tour, 1000);
@@ -188,6 +236,7 @@ export function Studio({
     const { id: nouveau } = await rep.json();
     setEtat(null);
     setId(nouveau);
+    relireLots();
   }
 
   /** Envoi du fichier vidéo dans le stockage (compte connecté), avec l'avancement. */
@@ -277,6 +326,7 @@ export function Studio({
             ) : undefined
           }
         />
+        <div className="ap-depart-grille">
         <div className="ap-carte ap-depart">
           <label htmlFor="lien" className="ap-libelle">
             Lien de la vidéo
@@ -378,6 +428,8 @@ export function Studio({
               </span>
             </button>
           )}
+        </div>
+        {appli && <AideCreer />}
         </div>
         {appli && (
           <Link href="/app/videos" className="lien mt-5 inline-flex min-h-12 items-center text-[15px] font-bold lg:hidden">
