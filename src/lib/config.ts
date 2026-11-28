@@ -104,6 +104,13 @@ export type Duree = keyof typeof DUREES;
 // Montants constatés du programme de récompenses TikTok, en dollars pour 1 000 vues qualifiées.
 export const TAUX = { bas: 0.4, haut: 1.0 };
 
+/**
+ * Studio (écran des clips) : les vues visées par un clip selon sa note XPclip.
+ * vues = base × facteur^(note − 50) : 62 → ~22 k, 78 → ~90 k, 90 → ~250 k. Le revenu visé en découle avec TAUX.
+ * Ce sont des objectifs affichés comme tels, jamais une estimation ni une promesse.
+ */
+export const VUES_VISEES = { base: 8000, facteur: 1.09 };
+
 
 
 const suite = (de: number, a: number, pas: number) => Array.from({ length: Math.round((a - de) / pas) + 1 }, (_, i) => de + i * pas);

@@ -16,7 +16,7 @@ import { spawn } from "node:child_process";
 import { createWriteStream, existsSync } from "node:fs";
 import http from "node:http";
 import net from "node:net";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rename, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { Readable } from "node:stream";
@@ -145,6 +145,34 @@ async function relaisProxy(adresse) {
   return `http://127.0.0.1:${serveur.address().port}`;
 }
 
+/** Le codec vidéo d'un fichier (h264, av1, vp9…), lu par ffprobe. */
+function codecVideo(fichier) {
+  return new Promise((ok) => {
+    const p = spawn("ffprobe", ["-v", "error", "-select_streams", "v:0", "-show_entries", "stream=codec_name", "-of", "default=nw=1:nk=1", fichier]);
+    let out = "";
+    p.stdout.on("data", (d) => (out += d));
+    p.on("close", () => ok(out.trim()));
+    p.on("error", () => ok(""));
+  });
+}
+
+/** Si la vidéo n'est pas en H.264 (AV1, VP9…), on la convertit : un moment dure une minute au plus, c'est rapide. */
+async function versH264(fichier) {
+  const codec = await codecVideo(fichier);
+  if (!codec || codec === "h264") return;
+  journal(`vidéo en ${codec} : conversion en H.264`);
+  const tmp = fichier.replace(/\.mp4$/, "-h264.mp4");
+  await new Promise((ok, ko) => {
+    const p = spawn("ffmpeg", ["-y", "-v", "error", "-i", fichier, "-c:v", "libx264", "-preset", "veryfast", "-crf", "20", "-c:a", "copy", "-movflags", "+faststart", tmp]);
+    let err = "";
+    p.stderr.on("data", (d) => (err += d));
+    p.on("close", (c) => (c === 0 ? ok() : ko(new Error(`conversion H.264 : ${err.slice(-400)}`))));
+    p.on("error", ko);
+  });
+  await rm(fichier, { force: true });
+  await rename(tmp, fichier);
+}
+
 /** Lien direct vers un MP4 (YouTube via Apify, déjà coupé au passage choisi). */
 async function telechargerDirect(lien, fichier, surAvancement) {
   const rep = await fetch(lien);
@@ -250,11 +278,13 @@ try {
       const fin = Math.max(...moment.parties.map(([, b]) => b)) + 1;
       const morceau = join(dossier, `moment_${i + 1}.mp4`);
       await telecharger(t.source, morceau, () => {}, { debut: t.plage.debut + debut, fin: t.plage.debut + fin }, {
-        format: "bv*[height<=720][ext=mp4]+ba[ext=m4a]/b[height<=720]/b",
+        // H.264 d'abord : la détection des visages (OpenCV) ne lit pas l'AV1 que YouTube sert parfois.
+        format: "bv*[height<=720][vcodec^=avc1]+ba[ext=m4a]/bv*[height<=720][ext=mp4][vcodec!^=av01]+ba[ext=m4a]/bv*[height<=720][ext=mp4]+ba[ext=m4a]/b[height<=720]/b",
         proxy: t.proxy,
         relais,
         precis: true,
       });
+      await versH264(morceau);
       const recale = { ...moment, parties: moment.parties.map(([a, b]) => [a - debut, b - debut]) };
       const mots = rendu.mots.filter((w) => w.fin >= debut && w.debut <= fin).map((w) => ({ ...w, debut: w.debut - debut, fin: w.fin - debut }));
       await fabriquer({ source: morceau, moment: recale, mots, sortie, reglages: rendu.reglages });
@@ -269,7 +299,8 @@ try {
   await nouvelle({ phase: "fini" });
 } catch (e) {
   journal("échec :", e?.message || e);
-  await nouvelle({ phase: "erreur", cause: cause(e), detail: String(e?.message || e).slice(0, 300) });
+  const brut = String(e?.message || e);
+  await nouvelle({ phase: "erreur", cause: cause(e), detail: brut.length > 700 ? `${brut.slice(0, 150)} … ${brut.slice(-550)}` : brut });
 } finally {
   await file.catch(() => {});
   await rm(dossier, { recursive: true, force: true });

@@ -5,8 +5,10 @@
  */
 import "./studio.css";
 import { useEffect, useState } from "react";
-import { DEMO } from "@/components/onboarding/demo";
+import { DEMO, type Demo } from "@/components/onboarding/demo";
 import { COULEURS_SOUS_TITRES, DUREES_CLIP, FORMATS, TYPES_CLIP, type OptionsClips } from "@/lib/clips-options";
+import { VUES_VISEES } from "@/lib/config";
+import { gains } from "@/lib/format";
 import type { Reponses } from "@/lib/onboarding";
 import { heure, jours } from "./Publier";
 
@@ -175,12 +177,23 @@ export function MontageReel({ lot, fini, demo }: { lot: { id: string; erreur?: s
 
 /* ---------- 3. Les clips en grand ---------- */
 
-export function VitrineClips({ nombre, clips: vrais }: { nombre: number; clips?: ClipVitrine[] }) {
+/** Les vues visées par un clip (2 chiffres significatifs) et le revenu visé qui en découle, d'après sa note. */
+function objectifClip(note: number) {
+  const brut = VUES_VISEES.base * Math.pow(VUES_VISEES.facteur, note - 50);
+  const pas = Math.pow(10, Math.max(0, Math.floor(Math.log10(brut)) - 1));
+  const vues = Math.round(brut / pas) * pas;
+  const arrondi = (x: number) => (x >= 100 ? Math.round(x / 10) * 10 : Math.max(1, Math.round(x)));
+  const { bas, haut } = gains(vues);
+  return { vues: vues >= 1000 ? `${new Intl.NumberFormat("fr-FR").format(Math.round(vues / 1000))} k` : String(vues), argent: `${arrondi(bas)} à ${arrondi(haut)} €` };
+}
+
+export function VitrineClips({ nombre, clips: vrais, demo = DEMO }: { nombre: number; clips?: ClipVitrine[]; /** La démo choisie dans la régie. */ demo?: Demo }) {
   const clips: ClipVitrine[] = vrais?.length
     ? vrais
-    : DEMO.clips.slice(0, Math.min(nombre, DEMO.clips.length)).map((c) => ({ url: `/v4/${c.nom}.mp4`, poster: `/v4/${c.nom}.webp`, titre: c.titre, score: c.score, pourquoi: c.pourquoi, forces: c.forces }));
+    : demo.clips.slice(0, Math.min(nombre, demo.clips.length)).map((c) => ({ url: `/v4/${c.nom}.mp4`, poster: `/v4/${c.nom}.webp`, titre: c.titre, score: c.score, pourquoi: c.pourquoi, forces: c.forces }));
   const [k, setK] = useState(0);
   const c = clips[Math.min(k, clips.length - 1)];
+  const objectif = objectifClip(c.score);
   return (
     <div className="studio-clips surgit">
       <div className="studio-tel">
@@ -199,11 +212,24 @@ export function VitrineClips({ nombre, clips: vrais }: { nombre: number; clips?:
           </span>
         </div>
         <p className="titre studio-titre">{c.titre}</p>
+        <div className="studio-stats" key={`s-${c.url}`}>
+          <p>
+            <span>Vues visées</span>
+            <b className="titre tabular-nums">{objectif.vues}</b>
+          </p>
+          <p className="studio-stat-argent">
+            <span>Objectif de revenus</span>
+            <b className="titre tabular-nums">{objectif.argent}</b>
+          </p>
+        </div>
+      </div>
+
+      <div className="studio-detail">
         {c.pourquoi && (
-          <>
-            <p className="studio-label">Pourquoi cette note</p>
-            <p className="studio-pourquoi">{c.pourquoi}</p>
-          </>
+          <p className="studio-pourquoi">
+            <span className="studio-label">Pourquoi cette note</span>
+            {c.pourquoi}
+          </p>
         )}
         {!!c.forces?.length && (
           <ul className="studio-forces">
@@ -220,6 +246,7 @@ export function VitrineClips({ nombre, clips: vrais }: { nombre: number; clips?:
             </button>
           ))}
         </div>
+        <p className="studio-mention">Objectifs fixés par XPclip, selon la note. Pas une promesse de gains.</p>
       </div>
     </div>
   );

@@ -161,6 +161,14 @@ export function Studio({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [auto, lien]);
 
+  // L'horloge du suivi : le temps écoulé s'affiche tant que la vidéo est en cours de récupération.
+  const [maintenant, setMaintenant] = useState(() => Date.now());
+  useEffect(() => {
+    if (!id) return;
+    const t = setInterval(() => setMaintenant(Date.now()), 1000);
+    return () => clearInterval(t);
+  }, [id]);
+
   // Suivi : une question par seconde tant que les clips ne sont pas finis
   useEffect(() => {
     if (!id) return;
@@ -463,6 +471,10 @@ export function Studio({
   const total = moments.length;
   const avance = etat ? avancementGlobal(etat) : 0;
   const indexEtape = fini ? ETAPES.length : Math.max(0, ETAPES.findIndex((x) => x.cle === etat?.etape));
+  // Récupération de la vidéo sans avancement chiffré (son par proxy, envoi d'un bloc) : on montre le temps qui passe.
+  const recuperation = !fini && !etat?.erreur && (!etat || (etat.etape === "telechargement" && (etat.avancement ?? 0) < 0.02));
+  const ecoule = etat?.debut ? Math.max(0, Math.floor((maintenant - etat.debut) / 1000)) : 0;
+  const chronoEcoule = `${Math.floor(ecoule / 60)}:${String(ecoule % 60).padStart(2, "0")}`;
 
   return (
     <section aria-labelledby="t-studio">
@@ -470,7 +482,7 @@ export function Studio({
       <TetePage
         id="t-studio"
         titre={fini ? (clips.length > 1 ? `Tes ${clips.length} clips sont prêts.` : "Ton clip est prêt.") : "Montage en cours"}
-        sous={fini ? "Regarde-les, garde les meilleurs et poste-les." : "Ça prend quelques minutes. Laisse cette page ouverte."}
+        sous={fini ? "Regarde-les, garde les meilleurs et poste-les." : "Ça prend 3 à 5 minutes. Tu peux fermer cette page."}
         action={
           fini ? (
             <div className="ap-fin w-full lg:w-auto">
@@ -491,16 +503,23 @@ export function Studio({
           <div className="ap-carte ap-suivi" role="status">
             <div className="ap-suivi-tete">
               <span className="ap-pastille bg-turquoise">{source.nom}</span>
-              <b>{Math.round(avance * 100)} %</b>
+              <b>{recuperation ? chronoEcoule : `${Math.round(avance * 100)} %`}</b>
             </div>
-            <div className="ap-jauge" role="progressbar" aria-valuenow={Math.round(avance * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="Avancement">
-              <span style={{ transform: `scaleX(${Math.max(0.03, avance)})` }} />
-            </div>
+            {recuperation ? (
+              <div className="ap-jauge ap-jauge-attente" role="progressbar" aria-label="Récupération de la vidéo en cours">
+                <span />
+              </div>
+            ) : (
+              <div className="ap-jauge" role="progressbar" aria-valuenow={Math.round(avance * 100)} aria-valuemin={0} aria-valuemax={100} aria-label="Avancement">
+                <span style={{ transform: `scaleX(${Math.max(0.03, avance)})` }} />
+              </div>
+            )}
+            {recuperation && <p className="ap-attente-texte">On récupère ta vidéo. Ça peut prendre 1 à 3 minutes.</p>}
             <ol className="ap-etapes">
               {ETAPES.map((x, i) => (
                 <li key={x.cle} data-etat={i < indexEtape ? "fait" : i === indexEtape ? "encours" : "attente"}>
                   <Coche />
-                  {x.libelle}
+                  {x.cle === "telechargement" && i === indexEtape ? "Récupération de la vidéo" : x.libelle}
                   {x.cle === "montage" && i === indexEtape && total > 0 ? ` (${Math.min(clips.length + 1, total)} sur ${total})` : ""}
                 </li>
               ))}

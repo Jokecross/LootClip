@@ -3,7 +3,7 @@
  * Réglages du studio de tournage, gardés sur ce téléphone : textes dans localStorage, vidéo finale dans IndexedDB.
  * Rien n'est envoyé au serveur, rien n'est écrit dans un vrai compte.
  */
-export type Reglages = { credits: number; pseudo: string; titre: string; secondes: number; /** xpclip.com ouvre le tournage sur cet appareil. */ tournage: boolean; /** Le lien qui s'écrit à l'écran (vide : celui de la démo). */ lien?: string; /** Scènes de la pub gardées (toutes si vide). */ scenes?: string[]; /** La pub défile seule. */ auto?: boolean; /** Montant de la scène « objectif », en euros par mois. */ objectif?: number; /** Multiplie les durées des scènes. */ vitesse?: number; /** Le lien collé est vraiment analysé (sinon : démo). */ reel?: boolean };
+export type Reglages = { credits: number; pseudo: string; titre: string; secondes: number; /** xpclip.com ouvre le tournage sur cet appareil. */ tournage: boolean; /** Le lien qui s'écrit à l'écran (vide : celui de la démo). */ lien?: string; /** Scènes de la pub gardées (toutes si vide). */ scenes?: string[]; /** La pub défile seule. */ auto?: boolean; /** Montant de la scène « objectif », en euros par mois. */ objectif?: number; /** Multiplie les durées des scènes. */ vitesse?: number; /** Le lien collé est vraiment analysé (sinon : démo). */ reel?: boolean; /** La vidéo de démo (Michou ou CYRILmp4). Un lien collé d'une des deux l'emporte. */ demo?: "michou" | "cyril" };
 
 export const REGLAGES_DEFAUT: Reglages = { credits: 60, pseudo: "", titre: "", secondes: 9, tournage: true };
 

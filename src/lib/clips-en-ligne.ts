@@ -25,7 +25,7 @@ export const idValide = (id: string) => ID.test(id);
 const chemin = (user: string, id: string, f: string) => `lots/${user}/${id}/${f}`;
 const moisCourant = () => new Date().toISOString().slice(0, 7);
 
-export type EtatLot = EtatClips & { options: OptionsClips; source: string; user: string; /** Run Apify en cours (liens YouTube). */ apify?: string; /** Essai Apify en cours (1, 2, 3). */ apifyEssai?: number };
+export type EtatLot = EtatClips & { options: OptionsClips; source: string; user: string; /** Secondes comptées dans les heures du mois (rendues si rien n'est fabriqué). */ secondesComptees?: number; /** Run Apify en cours (liens YouTube). */ apify?: string; /** Essai Apify en cours (1, 2, 3). */ apifyEssai?: number };
 
 /**
  * Lit un petit fichier d'état. Toujours par un lien signé neuf (adresse unique) et sans cache :
@@ -172,6 +172,7 @@ export async function traiterSon(user: string, id: string) {
       throw new Erreur(reste < 60 ? "Tu as utilisé toutes tes heures de vidéo du mois." : `Cette vidéo dépasse les ${String(h).replace(".", ",")} h de vidéo qu'il te reste ce mois-ci.`);
     }
     await compter(user, 0, Math.round(dureeVideo));
+    etat.secondesComptees = Math.round(dureeVideo);
 
     await ecrireEtatLot(user, id, { ...etat, etape: "choix", avancement: 0 });
     const { nombre, type, duree, plage: _plage, ...reglages } = etat.options;
@@ -196,7 +197,7 @@ export async function traiterSon(user: string, id: string) {
     await envoyerRendu(id, { moments, mots: transcription.mots, reglages, depots });
   } catch (e) {
     console.error("traitement du son", id, e);
-    await compter(user, -1);
+    await compter(user, -1, -(etat.secondesComptees ?? 0));
     await ecrireEtatLot(user, id, { ...etat, erreur: e instanceof Erreur ? e.message : "Le montage a échoué. Réessaie dans un instant." });
     await envoyerRendu(id, { moments: [], mots: [], reglages: {}, depots: [], annule: true }).catch(() => {});
     await eteindreLot(id);
@@ -223,14 +224,14 @@ export async function suivreLot(user: string, id: string, corps: { phase: string
     await eteindreLot(id);
   } else if (corps.phase === "erreur") {
     // Diagnostic : le détail technique envoyé par la machine, identifiants masqués.
-    console.error("lot erreur", id, corps.cause ?? "", masquer(String(corps.detail ?? "")).slice(0, 600));
+    console.error("lot erreur", id, corps.cause ?? "", masquer(String(corps.detail ?? "")).slice(-900));
     const phrases: Record<string, string> = {
       bloque: "Cette plateforme bloque le téléchargement. Envoie plutôt le fichier de ta vidéo.",
       illisible: "Ce lien ne mène pas à une vidéo que je peux lire.",
       privee: "Cette vidéo est privée ou n'existe plus.",
       trop_longue: "Cette vidéo est trop longue (2 h maximum).",
     };
-    if (!etat.clips.length) await compter(user, -1);
+    if (!etat.clips.length) await compter(user, -1, -(etat.secondesComptees ?? 0));
     await ecrireEtatLot(user, id, { ...etat, erreur: phrases[corps.cause ?? ""] ?? "Le montage a échoué. Réessaie dans un instant." });
     await eteindreLot(id);
   }

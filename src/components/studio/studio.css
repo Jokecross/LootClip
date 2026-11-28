@@ -1,40 +1,60 @@
 /* Studio de tournage : les clips en grand, avec leur note expliquée. */
 @layer components {
-  .studio-clips { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 12px; align-items: start; width: 100%; margin-top: 14px; }
-  .studio-tel { position: relative; aspect-ratio: 9 / 16; overflow: hidden; border: 2.5px solid var(--color-encre); border-radius: 18px; background: var(--color-encre); box-shadow: 0 6px 0 var(--color-encre); }
+  /* Téléphone : la vidéo à gauche, la note, le titre et les objectifs à droite ; dessous, le pourquoi et les autres clips. */
+  .studio-clips { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); grid-template-areas: "tel infos" "detail detail"; gap: 12px 12px; align-items: start; width: 100%; margin-top: 14px; }
+  .studio-tel { grid-area: tel; position: relative; aspect-ratio: 9 / 16; overflow: hidden; border: 2.5px solid var(--color-encre); border-radius: 18px; background: var(--color-encre); box-shadow: 0 6px 0 var(--color-encre); }
   .studio-rang { position: absolute; right: 8px; top: 8px; z-index: 2; padding: 1px 8px; border: 2px solid var(--color-encre); border-radius: 999px; background: var(--color-blanc); font-size: 11px; font-weight: 800; }
-  .studio-infos { display: flex; min-width: 0; flex-direction: column; gap: 8px; }
+  .studio-infos { grid-area: infos; display: flex; min-width: 0; flex-direction: column; gap: 10px; }
   .studio-note { display: flex; align-items: center; gap: 8px; align-self: flex-start; padding: 4px 12px 4px 10px; border: 2.5px solid var(--color-encre); border-radius: 16px; background: var(--color-jaune); box-shadow: 0 4px 0 var(--color-encre); animation: studio-pop 420ms cubic-bezier(0.3, 1.6, 0.5, 1) both; }
-  .studio-note .titre { font-size: 46px; line-height: 1; }
+  .studio-note .titre { font-size: 44px; line-height: 1; }
   .studio-note b { display: block; font-size: 16px; }
   .studio-note span:last-child { font-size: 11px; font-weight: 700; line-height: 1.1; }
   @keyframes studio-pop { from { opacity: 0; transform: scale(0.6) rotate(-6deg); } }
-  .studio-titre { font-size: 17px; line-height: 1.1; }
-  .studio-label { font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-encre2); }
-  .studio-pourquoi { margin-top: -4px; font-size: 13px; font-weight: 600; line-height: 1.35; }
-  .studio-forces { display: flex; flex-wrap: wrap; gap: 5px; }
-  .studio-forces li { padding: 2px 8px; border: 2px solid var(--color-encre); border-radius: 999px; background: var(--color-turquoise); font-size: 11px; font-weight: 800; }
+  .studio-titre { font-size: 18px; line-height: 1.1; text-wrap: balance; }
+  .studio-stats { display: flex; flex-direction: column; gap: 8px; animation: studio-monte 420ms 120ms ease-out both; }
+  .studio-stats p { display: flex; flex-direction: column; gap: 2px; padding: 7px 10px 8px; border: 2px solid var(--color-encre); border-radius: 14px; background: var(--color-blanc); box-shadow: 0 3px 0 var(--color-encre); }
+  .studio-stats span { font-size: 11px; font-weight: 800; letter-spacing: 0.02em; color: var(--color-encre2); }
+  .studio-stats b { font-size: 24px; line-height: 1; white-space: nowrap; }
+  .studio-stats .studio-stat-argent { background: var(--color-turquoise); }
+  .studio-stats .studio-stat-argent span { color: var(--color-encre); }
+  @keyframes studio-monte { from { opacity: 0; transform: translateY(8px); } }
+  .studio-detail { grid-area: detail; display: flex; min-width: 0; flex-direction: column; gap: 8px; }
+  .studio-label { display: block; margin-bottom: 3px; font-size: 11px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--color-encre2); }
+  .studio-pourquoi { font-size: 14px; font-weight: 700; line-height: 1.35; }
+  .studio-forces { display: flex; flex-wrap: wrap; gap: 6px; }
+  .studio-forces li { padding: 2px 9px; border: 2px solid var(--color-encre); border-radius: 999px; background: var(--color-blanc); font-size: 11px; font-weight: 800; }
+  .studio-mention { font-size: 11px; font-weight: 600; color: var(--color-encre2); }
   .studio-choix { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; margin-top: 2px; }
-  .studio-choix button { position: relative; aspect-ratio: 9 / 16; overflow: hidden; border: 2px solid var(--color-encre); border-radius: 9px; background: var(--color-encre); transition: transform 200ms cubic-bezier(0.3, 1.4, 0.5, 1); }
+  .studio-choix button { position: relative; aspect-ratio: 1 / 1; overflow: hidden; border: 2px solid var(--color-encre); border-radius: 9px; background: var(--color-encre); transition: transform 200ms cubic-bezier(0.3, 1.4, 0.5, 1); }
   .studio-choix button[aria-selected="true"] { transform: translateY(-4px); box-shadow: 0 0 0 2px var(--color-fond), 0 0 0 4.5px var(--color-rose); }
   .studio-choix img, .studio-choix video { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   .studio-choix span { position: absolute; inset: auto 2px 2px; border: 1.5px solid var(--color-encre); border-radius: 6px; background: var(--color-jaune); font-size: 10px; font-weight: 800; line-height: 14px; text-align: center; }
   .studio-choix button[aria-selected="true"] span { background: var(--color-rose); }
   @media (min-width: 1024px) {
-    .studio-clips { grid-template-columns: minmax(0, 300px) minmax(0, 1fr); gap: 36px; align-items: center; margin-top: 0; }
+    /* Ordinateur : la vidéo à gauche sur toute la hauteur ; à droite la note, le titre, les objectifs, puis le reste. */
+    /* L'écran des clips prend plus de place à droite que les autres écrans du studio. */
+    .ob-large .ob-corps:has(.studio-clips) { grid-template-columns: minmax(0, 0.5fr) minmax(0, 1.5fr); }
+    .studio-clips { grid-template-columns: minmax(0, 300px) minmax(0, 1fr); grid-template-areas: "tel infos" "tel detail"; gap: 22px 40px; align-items: start; margin-top: 0; }
     .studio-tel { border-radius: 26px; box-shadow: 0 9px 0 var(--color-encre); }
     .studio-rang { font-size: 13px; padding: 2px 10px; }
-    .studio-infos { gap: 12px; }
+    .studio-infos { gap: 14px; }
     .studio-note { padding: 6px 18px 6px 14px; border-radius: 20px; }
-    .studio-note .titre { font-size: 84px; }
-    .studio-note b { font-size: 24px; }
+    .studio-note .titre { font-size: 76px; }
+    .studio-note b { font-size: 22px; }
     .studio-note span:last-child { font-size: 14px; }
-    .studio-titre { font-size: 28px; }
+    .studio-titre { font-size: 30px; }
+    .studio-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 520px; }
+    .studio-stats p { padding: 12px 16px 14px; border-radius: 18px; box-shadow: 0 4px 0 var(--color-encre); }
+    .studio-stats span { font-size: 13px; }
+    .studio-stats b { font-size: 32px; }
+    .studio-detail { gap: 14px; max-width: 560px; }
     .studio-label { font-size: 13px; }
-    .studio-pourquoi { font-size: 18px; }
+    .studio-pourquoi { font-size: 19px; }
     .studio-forces { gap: 8px; }
     .studio-forces li { padding: 4px 12px; font-size: 14px; }
-    .studio-choix { max-width: 330px; gap: 10px; }
+    .studio-choix { max-width: 420px; gap: 10px; }
+    .studio-choix button { aspect-ratio: 3 / 4; }
     .studio-choix span { font-size: 12px; line-height: 17px; }
+    .studio-mention { font-size: 13px; }
   }
 }

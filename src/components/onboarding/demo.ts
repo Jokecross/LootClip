@@ -23,3 +23,39 @@ export const DEMO = {
     { nom: "demo/clip-4", titre: "Un chien en jet ski vient me sauver", score: 78, duree: "0:28", debut: 24.7, largeur: 5, pourquoi: "Un easter egg improbable, prouvé à l'écran.", forces: ["Easter egg rare", "Preuve à l'écran", "Fin surprenante"] },
   ],
 };
+
+export type Demo = typeof DEMO;
+
+/*
+ * Deuxième démo, pour le studio de tournage seulement (pas la landing ni l'onboarding), ajoutée le 28/11/2026
+ * sur demande de Martin. Vidéo de CYRILmp4, passée pour de vrai dans le moteur (4 clips courts, réglages par défaut,
+ * notes réelles). Fichiers dans public/v4/demo-cyril (extraits de 10 s, 432×768, sans son, comme ceux de Michou).
+ * Même avertissement que pour Michou : droit d'auteur et droit à l'image du créateur.
+ */
+export const DEMO_CYRIL: Demo = {
+  lien: "youtu.be/1M8SUwBob5s",
+  plateforme: "YouTube",
+  chaine: "CYRILmp4",
+  titreVideo: "GTA 6 mais c'est en FRANCE !",
+  duree: "13:19",
+  dureeTexte: "13 min",
+  avant: "demo-cyril/clip-4",
+  sousTitresDessines: false,
+  clips: [
+    { nom: "demo-cyril/clip-1", titre: "Le SAMU français se fait flasher par un radar", score: 82, duree: "0:31", debut: 70.1, largeur: 5, pourquoi: "Situation absurde, répliques drôles et chute sur le radar.", forces: ["Humour absurde", "Répliques cultes", "Chute sur le radar"] },
+    { nom: "demo-cyril/clip-2", titre: "GTA en France avec François Damiens", score: 76, duree: "0:32", debut: 89.8, largeur: 5, pourquoi: "Idée de scénario drôle et référence culturelle très française.", forces: ["Idée originale", "Référence française", "Chute en pirouette"] },
+    { nom: "demo-cyril/clip-3", titre: "Les panneaux français dans GTA, c'est trop vrai", score: 72, duree: "0:35", debut: 7.1, largeur: 5, pourquoi: "Clichés français reconnaissables par tous, enchaînés avec humour.", forces: ["Clichés français", "Réactions spontanées", "Très partageable"] },
+    { nom: "demo-cyril/clip-4", titre: "Et si GTA se passait en France ?", score: 62, duree: "0:33", debut: 1.4, largeur: 5, pourquoi: "Concept accrocheur qui parle à tous les fans de GTA.", forces: ["Concept accrocheur", "Humour de clichés", "Promesse claire"] },
+  ],
+};
+
+/** Les démos du studio de tournage, au choix dans la régie. */
+export const DEMOS = { michou: DEMO, cyril: DEMO_CYRIL } as const;
+export type NomDemo = keyof typeof DEMOS;
+
+/** La démo dont le lien collé est la vidéo (même identifiant YouTube), sinon null. */
+export function demoDuLien(lien: string): NomDemo | null {
+  const id = lien.match(/(?:youtu\.be\/|[?&]v=|\/shorts\/|\/live\/)([\w-]{11})/)?.[1];
+  if (!id) return null;
+  return (Object.keys(DEMOS) as NomDemo[]).find((k) => DEMOS[k].lien.endsWith(id)) ?? null;
+}

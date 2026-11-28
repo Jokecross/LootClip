@@ -14,7 +14,7 @@ import { LancerLien } from "@/components/accueil/ChampLien";
 import { Landing } from "@/components/accueil/Landing";
 import { ReglagesCompacts } from "@/components/clips/ReglagesCompacts";
 import { Cadre, Progression, Question } from "@/components/onboarding/Cadre";
-import { DEMO } from "@/components/onboarding/demo";
+import { DEMOS, demoDuLien, type Demo } from "@/components/onboarding/demo";
 import { ecranActivite, ecranDestinations, ecranObjectif, ecranPlan, ecranRythme, ecranStyle, ecranTiktok, REPERE_RYTHME } from "@/components/onboarding/Ecrans";
 import { Confettis } from "@/components/studio/Confettis";
 import { MontageReel, Programmation, PUBLICATION_DEFAUT, quand, Recommandation, recommander, VitrineClips, type ClipVitrine, type Publication } from "@/components/studio/EcransStudio";
@@ -77,6 +77,8 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
     poserTournage(regl.tournage);
   }, [regl.tournage]);
 
+  // La démo : celle du lien collé si c'est l'une des deux vidéos, sinon celle choisie dans la régie.
+  const DEMO: Demo = DEMOS[demoDuLien(lienColle) ?? regl.demo ?? "michou"];
   const lien = regl.lien?.trim() || DEMO.lien;
   const pseudo = regl.pseudo || hasard;
   const repondre = (x: Reponses) => setR((v) => ({ ...v, ...x }));
@@ -162,6 +164,31 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
         gauche: <Question avant="Studio de tournage" sous="Cette page, personne ne la voit. Le tournage commence après.">Prêt à filmer ?</Question>,
         droite: (
           <div className="ob-carte surgit">
+            <fieldset className="flex flex-col gap-2">
+              <legend className="mb-2 text-[14px] font-bold">Vidéo de la démo</legend>
+              <div className="grid grid-cols-2 gap-3">
+                {(Object.keys(DEMOS) as (keyof typeof DEMOS)[]).map((k) => {
+                  const d = DEMOS[k];
+                  const choisie = (regl.demo ?? "michou") === k;
+                  return (
+                    <button
+                      key={k}
+                      type="button"
+                      aria-pressed={choisie}
+                      onClick={() => regler({ demo: k })}
+                      className={`flex min-w-0 flex-col overflow-hidden rounded-2xl border-2 border-encre text-left ${choisie ? "bg-jaune shadow-[0_4px_0_var(--color-encre)]" : "bg-blanc opacity-70"}`}
+                    >
+                      <img src={`/v4/${d.clips[0].nom}.webp`} alt="" width={432} height={768} className="aspect-[4/5] w-full border-b-2 border-encre object-cover" />
+                      <span className="block px-2.5 pb-2.5 pt-2">
+                        <b className="block truncate text-[14px]">{d.chaine}</b>
+                        <span className="line-clamp-2 block text-[12px] font-semibold leading-tight text-encre2">{d.titreVideo}</span>
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-[12px] text-encre2">Colle le lien de l&apos;une des deux sur la landing : ses clips s&apos;affichent tout seuls.</p>
+            </fieldset>
             <Champ libelle="Lien qui s'écrit à l'écran" exemple={DEMO.lien} valeur={regl.lien ?? ""} changer={(v) => regler({ lien: v })} />
             <Champ libelle="Pseudo montré à la publication" exemple={hasard || "Au hasard à chaque prise"} valeur={regl.pseudo} changer={(v) => regler({ pseudo: v.replace(/\s/g, "") })} />
             <Champ libelle="Clips restants au départ" numerique valeur={String(regl.credits)} changer={(v) => regler({ credits: Math.max(0, Math.min(999, Number(v.replace(/\D/g, "")) || 0)) })} />
@@ -257,7 +284,7 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
             }}
           />
         ) : (
-          <Montage secondes={regl.secondes} fini={() => fini()} />
+          <Montage secondes={regl.secondes} fini={() => fini()} demo={DEMO} />
         ),
       };
       break;
@@ -273,7 +300,7 @@ export function PlateauClips({ direct = false }: { direct?: boolean }) {
             </Question>
           </>
         ),
-        droite: <VitrineClips nombre={options.nombre} clips={vrais ?? undefined} />,
+        droite: <VitrineClips nombre={options.nombre} clips={vrais ?? undefined} demo={DEMO} />,
         large: true,
       };
       bouton = { libelle: "Poster mes clips", faire: suivant };
@@ -349,7 +376,7 @@ function Champ({ libelle, valeur, changer, numerique, exemple }: { exemple?: str
 }
 
 /** Le suivi du montage, en accéléré : les étapes se cochent, les moments apparaissent avec leur note. */
-function Montage({ secondes, fini }: { secondes: number; fini: () => void }) {
+function Montage({ secondes, fini, demo: DEMO }: { secondes: number; fini: () => void; demo: Demo }) {
   const [t, setT] = useState(0);
   const total = secondes * 1000;
   useEffect(() => {
